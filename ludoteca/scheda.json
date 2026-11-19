@@ -1,0 +1,9 @@
+{
+  "titolo": "Combat Master",
+  "sottotitolo": "Prova di gioco · in sviluppo",
+  "descrizione": "Schermaglie fantasy uno contro uno: componi il tuo combattente con token di caratteristiche, armi, armature, mosse e talenti, poi piazza i dadi, spingi la fortuna e rubati l'iniziativa in un'arena 3D a esagoni. Contro l'IA o in due sullo stesso schermo.",
+  "online": false,
+  "sezione": "originale",
+  "generi": ["Fantasy", "Dadi", "Schermaglie"],
+  "ordine": 45
+}

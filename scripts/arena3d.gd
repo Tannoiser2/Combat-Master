@@ -1,0 +1,722 @@
+class_name Arena3D
+extends Node3D
+## Arena 3D a esagoni: tessere, colonne, bracieri, combattenti, evidenziazioni,
+## animazioni degli eventi del motore e telecamera orbitale (mouse e tocco su iPad:
+## un dito trascina, due dita pizzicano per lo zoom e ruotano).
+
+signal esagono_premuto(h: Vector2i, punto: Vector3)
+signal animazioni_finite
+
+const S := 1.0
+const SQ3 := 1.7320508
+
+var m: Motore
+var blocca_input: Callable = func(_p): return false
+
+var pivot := Node3D.new()
+var cam := Camera3D.new()
+var yaw := 0.0
+var pitch := deg_to_rad(52.0)
+var distanza := 15.0
+var spostamento_v := 0.0     # sposta l'immagine in su per lasciare spazio ai pannelli in basso
+var spostamento_h := 0.0     # e a sinistra per il diario
+
+var _tessere := Node3D.new()
+var _evid := Node3D.new()
+var _effetti := Node3D.new()
+var figure: Array[Node3D] = []
+var _corpi: Array[MeshInstance3D] = []
+var _frecce: Array = []        # [Vector3 centro, dir]
+
+var _coda: Array = []
+var _occupato := false
+
+var _tocchi := {}
+var _trascinato := false
+var _premuto_pos := Vector2.ZERO
+var _tasto := -1
+
+func _ready() -> void:
+	add_child(pivot)
+	pivot.add_child(cam)
+	cam.fov = 45
+	cam.current = true
+	add_child(_tessere)
+	add_child(_evid)
+	add_child(_effetti)
+	var env := WorldEnvironment.new()
+	var e := Environment.new()
+	e.background_mode = Environment.BG_COLOR
+	e.background_color = Color("#120e0b")
+	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	e.ambient_light_color = Color("#8a7a68")
+	e.ambient_light_energy = 0.55
+	e.fog_enabled = true
+	e.fog_light_color = Color("#1d1612")
+	e.fog_density = 0.012
+	env.environment = e
+	add_child(env)
+	var sole := DirectionalLight3D.new()
+	sole.rotation_degrees = Vector3(-55, -35, 0)
+	sole.light_energy = 1.05
+	sole.light_color = Color("#ffe6c4")
+	sole.shadow_enabled = true
+	sole.directional_shadow_max_distance = 40
+	add_child(sole)
+	_aggiorna_cam()
+	get_viewport().size_changed.connect(_aggiorna_cam)
+
+# ---------------------------------------------------------------- coordinate
+
+static func mondo(h: Vector2i) -> Vector3:
+	return Vector3(1.5 * h.x * S, 0, SQ3 * (h.y + h.x * 0.5) * S)
+
+static func da_mondo(p: Vector3) -> Vector2i:
+	var q := p.x / (1.5 * S)
+	var r := p.z / (SQ3 * S) - q * 0.5
+	return Motore._arrotonda_cubo(q, r)
+
+static func vettore_dir(d: int) -> Vector3:
+	return mondo(Motore.DIRS[d]).normalized()
+
+static func angolo_y(d: int) -> float:
+	var v := vettore_dir(d)
+	return atan2(-v.x, -v.z)
+
+# ---------------------------------------------------------------- costruzione
+
+func costruisci(motore: Motore) -> void:
+	m = motore
+	for c in _tessere.get_children():
+		c.queue_free()
+	for f in figure:
+		f.queue_free()
+	figure.clear()
+	_corpi.clear()
+	_coda.clear()
+	_occupato = false
+	var R: int = m.s["raggio"]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(m.s["arena"])
+	var mesh_t := CylinderMesh.new()
+	mesh_t.top_radius = 0.97 * S
+	mesh_t.bottom_radius = 0.99 * S
+	mesh_t.height = 0.3
+	mesh_t.radial_segments = 6
+	mesh_t.rings = 1
+	var mesh_o := CylinderMesh.new()
+	mesh_o.top_radius = 0.72 * S
+	mesh_o.bottom_radius = 0.86 * S
+	mesh_o.height = 1.7
+	mesh_o.radial_segments = 6
+	var pietre := []
+	for i in 4:
+		var mt := StandardMaterial3D.new()
+		mt.albedo_color = Color("#8b7d6b").darkened(0.08 * i).lerp(Color("#7a6a52"), 0.25 * (i % 2))
+		mt.roughness = 0.95
+		pietre.append(mt)
+	var mat_o := StandardMaterial3D.new()
+	mat_o.albedo_color = Color("#5d554c")
+	mat_o.roughness = 1.0
+	var mat_f := StandardMaterial3D.new()
+	mat_f.albedo_color = Color("#3a2016")
+	mat_f.emission_enabled = true
+	mat_f.emission = Color("#ff6a1a")
+	mat_f.emission_energy_multiplier = 1.6
+	for q in range(-R, R + 1):
+		for r in range(-R, R + 1):
+			var h := Vector2i(q, r)
+			if Motore.dist(h, Vector2i.ZERO) > R:
+				continue
+			var t := MeshInstance3D.new()
+			t.mesh = mesh_t
+			t.rotation.y = deg_to_rad(30)
+			t.position = mondo(h) + Vector3(0, -0.15 - rng.randf() * 0.03, 0)
+			t.material_override = pietre[rng.randi() % pietre.size()]
+			if m.s["per"].has(h):
+				t.material_override = mat_f
+				_braciere(h)
+			_tessere.add_child(t)
+			if m.s["ost"].has(h):
+				var o := MeshInstance3D.new()
+				o.mesh = mesh_o
+				o.rotation.y = deg_to_rad(30 + rng.randf_range(-8, 8))
+				o.position = mondo(h) + Vector3(0, 0.85, 0)
+				o.material_override = mat_o
+				_tessere.add_child(o)
+				var cap := MeshInstance3D.new()
+				var cm := CylinderMesh.new()
+				cm.top_radius = 0.9 * S
+				cm.bottom_radius = 0.9 * S
+				cm.height = 0.18
+				cm.radial_segments = 6
+				cap.mesh = cm
+				cap.rotation.y = o.rotation.y
+				cap.position = mondo(h) + Vector3(0, 1.75, 0)
+				cap.material_override = pietre[0]
+				_tessere.add_child(cap)
+	# terreno attorno e torce
+	var suolo := MeshInstance3D.new()
+	var pm := CylinderMesh.new()
+	pm.top_radius = (R + 5) * 1.8
+	pm.bottom_radius = pm.top_radius
+	pm.height = 0.1
+	pm.radial_segments = 48
+	suolo.mesh = pm
+	suolo.position = Vector3(0, -0.36, 0)
+	var ms := StandardMaterial3D.new()
+	ms.albedo_color = Color("#2b2119")
+	ms.roughness = 1.0
+	suolo.material_override = ms
+	_tessere.add_child(suolo)
+	for i in 8:
+		var a := TAU * i / 8.0 + 0.2
+		_torcia(Vector3(cos(a), 0, sin(a)) * (R * 1.62 + 1.6))
+	for i in 2:
+		_crea_figura(i)
+	sincronizza()
+	distanza = 9.0 + R * 1.3
+	_aggiorna_cam()
+
+func _braciere(h: Vector2i) -> void:
+	var f := MeshInstance3D.new()
+	var sm := SphereMesh.new()
+	sm.radius = 0.22
+	sm.height = 0.5
+	f.mesh = sm
+	var mf := StandardMaterial3D.new()
+	mf.albedo_color = Color("#ffb040")
+	mf.emission_enabled = true
+	mf.emission = Color("#ff7a20")
+	mf.emission_energy_multiplier = 3.0
+	mf.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	f.material_override = mf
+	f.position = mondo(h) + Vector3(0, 0.2, 0)
+	_tessere.add_child(f)
+	var tw := f.create_tween().set_loops()
+	tw.tween_property(f, "scale", Vector3(1.15, 1.35, 1.15), 0.5)
+	tw.tween_property(f, "scale", Vector3(0.9, 0.85, 0.9), 0.6)
+
+func _torcia(p: Vector3) -> void:
+	var palo := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = 0.08
+	cm.bottom_radius = 0.12
+	cm.height = 2.2
+	palo.mesh = cm
+	var mp := StandardMaterial3D.new()
+	mp.albedo_color = Color("#3b2a1c")
+	palo.material_override = mp
+	palo.position = p + Vector3(0, 0.8, 0)
+	_tessere.add_child(palo)
+	var fi := MeshInstance3D.new()
+	var sm := SphereMesh.new()
+	sm.radius = 0.2
+	sm.height = 0.45
+	fi.mesh = sm
+	var mf := StandardMaterial3D.new()
+	mf.albedo_color = Color("#ffc060")
+	mf.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	fi.material_override = mf
+	fi.position = p + Vector3(0, 2.0, 0)
+	_tessere.add_child(fi)
+	var l := OmniLight3D.new()
+	l.light_color = Color("#ff9a40")
+	l.light_energy = 1.6
+	l.omni_range = 7.0
+	l.position = p + Vector3(0, 2.1, 0)
+	_tessere.add_child(l)
+
+func _mat(c: Color, rough := 0.7, metal := 0.0) -> StandardMaterial3D:
+	var mt := StandardMaterial3D.new()
+	mt.albedo_color = c
+	mt.roughness = rough
+	mt.metallic = metal
+	return mt
+
+func _mesh(mesh: Mesh, mat: Material, pos: Vector3, parent: Node3D, rot := Vector3.ZERO) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mat
+	mi.position = pos
+	mi.rotation = rot
+	parent.add_child(mi)
+	return mi
+
+## Combattente fatto di forme semplici; l'arma dipende dai token della scheda.
+func _crea_figura(i: int) -> void:
+	var g: Dictionary = m.s["g"][i]
+	var toks: Dictionary = g["pg"]["token"]
+	var radice := Node3D.new()
+	radice.scale = Vector3.ONE * 1.25
+	add_child(radice)
+	var corpo := Node3D.new()
+	corpo.name = "Corpo"
+	radice.add_child(corpo)
+	var colp: Color = Disegno.GIOCATORI[i]
+	var base := CylinderMesh.new()
+	base.top_radius = 0.46
+	base.bottom_radius = 0.5
+	base.height = 0.1
+	_mesh(base, _mat(colp, 0.5, 0.3), Vector3(0, 0.05, 0), radice)
+	var punta := PrismMesh.new()
+	punta.size = Vector3(0.36, 0.3, 0.06)
+	_mesh(punta, _mat(colp.lightened(0.3), 0.4), Vector3(0, 0.11, -0.5), radice, Vector3(-PI / 2, 0, 0))
+	# colore dominante della scheda per la veste
+	var dom := "rosso"
+	var maxd := -1
+	var st := Motore.statistiche(m.cat, g["pg"])
+	for c in st["dadi"]:
+		if st["dadi"][c] > maxd:
+			maxd = st["dadi"][c]
+			dom = c
+	var veste := Disegno.colore(dom).darkened(0.2)
+	var busto := CapsuleMesh.new()
+	busto.radius = 0.22
+	busto.height = 0.95
+	var mb := _mesh(busto, _mat(veste, 0.8), Vector3(0, 0.62, 0), corpo)
+	_corpi.append(mb)
+	var testa := SphereMesh.new()
+	testa.radius = 0.15
+	testa.height = 0.3
+	_mesh(testa, _mat(Color("#d9b48f"), 0.8), Vector3(0, 1.22, 0), corpo)
+	var elmo := SphereMesh.new()
+	elmo.radius = 0.165
+	elmo.height = 0.2
+	elmo.is_hemisphere = true
+	var metallo := _mat(Color("#9aa3ab"), 0.35, 0.8)
+	if toks.has("piastre") or toks.has("maglia"):
+		_mesh(elmo, metallo, Vector3(0, 1.26, 0), corpo)
+		var spalle := BoxMesh.new()
+		spalle.size = Vector3(0.62, 0.12, 0.3)
+		_mesh(spalle, metallo, Vector3(0, 0.98, 0), corpo)
+	elif toks.has("mente") and int(toks["mente"]) >= 2:
+		var cappello := CylinderMesh.new()
+		cappello.top_radius = 0.0
+		cappello.bottom_radius = 0.2
+		cappello.height = 0.45
+		_mesh(cappello, _mat(Disegno.colore("viola").darkened(0.3)), Vector3(0, 1.5, 0), corpo)
+	# armi: mano destra (x positivo) avanti
+	var legno := _mat(Color("#6b4a2b"), 0.9)
+	var lama := _mat(Color("#cfd6dc"), 0.25, 0.9)
+	if toks.has("spada"):
+		var b := BoxMesh.new()
+		b.size = Vector3(0.06, 0.05, 0.85)
+		_mesh(b, lama, Vector3(0.32, 0.75, -0.42), corpo)
+		var el := BoxMesh.new()
+		el.size = Vector3(0.24, 0.05, 0.05)
+		_mesh(el, _mat(Color("#b08d57"), 0.4, 0.7), Vector3(0.32, 0.75, -0.02), corpo)
+	if toks.has("ascia"):
+		var manico := CylinderMesh.new()
+		manico.top_radius = 0.03
+		manico.bottom_radius = 0.03
+		manico.height = 1.0
+		_mesh(manico, legno, Vector3(0.34, 0.85, -0.2), corpo, Vector3(-0.5, 0, 0))
+		var testa_a := BoxMesh.new()
+		testa_a.size = Vector3(0.05, 0.32, 0.26)
+		_mesh(testa_a, lama, Vector3(0.34, 1.25, -0.45), corpo, Vector3(-0.5, 0, 0))
+	if toks.has("lancia"):
+		var asta := CylinderMesh.new()
+		asta.top_radius = 0.025
+		asta.bottom_radius = 0.025
+		asta.height = 1.9
+		_mesh(asta, legno, Vector3(0.3, 0.8, -0.5), corpo, Vector3(-PI / 2 + 0.15, 0, 0))
+		var pt := CylinderMesh.new()
+		pt.top_radius = 0.0
+		pt.bottom_radius = 0.06
+		pt.height = 0.25
+		_mesh(pt, lama, Vector3(0.3, 0.94, -1.45), corpo, Vector3(-PI / 2 + 0.15, 0, 0))
+	if toks.has("pugnali"):
+		for sx in [-1, 1]:
+			var pg := BoxMesh.new()
+			pg.size = Vector3(0.04, 0.04, 0.34)
+			_mesh(pg, lama, Vector3(0.3 * sx, 0.7, -0.3), corpo)
+	if toks.has("arco"):
+		var arco := TorusMesh.new()
+		arco.inner_radius = 0.42
+		arco.outer_radius = 0.47
+		_mesh(arco, legno, Vector3(-0.3, 0.8, -0.2), corpo, Vector3(0, 0, PI / 2))
+	if toks.has("bastone"):
+		var bs := CylinderMesh.new()
+		bs.top_radius = 0.035
+		bs.bottom_radius = 0.035
+		bs.height = 1.5
+		_mesh(bs, legno, Vector3(0.34, 0.8, -0.15), corpo)
+		var gemma := SphereMesh.new()
+		gemma.radius = 0.1
+		gemma.height = 0.2
+		var mg := _mat(Color("#c79cff"))
+		mg.emission_enabled = true
+		mg.emission = Color("#9d5cff")
+		mg.emission_energy_multiplier = 2.0
+		_mesh(gemma, mg, Vector3(0.34, 1.6, -0.15), corpo)
+	if toks.has("scudo"):
+		var sc := CylinderMesh.new()
+		sc.top_radius = 0.32
+		sc.bottom_radius = 0.32
+		sc.height = 0.06
+		_mesh(sc, _mat(colp.darkened(0.35), 0.6, 0.3), Vector3(-0.32, 0.7, -0.22), corpo, Vector3(PI / 2, 0, 0.3))
+	if not (toks.has("spada") or toks.has("ascia") or toks.has("lancia") or toks.has("pugnali") or toks.has("bastone")):
+		var pugno := SphereMesh.new()
+		pugno.radius = 0.09
+		pugno.height = 0.18
+		_mesh(pugno, _mat(Color("#d9b48f")), Vector3(0.3, 0.7, -0.25), corpo)
+	var nome := Label3D.new()
+	nome.text = g["nome"]
+	nome.font = Disegno.font_titolo()
+	nome.font_size = 52
+	nome.pixel_size = 0.006
+	nome.outline_size = 14
+	nome.modulate = colp.lightened(0.35)
+	nome.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	nome.no_depth_test = true
+	nome.position = Vector3(0, 1.85, 0)
+	nome.name = "Nome"
+	radice.add_child(nome)
+	figure.append(radice)
+
+## Mette le figure dove dice lo stato (senza animazione).
+func mostra_nomi(si: bool) -> void:
+	for f in figure:
+		f.get_node("Nome").visible = si
+
+func sincronizza() -> void:
+	for i in figure.size():
+		var g: Dictionary = m.s["g"][i]
+		figure[i].position = mondo(g["pos"])
+		figure[i].rotation = Vector3(0, angolo_y(g["dir"]), 0)
+		var corpo: Node3D = figure[i].get_node("Corpo")
+		corpo.rotation = Vector3.ZERO
+		corpo.position = Vector3.ZERO
+		if g["vita"] <= 0:
+			corpo.rotation.x = -PI / 2.2
+			corpo.position.y = 0.25
+
+# ---------------------------------------------------------------- evidenziazioni
+
+func pulisci_evidenza() -> void:
+	for c in _evid.get_children():
+		c.queue_free()
+	_frecce.clear()
+
+func evidenzia(esagoni: Array, c: Color) -> void:
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.9 * S
+	mesh.bottom_radius = 0.9 * S
+	mesh.height = 0.04
+	mesh.radial_segments = 6
+	var mt := StandardMaterial3D.new()
+	mt.albedo_color = Color(c, 0.62)
+	mt.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mt.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mt.emission_enabled = true
+	mt.emission = c
+	mt.emission_energy_multiplier = 1.4
+	for h in esagoni:
+		var mi := MeshInstance3D.new()
+		mi.mesh = mesh
+		mi.material_override = mt
+		mi.rotation.y = deg_to_rad(30)
+		mi.position = mondo(h) + Vector3(0, 0.05, 0)
+		_evid.add_child(mi)
+
+## Frecce di orientamento attorno a un esagono; si scelgono toccandole.
+func mostra_direzioni(h: Vector2i, dirs: Array) -> void:
+	var mesh := PrismMesh.new()
+	mesh.size = Vector3(0.42, 0.36, 0.08)
+	var mt := StandardMaterial3D.new()
+	mt.albedo_color = Disegno.ORO
+	mt.emission_enabled = true
+	mt.emission = Disegno.ORO
+	mt.emission_energy_multiplier = 0.8
+	mt.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	for d in dirs:
+		var c := mondo(h) + vettore_dir(d) * 0.62 + Vector3(0, 0.08, 0)
+		var mi := MeshInstance3D.new()
+		mi.mesh = mesh
+		mi.material_override = mt
+		mi.position = c
+		mi.rotation = Vector3(-PI / 2, angolo_y(d), 0)
+		_evid.add_child(mi)
+		_frecce.append([c, d])
+
+func freccia_in(p: Vector3) -> int:
+	var best := -1
+	var bd := 0.36
+	for f in _frecce:
+		var dd := Vector2(p.x - f[0].x, p.z - f[0].z).length()
+		if dd < bd:
+			bd = dd
+			best = f[1]
+	return best
+
+# ---------------------------------------------------------------- animazioni
+
+func occupato() -> bool:
+	return _occupato or not _coda.is_empty()
+
+func accoda(eventi: Array) -> void:
+	for e in eventi:
+		_coda.append(e)
+	if not _occupato:
+		_prossimo()
+
+func _prossimo() -> void:
+	if _coda.is_empty():
+		_occupato = false
+		animazioni_finite.emit()
+		return
+	_occupato = true
+	var e: Dictionary = _coda.pop_front()
+	var tw := _anima(e)
+	if tw == null:
+		_prossimo.call_deferred()
+	else:
+		tw.finished.connect(_prossimo, CONNECT_ONE_SHOT)
+
+func _anima(e: Dictionary) -> Tween:
+	var p: int = e.get("p", 0)
+	if p < 0 or p >= figure.size():
+		return null
+	var f := figure[p]
+	var corpo: Node3D = f.get_node("Corpo")
+	match e["t"]:
+		"muovi", "spinto":
+			var per: Array = e["percorso"]
+			if per.is_empty():
+				return null
+			var tw := create_tween()
+			var dur := 0.2 if e["t"] == "muovi" else 0.12
+			var rot_prec := f.rotation.y
+			for st in per:
+				var pos := mondo(Vector2i(st.x, st.y))
+				var ry := angolo_y(st.z) if e["t"] == "muovi" else f.rotation.y
+				ry = rot_prec + wrapf(ry - rot_prec, -PI, PI)
+				rot_prec = ry
+				tw.tween_property(f, "position", pos, dur)
+				tw.parallel().tween_property(f, "rotation:y", ry, dur)
+			return tw
+		"salto":
+			var tw := create_tween()
+			tw.tween_property(f, "scale", Vector3(0.05, 1.4, 0.05), 0.18)
+			tw.tween_callback(func():
+				f.position = mondo(e["pos"])
+				f.rotation.y = angolo_y(e["dir"]))
+			tw.tween_property(f, "scale", Vector3.ONE, 0.2)
+			return tw
+		"attacco":
+			var b: Node3D = figure[e["bers"]]
+			var v := (b.position - f.position)
+			v.y = 0
+			var tw := create_tween()
+			if int(e.get("dist", 1)) <= 2:
+				var avanti := f.global_transform.basis.inverse() * (v.normalized() * 0.5)
+				tw.tween_property(corpo, "position", avanti, 0.12).set_trans(Tween.TRANS_QUAD)
+				tw.tween_property(corpo, "position", Vector3.ZERO, 0.2)
+			else:
+				var pr := MeshInstance3D.new()
+				var sm := SphereMesh.new()
+				sm.radius = 0.1
+				sm.height = 0.2
+				pr.mesh = sm
+				var mt := _mat(Color("#ffe9a0"))
+				mt.emission_enabled = true
+				mt.emission = Color("#ffd060")
+				mt.emission_energy_multiplier = 3
+				mt.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+				pr.material_override = mt
+				pr.position = f.position + Vector3(0, 0.9, 0)
+				_effetti.add_child(pr)
+				tw.tween_property(pr, "position", b.position + Vector3(0, 0.9, 0), 0.08 * v.length() + 0.1)
+				tw.tween_callback(pr.queue_free)
+			return tw
+		"danno":
+			var n: int = e["n"]
+			_testo(f.position + Vector3(0, 1.6, 0), ("-%d" % n) if n > 0 else "nessun danno", Color("#ff5a40") if n > 0 else Color("#d8d0c0"))
+			var tw := create_tween()
+			if n > 0:
+				for k in 3:
+					tw.tween_property(corpo, "position:x", 0.08, 0.04)
+					tw.tween_property(corpo, "position:x", -0.08, 0.04)
+				tw.tween_property(corpo, "position:x", 0.0, 0.04)
+			tw.tween_interval(0.35)
+			return tw
+		"schiva":
+			_testo(f.position + Vector3(0, 1.6, 0), "Schivata!", Color("#8cc8ff"))
+			var tw := create_tween()
+			tw.tween_property(corpo, "position:x", -0.35, 0.12)
+			tw.tween_property(corpo, "position:x", 0.0, 0.2)
+			return tw
+		"para":
+			_testo(f.position + Vector3(0, 1.6, 0), "Parata", Disegno.ORO)
+			var tw := create_tween()
+			tw.tween_interval(0.35)
+			return tw
+		"blocco":
+			_testo(f.position + Vector3(0, 2.1, 0), ("%d dadi bloccati" % e["n"]) if e["n"] > 1 else "dado bloccato", Color("#c79cff"))
+			var tw := create_tween()
+			tw.tween_interval(0.4)
+			return tw
+		"cura":
+			_testo(f.position + Vector3(0, 1.6, 0), "+%d" % e["n"], Color("#7fe08a"))
+			var tw := create_tween()
+			tw.tween_interval(0.4)
+			return tw
+		"fallito":
+			_testo(f.position + Vector3(0, 1.6, 0), "Fallito!", Color("#ff8a40"))
+			var tw := create_tween()
+			tw.tween_interval(0.5)
+			return tw
+		"ko":
+			var tw := create_tween()
+			tw.tween_property(corpo, "rotation:x", -PI / 2.2, 0.6).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+			tw.parallel().tween_property(corpo, "position:y", 0.25, 0.6)
+			return tw
+	return null
+
+func _testo(p: Vector3, t: String, c: Color) -> void:
+	var l := Label3D.new()
+	l.text = t
+	l.font = Disegno.font_titolo()
+	l.font_size = 64
+	l.pixel_size = 0.006
+	l.outline_size = 16
+	l.modulate = c
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.no_depth_test = true
+	l.position = p
+	_effetti.add_child(l)
+	var tw := l.create_tween()
+	tw.tween_property(l, "position:y", p.y + 0.9, 1.1)
+	tw.parallel().tween_property(l, "modulate:a", 0.0, 1.1).set_delay(0.4)
+	tw.tween_callback(l.queue_free)
+
+# ---------------------------------------------------------------- telecamera e input
+
+## In verticale (iPad girato) si fissa l'ampiezza orizzontale, così l'arena resta intera.
+func _adatta_aspetto() -> void:
+	var vs := get_viewport().get_visible_rect().size
+	if vs.y <= 0:
+		return
+	if vs.x / vs.y < 1.25:
+		cam.keep_aspect = Camera3D.KEEP_WIDTH
+		cam.fov = 62
+	else:
+		cam.keep_aspect = Camera3D.KEEP_HEIGHT
+		cam.fov = 45
+
+func _aggiorna_cam() -> void:
+	_adatta_aspetto()
+	pitch = clampf(pitch, deg_to_rad(18), deg_to_rad(85))
+	distanza = clampf(distanza, 5.0, 36.0)
+	var off := Vector3(sin(yaw) * cos(pitch), sin(pitch), cos(yaw) * cos(pitch)) * distanza
+	cam.transform = Transform3D(Basis.looking_at(-off, Vector3.UP), off)
+	cam.v_offset = -distanza * spostamento_v
+	cam.h_offset = distanza * spostamento_h
+	var R := 8.0 if m == null else float(m.s["raggio"]) * 1.6
+	pivot.position.x = clampf(pivot.position.x, -R, R)
+	pivot.position.z = clampf(pivot.position.z, -R, R)
+
+func ruota_vista(d: float) -> void:
+	yaw += d
+	_aggiorna_cam()
+
+func zoom(f: float) -> void:
+	distanza *= f
+	_aggiorna_cam()
+
+func _sposta(rel: Vector2) -> void:
+	var k := distanza * 0.0022
+	var destra := cam.global_transform.basis.x
+	var avanti := -cam.global_transform.basis.z
+	destra.y = 0
+	avanti.y = 0
+	pivot.position += (-destra.normalized() * rel.x + avanti.normalized() * rel.y) * k
+	_aggiorna_cam()
+
+func punto_suolo(sp: Vector2) -> Variant:
+	var o := cam.project_ray_origin(sp)
+	var d := cam.project_ray_normal(sp)
+	if absf(d.y) < 1e-4:
+		return null
+	var t := -o.y / d.y
+	if t < 0:
+		return null
+	return o + d * t
+
+func _unhandled_input(e: InputEvent) -> void:
+	if m == null or not visible:
+		return
+	if e is InputEventScreenTouch:
+		if e.pressed:
+			if blocca_input.call(e.position):
+				return
+			_tocchi[e.index] = e.position
+			if _tocchi.size() == 1:
+				_trascinato = false
+				_premuto_pos = e.position
+		else:
+			_tocchi.erase(e.index)
+		return
+	if e is InputEventScreenDrag:
+		if not _tocchi.has(e.index):
+			return
+		var prima: Vector2 = _tocchi[e.index]
+		if _tocchi.size() == 1:
+			if e.position.distance_to(_premuto_pos) > 10:
+				_trascinato = true
+			if _trascinato:
+				_sposta(e.position - prima)
+		elif _tocchi.size() >= 2:
+			_trascinato = true
+			var altro: Vector2
+			for k in _tocchi:
+				if k != e.index:
+					altro = _tocchi[k]
+					break
+			var d0: float = prima.distance_to(altro)
+			var d1: float = e.position.distance_to(altro)
+			if d0 > 1 and d1 > 1:
+				distanza *= d0 / d1
+			var a0: float = (prima - altro).angle()
+			var a1: float = (e.position - altro).angle()
+			yaw -= wrapf(a1 - a0, -PI, PI)
+			pitch += (e.position.y - prima.y) * 0.002
+			_aggiorna_cam()
+		_tocchi[e.index] = e.position
+		return
+	var emulato: bool = e.device == InputEvent.DEVICE_ID_EMULATION
+	if e is InputEventMouseButton:
+		if e.button_index == MOUSE_BUTTON_WHEEL_UP and e.pressed:
+			zoom(0.9)
+		elif e.button_index == MOUSE_BUTTON_WHEEL_DOWN and e.pressed:
+			zoom(1.1)
+		elif e.pressed:
+			if blocca_input.call(e.position):
+				_tasto = -1
+				return
+			_tasto = e.button_index
+			_premuto_pos = e.position
+			if not emulato:
+				_trascinato = false
+		else:
+			if _tasto == MOUSE_BUTTON_LEFT and e.button_index == MOUSE_BUTTON_LEFT and not _trascinato:
+				var p = punto_suolo(e.position)
+				if p != null:
+					esagono_premuto.emit(da_mondo(p), p)
+			_tasto = -1
+	elif e is InputEventMouseMotion and not emulato and _tasto != -1:
+		if e.position.distance_to(_premuto_pos) > 8:
+			_trascinato = true
+		if not _trascinato:
+			return
+		if _tasto == MOUSE_BUTTON_RIGHT:
+			yaw -= e.relative.x * 0.006
+			pitch += e.relative.y * 0.004
+			_aggiorna_cam()
+		else:
+			_sposta(e.relative)
+	elif e is InputEventMagnifyGesture:
+		zoom(1.0 / e.factor)
+	elif e is InputEventPanGesture:
+		_sposta(-e.delta * 8)
