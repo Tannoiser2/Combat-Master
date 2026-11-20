@@ -1,136 +1,137 @@
 # Rapporto di bilanciamento
 
-360 partite simulate fra avventurieri casuali (30, 45 e 60 punti), IA contro IA.
+300 partite simulate fra avventurieri casuali (30, 45 e 60 punti), IA contro IA.
 
-- Scambi per partita: media 7.3, mediana 6, massimo 30
-- Partite finite al limite di tempo: 11
-- Partite in cui qualcuno non ha mai attaccato: 92
+- Scambi per partita: media 6.2, mediana 5, massimo 30
+- Partite finite al limite di tempo: 1
+- Partite in cui qualcuno non ha mai attaccato: 68
 - Opzioni rifiutate dal motore (errori): 0
 
 ## Token: percentuale di vittorie di chi li ha
 
 | Token | Categoria | Costo | Partite | Vittorie |
 | --- | --- | --- | --- | --- |
-| Cotta di maglia | armatura | 8 | 45 | 69% |
-| Somma perfetta | mossa | 8 | 48 | 65% |
-| Rapido | talento | 3 | 11 | 64% |
-| Arco lungo | arma | 12 | 181 | 60% |
-| Rete nascosta | segreto | 4 | 65 | 60% |
-| Corno di guerra | oggetto | 4 | 117 | 60% |
-| Frusta | arma | 5 | 76 | 59% |
-| Istinto | attributo | 5/8/11 | 110 | 59% |
-| Fortuna del matto | segreto | 9 | 44 | 59% |
-| Danza delle lame | mossa | 7 | 53 | 58% |
-| Corpetto di cuoio | armatura | 6 | 55 | 58% |
-| Ultimo respiro | mossa | 10 | 40 | 57% |
-| Assalto | mossa | 9 | 47 | 57% |
-| Lancia | arma | 9 | 47 | 57% |
-| Scudo | arma | 8 | 108 | 57% |
-| Tempesta di colpi | mossa | 6 | 70 | 57% |
-| Prodigio | talento | 7 | 14 | 57% |
-| Furia | attributo | 4.0/7.0/10.0 | 117 | 56% |
-| Potenza | attributo | 4.0/7.0/10.0 | 110 | 56% |
-| Armatura a piastre | armatura | 10 | 32 | 56% |
-| Seconda aria | talento | 4 | 41 | 56% |
-| Agilità | attributo | 3.0/6.0/10.0 | 170 | 56% |
-| Veleno lento | segreto | 6 | 45 | 56% |
-| Volontà di ferro | talento | 3 | 56 | 55% |
-| Spada | arma | 6 | 64 | 55% |
-| Ira repressa | segreto | 2 | 37 | 54% |
-| Forza | attributo | 3.0/6.0/10.0 | 133 | 53% |
-| Furia cieca | mossa | 4 | 42 | 52% |
-| Guardia ferrea | mossa | 3 | 46 | 52% |
-| Tempra | attributo | 3.0/6.0/10.0 | 124 | 52% |
-| Anima antica | attributo | 7.0/13.0 | 101 | 51% |
-| Ferocia | mossa | 3 | 41 | 51% |
-| Pelle di pietra | segreto | 3 | 43 | 51% |
-| Costituzione | attributo | 6/9/12 | 98 | 51% |
-| Disarmare | mossa | 4 | 55 | 51% |
-| Trappola a molla | segreto | 4 | 71 | 51% |
-| Riflessi | attributo | 4.0/7.0/10.0 | 119 | 50% |
-| Stivali alati | oggetto | 5 | 104 | 50% |
-| Amuleto di quarzo | oggetto | 4 | 112 | 50% |
-| Ritmo serrato | talento | 7 | 12 | 50% |
-| Colpo alle spalle | mossa | 4 | 50 | 50% |
-| Spallata | mossa | 3 | 74 | 50% |
-| Velocità | attributo | 3/6/9 | 130 | 50% |
-| Resistenza | attributo | 3.0/6.0/10.0 | 122 | 50% |
-| Temerario | talento | 4 | 14 | 50% |
-| Bastone arcano | arma | 8 | 181 | 50% |
-| Occhio acuto | attributo | 4.0/7.0/10.0 | 116 | 49% |
-| Arcano | attributo | 3.0/6.0/10.0 | 137 | 49% |
-| Rito notturno | segreto | 5 | 35 | 49% |
-| Talismano del gatto | oggetto | 3 | 134 | 49% |
-| Astuzia | attributo | 2/5/9 | 120 | 48% |
-| Agguato | segreto | 4 | 54 | 48% |
-| Rabbia covata | mossa | 2 | 50 | 48% |
-| Colpo caricato | mossa | 4 | 48 | 48% |
-| Ira del ferito | mossa | 4 | 44 | 48% |
-| Cambio di guardia | mossa | 3 | 88 | 48% |
-| Passo rapido | mossa | 4 | 63 | 48% |
-| Riflesso fortunato | talento | 4 | 53 | 47% |
-| Mantello d'ombra | armatura | 3 | 70 | 47% |
-| Guardia alta | talento | 2 | 51 | 47% |
-| Riscossa | talento | 1 | 49 | 47% |
-| Mente | attributo | 3.0/6.0/10.0 | 141 | 47% |
-| Colpo dispari | mossa | 3 | 43 | 47% |
-| Piccoli passi | mossa | 3 | 97 | 46% |
-| Combinazione del novizio | mossa | 5 | 69 | 46% |
-| Destrezza | attributo | 3.0/6.0/10.0 | 111 | 46% |
-| Pietra di luna | oggetto | 7 | 101 | 46% |
-| Ritmo di battaglia | mossa | 5 | 71 | 45% |
-| Contrattacco | mossa | 5 | 45 | 44% |
+| Assalto | mossa | 12 | 25 | 84% |
+| Cotta di maglia | armatura | 10 | 25 | 76% |
+| Armatura a piastre | armatura | 12 | 21 | 71% |
+| Fiato lungo | talento | 6 | 10 | 70% |
+| Furia cieca | mossa | 5 | 53 | 68% |
+| Cuore di leone | talento | 3 | 12 | 67% |
+| Occhio di falco | talento | 3 | 20 | 65% |
+| Niente si spreca | talento | 5 | 11 | 64% |
+| Ira del ferito | mossa | 4 | 51 | 61% |
+| Furia | attributo | 5/8/11 | 111 | 59% |
+| Lancia | arma | 10 | 31 | 58% |
+| Volontà | attributo | 5/8/11 | 102 | 58% |
+| Ferocia | mossa | 3 | 52 | 58% |
+| Tocco di gelo | mossa | 3 | 56 | 57% |
+| Resistenza | attributo | 3.0/6.0/10.0 | 106 | 57% |
+| Spada | arma | 7 | 53 | 57% |
+| Veleno lento | segreto | 6 | 53 | 57% |
+| Bomba di fumo | segreto | 1 | 55 | 56% |
+| Forza | attributo | 2/5/9 | 135 | 55% |
+| Rapido | talento | 3 | 11 | 55% |
+| Seconda aria | talento | 3 | 35 | 54% |
+| Martello da guerra | arma | 7 | 39 | 54% |
+| Ascia da guerra | arma | 10 | 28 | 54% |
+| Arco lungo | arma | 14 | 118 | 53% |
+| Volontà di ferro | talento | 1 | 60 | 53% |
+| Arcano | attributo | 2/5/9 | 107 | 53% |
+| Colpo alle spalle | mossa | 5 | 47 | 53% |
+| Specchio dell'anima | talento | 1 | 66 | 53% |
+| Rete nascosta | segreto | 2 | 55 | 53% |
+| Ultimo respiro | mossa | 11 | 42 | 52% |
+| Tempesta di colpi | mossa | 6 | 69 | 52% |
+| Colpo dispari | mossa | 2 | 48 | 52% |
+| Tempra | attributo | 3.0/6.0/10.0 | 98 | 52% |
+| Pugnali gemelli | arma | 6 | 106 | 52% |
+| Mantello d'ombra | armatura | 3 | 58 | 52% |
+| Pelle di pietra | segreto | 3 | 60 | 52% |
+| Cambio di guardia | mossa | 3 | 62 | 52% |
+| Doppio fendente | mossa | 2 | 39 | 51% |
+| Stivali alati | oggetto | 5 | 121 | 51% |
+| Riscossa | talento | 1 | 43 | 51% |
+| Velocità | attributo | 3.0/6.0/9.0 | 86 | 51% |
+| Ultima risorsa | segreto | 5 | 45 | 51% |
+| Costituzione | attributo | 6.0/9.0/12.0 | 90 | 51% |
+| Mente | attributo | 3.0/6.0/10.0 | 96 | 51% |
+| Fortuna del matto | segreto | 9 | 53 | 51% |
+| Agilità | attributo | 2/5/9 | 109 | 50% |
+| Guardia alta | talento | 1 | 42 | 50% |
+| Esecuzione | mossa | 4 | 70 | 50% |
+| Mira istintiva | talento | 1 | 56 | 50% |
+| Pietra di luna | oggetto | 7 | 96 | 50% |
+| Contrattacco | mossa | 3 | 48 | 50% |
+| Astuzia | attributo | 2.0/5.0/9.0 | 118 | 50% |
+| Pazienza | talento | 3 | 10 | 50% |
+| Amuleto di quarzo | oggetto | 3 | 117 | 50% |
+| Agguato | segreto | 4 | 67 | 49% |
+| Trappola a molla | segreto | 4 | 63 | 49% |
+| Sacca dei trucchi | oggetto | 1 | 108 | 49% |
+| Ritmo di battaglia | mossa | 5 | 53 | 49% |
+| Talismano del gatto | oggetto | 2 | 98 | 49% |
+| Disarmare | mossa | 3 | 58 | 48% |
+| Guardia ferrea | mossa | 2 | 50 | 48% |
+| Equilibrio | attributo | 1.0/4.0/8.0 | 100 | 48% |
+| Intelletto | attributo | 3.0/6.0/9.0 | 119 | 48% |
+| Bastone arcano | arma | 8 | 115 | 48% |
+| Cintura del gigante | oggetto | 5 | 115 | 48% |
+| Borraccia del pellegrino | oggetto | 2 | 113 | 48% |
+| Potenza | attributo | 6/9/12 | 105 | 48% |
+| Spallata | mossa | 2 | 59 | 47% |
+| Doppio pari | mossa | 2 | 72 | 47% |
+| Sesto senso | talento | 1 | 53 | 47% |
+| Rabbia covata | mossa | 1 | 45 | 47% |
+| Riflesso fortunato | talento | 4 | 58 | 47% |
+| Somma perfetta | mossa | 8 | 43 | 47% |
+| Passo rapido | mossa | 4 | 43 | 47% |
+| Occhio acuto | attributo | 4.0/7.0/10.0 | 104 | 46% |
+| Cristallo della tempesta | oggetto | 1 | 63 | 46% |
+| Passo d'ombra | mossa | 1 | 37 | 46% |
+| Riflessi | attributo | 5/8/11 | 96 | 46% |
+| Piccoli passi | mossa | 3 | 70 | 46% |
+| Ira repressa | segreto | 2 | 44 | 45% |
+| Colpo in volo | mossa | 3 | 44 | 45% |
+| Tenacia | talento | 3 | 11 | 45% |
+| Istinto | attributo | 5.0/8.0/11.0 | 95 | 45% |
+| Clessidra | oggetto | 4 | 20 | 45% |
+| Precisione | attributo | 5/8/12 | 105 | 45% |
+| Turbine d'acciaio | mossa | 3 | 56 | 45% |
 | Sangue di berserker | talento | 4 | 9 | 44% |
-| Borraccia del pellegrino | oggetto | 2 | 131 | 44% |
-| Bomba di fumo | segreto | 3 | 61 | 44% |
-| Precisione | attributo | 4/7/11 | 114 | 44% |
-| Ultima risorsa | segreto | 6 | 32 | 44% |
-| Intelletto | attributo | 3/6/9 | 131 | 44% |
-| Ascia da guerra | arma | 9 | 37 | 43% |
-| Doppio fendente | mossa | 3 | 44 | 43% |
-| Colpo in volo | mossa | 4 | 51 | 43% |
-| Equilibrio | attributo | 1/4/8 | 140 | 43% |
-| Specchio dell'anima | talento | 1 | 63 | 43% |
-| Cintura del gigante | oggetto | 4 | 114 | 42% |
-| Tenacia | talento | 3 | 12 | 42% |
-| Passo d'ombra | mossa | 2 | 60 | 42% |
-| Volontà | attributo | 4/7/10 | 87 | 41% |
-| Doppio pari | mossa | 3 | 68 | 41% |
-| Tocco di gelo | mossa | 4 | 56 | 41% |
-| Sacca dei trucchi | oggetto | 2 | 137 | 40% |
-| Pazienza | talento | 3 | 5 | 40% |
-| Turbine d'acciaio | mossa | 4 | 55 | 40% |
-| Esecuzione | mossa | 4 | 53 | 40% |
-| Pugnali gemelli | arma | 5 | 208 | 39% |
-| Cristallo della tempesta | oggetto | 2 | 72 | 39% |
-| Clessidra | oggetto | 4 | 8 | 38% |
-| Niente si spreca | talento | 5 | 8 | 38% |
-| Fiato lungo | talento | 6 | 8 | 38% |
-| Sesto senso | talento | 1 | 57 | 37% |
-| Mira istintiva | talento | 2 | 49 | 37% |
-| Colpi in serie | mossa | 2 | 82 | 37% |
-| Martello da guerra | arma | 6 | 35 | 34% |
-| Occhio di falco | talento | 3 | 15 | 33% |
-| Sacrificio | mossa | 1 | 72 | 25% |
-| Cuore di leone | talento | 3 | 9 | 22% |
+| Combinazione del novizio | mossa | 4 | 73 | 44% |
+| Scudo | arma | 8 | 103 | 44% |
+| Rito notturno | segreto | 5 | 46 | 43% |
+| Anima antica | attributo | 6/12 | 86 | 43% |
+| Frusta | arma | 4 | 54 | 43% |
+| Colpi in serie | mossa | 1 | 61 | 41% |
+| Danza delle lame | mossa | 5 | 42 | 40% |
+| Corno di guerra | oggetto | 2 | 114 | 40% |
+| Colpo caricato | mossa | 3 | 55 | 36% |
+| Corpetto di cuoio | armatura | 7 | 39 | 36% |
+| Destrezza | attributo | 2/5/9 | 122 | 35% |
+| Ritmo serrato | talento | 7 | 9 | 33% |
+| Prodigio | talento | 7 | 9 | 33% |
+| Sacrificio | mossa | 1 | 73 | 33% |
+| Temerario | talento | 4 | 11 | 9% |
 
 ## Spazi mai usati dall'IA
 
-- Esecuzione (Esecuzione)
+- Spezzaguardia (Ascia da guerra)
+- Riposta (Contrattacco)
 
 ## Coppie di token sospette (almeno 20 partite)
 
 | Coppia | Partite | Vittorie |
 | --- | --- | --- |
-| Arco lungo + Rete nascosta | 20 | 85% |
-| Corno di guerra + Istinto | 21 | 81% |
-| Corno di guerra + Riflessi | 21 | 81% |
-| Arco lungo + Occhio acuto | 23 | 78% |
-| Arco lungo + Potenza | 20 | 75% |
-| Istinto + Scudo | 20 | 75% |
-| Agilità + Istinto | 26 | 73% |
-| Corno di guerra + Talismano del gatto | 25 | 72% |
-| Arco lungo + Corno di guerra | 32 | 72% |
-| Astuzia + Talismano del gatto | 24 | 71% |
-| Arco lungo + Scudo | 24 | 71% |
-| Agilità + Resistenza | 34 | 71% |
+| Forza + Tempra | 22 | 82% |
+| Furia + Sacca dei trucchi | 20 | 70% |
+| Forza + Volontà | 30 | 70% |
+| Ferocia + Forza | 26 | 69% |
+| Intelletto + Mente | 22 | 68% |
+| Arcano + Intelletto | 24 | 67% |
+| Agilità + Mente | 23 | 65% |
+| Arcano + Occhio acuto | 23 | 65% |
+| Furia + Volontà | 20 | 65% |
+| Agilità + Furia | 20 | 65% |
+| Cintura del gigante + Furia | 20 | 65% |
+| Astuzia + Pugnali gemelli | 22 | 64% |
