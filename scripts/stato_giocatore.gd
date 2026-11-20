@@ -43,17 +43,18 @@ func _draw() -> void:
 	var ax := x0 + 26 + bw + 66
 	Disegno.icona(self, "scudo", Rect2(ax, 36, 20, 20), Color("#9aa3ab"))
 	Disegno.testo(self, Vector2(ax + 24, 53), str(g["armatura"]), 16, Disegno.PERGAMENA)
-	# ritmo
+	# ritmo (dadi pescati a ogni scambio) e recupero
 	var rx := ax + 56
-	Disegno.testo(self, Vector2(rx, 53), "Ritmo", 14, Disegno.PERGAMENA.darkened(0.1), Disegno.font_titolo())
-	var lib := motore.ritmo_libero(giocatore)
-	for i in int(g["ritmo"]):
-		Disegno.icona(self, "ritmo" if i < lib else "ritmo_vuoto", Rect2(rx + 54 + i * 18, 39, 15, 15), Disegno.ORO)
-	# dadi in piccolo
+	Disegno.testo(self, Vector2(rx, 53), "Ritmo %d  Recupero %d" % [g["ritmo"], g["recupero"]], 14, Disegno.PERGAMENA.darkened(0.1), Disegno.font_titolo())
+	# dadi: mano in piccolo, poi i numeri degli altri gruppi
 	var dx := x0
-	for st in ["pronto", "conservato", "bloccato"]:
+	for st in ["mano", "conservato", "stordito"]:
 		for d in motore.dadi_di(giocatore, st):
-			Disegno.dado(self, Rect2(dx, 62, 18, 18), d["col"], d["v"], st)
+			Disegno.dado(self, Rect2(dx, 62, 18, 18), d["col"], d["v"], "bloccato" if st == "stordito" else st)
 			dx += 21
 		if not motore.dadi_di(giocatore, st).is_empty():
 			dx += 8
+	var occ := 0
+	for k in g["occupati"]:
+		occ += g["occupati"][k].size()
+	Disegno.testo(self, Vector2(maxf(dx + 6, x0 + 150), 77), "mucchio %d   sui token %d" % [motore.dadi_di(giocatore, "mucchio").size(), occ], 14, Disegno.PERGAMENA.darkened(0.2))

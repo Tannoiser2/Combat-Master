@@ -60,4 +60,19 @@ func _giro() -> void:
 	var dest: Vector2i = g["pos"] + Motore.DIRS[0] + Motore.DIRS[0]
 	main._esagono(dest, Arena3D.mondo(dest))
 	await _foto("direzioni")
+	main._cmd_annulla()
+	# spazi occupati e scelta di quelli da liberare passando
+	var m: Motore = main.m
+	var g0: Dictionary = m.s["g"][0]
+	var occ := 0
+	for dd in g0["dadi"]:
+		if dd["st"] == "mano" and occ < 3:
+			var k: String = ["spada/fendente", "agilita/muovi", "forza/pugno"][occ]
+			dd["st"] = "token"
+			g0["occupati"][k] = [dd["id"]]
+			occ += 1
+	main._aggiorna()
+	main._cmd_passa()
+	main._slot("spada", "fendente")
+	await _foto("libera")
 	quit()

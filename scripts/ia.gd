@@ -1,18 +1,42 @@
 class_name IA
 extends RefCounted
-## Avversario automatico: prova ogni opzione legale su una copia della partita,
-## lascia rispondere l'avversario con la sua reazione migliore e valuta il risultato.
+## Avversario automatico. Prova ogni opzione legale su una copia della partita,
+## lascia rispondere l'avversario con la sua difesa migliore e valuta il risultato
+## con una funzione a pesi. I pesi si imparano giocando contro sé stessi
+## (tests/allena_ia.gd) e si salvano in data/ia_pesi.json.
 
-## Restituisce la prossima opzione da applicare per il giocatore `p` (una alla volta).
-static func scegli(m: Motore, p: int, rng: RandomNumberGenerator = null) -> Dictionary:
+const PESI_BASE := {
+	"vita": 4.0, "vita_bassa": 3.0, "mano_base": 0.55, "mano_val": 0.1, "conservato": 0.9,
+	"mucchio_base": 0.4, "mucchio_val": 0.04, "stordito": 0.4, "eliminato": 0.9, "occupato": 1.0,
+	"armato": 1.5, "distanza": 0.7, "fronte": 1.2, "fianco": 0.8, "retro": 1.6, "pericolo": 3.0,
+	"iniziativa": 0.8, "azzardo": 7.0, "pesca_spazio": 0.5, "pesca_val": 0.1,
+}
+
+static var _pesi_salvati: Dictionary = {}
+
+static func pesi() -> Dictionary:
+	if _pesi_salvati.is_empty():
+		_pesi_salvati = PESI_BASE.duplicate()
+		if FileAccess.file_exists("res://data/ia_pesi.json"):
+			var d = JSON.parse_string(FileAccess.open("res://data/ia_pesi.json", FileAccess.READ).get_as_text())
+			if d is Dictionary:
+				for k in d.get("pesi", {}):
+					if PESI_BASE.has(k):
+						_pesi_salvati[k] = float(d["pesi"][k])
+	return _pesi_salvati
+
+static func scegli(m: Motore, p: int, rng: RandomNumberGenerator = null, w: Dictionary = {}) -> Dictionary:
+	if w.is_empty():
+		w = pesi()
 	if m.chi_decide() != p:
 		return {}
 	var g: Dictionary = m.s["g"][p]
 	match m.s["fase"]:
+		"pesca":
+			return {"t": "prendi", "dadi": scelta_mucchio(m, p, m.da_prendere(p), w)}
 		"azzardo":
-			var az: Dictionary = m.s["azz"]
-			var soglia := 7 if g["vita"] * 2 > g["vita_max"] else 9
-			if int(az["tot"]) < soglia:
+			var soglia: float = w["azzardo"] if g["vita"] * 2 > g["vita_max"] else w["azzardo"] + 2.0
+			if float(m.s["azz"]["tot"]) < soglia:
 				for op in m.opzioni(p):
 					if op["t"] == "rilancia":
 						return op
@@ -21,11 +45,11 @@ static func scegli(m: Motore, p: int, rng: RandomNumberGenerator = null) -> Dict
 			var sp := _spinta_utile(m, p)
 			if not sp.is_empty():
 				return sp
-	var opz := _sfoltisci(m, p, m.opzioni(p))
+	var opz := _sfoltisci(m, p, m.opzioni(p), w)
 	var migliore := {}
 	var bv := -INF
 	for op in opz:
-		var v := valuta_opzione(m, p, op)
+		var v := valuta_opzione(m, p, op, w)
 		if rng != null:
 			v += rng.randf() * 0.3
 		if v > bv:
@@ -37,73 +61,139 @@ static func scegli(m: Motore, p: int, rng: RandomNumberGenerator = null) -> Dict
 			return cons
 	return migliore
 
-static func valuta_opzione(m: Motore, p: int, op: Dictionary) -> float:
+## Sceglie n dadi dal mucchio: quelli che entrano negli spazi liberi più preziosi.
+static func scelta_mucchio(m: Motore, p: int, n: int, w: Dictionary = {}) -> Array:
+	if w.is_empty():
+		w = pesi()
+	var punti := []
+	var spazi := []
+	for ts in m.slot_del_giocatore(p):
+		if not m.occupato(p, ts[0], ts[1]["id"]):
+			spazi.append(ts[1])
+	for d in m.dadi_di(p, "mucchio"):
+		var v := float(d["v"]) * float(w["pesca_val"])
+		for sl in spazi:
+			var c: Dictionary = sl.get("cond", {})
+			if c.has("min") and d["v"] < int(c["min"]):
+				continue
+			if c.has("max") and d["v"] > int(c["max"]):
+				continue
+			for req in sl["dadi"]:
+				if Motore.colore_ok(d["col"], req):
+					v += valore_spazio(sl) * float(w["pesca_spazio"]) / sl["dadi"].size()
+					break
+		if d["col"] == "blu":
+			v += 0.05 * d["v"]
+		punti.append([v, d["id"]])
+	punti.sort_custom(func(a, b): return a[0] > b[0])
+	var out := []
+	for i in mini(n, punti.size()):
+		out.append(punti[i][1])
+	return out
+
+static func valuta_opzione(m: Motore, p: int, op: Dictionary, w: Dictionary) -> float:
 	var c := m.clona()
 	if c.applica(p, op) != "":
 		return -INF
-	_completa(c, p)
-	return valuta(c, p)
+	_completa(c, p, w)
+	return valuta(c, p, w)
 
-## Porta avanti la copia finché la mossa non è chiusa: reazione dell'avversario, azzardo proprio.
-static func _completa(c: Motore, p: int) -> void:
+static func _completa(c: Motore, p: int, w: Dictionary) -> void:
 	var guard := 0
-	while c.s["vinc"] < 0 and guard < 12:
+	while c.s["vinc"] < 0 and guard < 16:
 		guard += 1
 		var chi := c.chi_decide()
-		if c.s["fase"] == "reazione" and chi != p:
+		var f: String = c.s["fase"]
+		if f == "reazione" and chi != p:
 			var best := {"t": "risolvi"}
 			var bv := -INF
 			for op in c.opzioni(chi):
 				var c2 := c.clona()
 				if c2.applica(chi, op) != "":
 					continue
-				var v := valuta(c2, chi)
+				if c2.s["fase"] == "reazione" and c2.chi_decide() == chi:
+					c2.applica(chi, {"t": "risolvi"})
+				var v := valuta(c2, chi, w)
 				if v > bv:
 					bv = v
 					best = op
 			c.applica(chi, best)
-		elif c.s["fase"] == "azzardo" and chi == p:
-			var op := scegli(c, p)
-			c.applica(p, op)
+		elif f == "rinforzo" and chi == p:
+			var best := {"t": "sferra"}
+			var bv := -INF
+			for op in c.opzioni(p):
+				if op["t"] == "slot" and c.slot_def(op["tok"], op["slot"])["tipo"] != "supporto_attacco":
+					continue
+				var c2 := c.clona()
+				if c2.applica(p, op) != "":
+					continue
+				if c2.s["fase"] == "rinforzo":
+					c2.applica(p, {"t": "sferra"})
+				var v := valuta(c2, p, w)
+				if op["t"] == "sferra":
+					v -= 0.01
+				if v > bv:
+					bv = v
+					best = op
+			c.applica(p, best)
+		elif f == "azzardo" and chi == p:
+			c.applica(p, scegli(c, p, null, w))
+		elif f == "pesca":
+			c.applica(chi, {"t": "prendi", "dadi": scelta_mucchio(c, chi, c.da_prendere(chi), w)})
 		else:
 			break
 
-## Valutazione di una posizione dal punto di vista di `p`.
-static func valuta(m: Motore, p: int) -> float:
+static func valore_spazio(sl: Dictionary) -> float:
+	match sl["effetto"]:
+		"attacco", "assalto":
+			return 2.2
+		"movimento", "passo_ombra":
+			return 0.9
+		"sblocca", "pesca":
+			return 1.4
+		"schiva", "para", "contrattacco", "supp_difesa":
+			return 1.0
+		"supp_danno":
+			return 0.9
+		"segreto":
+			return 1.2
+	return 0.6
+
+static func valuta(m: Motore, p: int, w: Dictionary) -> float:
 	var o := 1 - p
 	if m.s["vinc"] == p:
 		return 10000.0
 	if m.s["vinc"] == o:
 		return -10000.0
+	var v := _risorse(m, p, w) - _risorse(m, o, w)
 	var g: Dictionary = m.s["g"][p]
 	var go: Dictionary = m.s["g"][o]
-	var v := 0.0
-	v += 4.0 * g["vita"] - 4.0 * go["vita"]
+	v += w["vita"] * (g["vita"] - go["vita"])
 	if g["vita"] <= 3:
-		v -= 3.0
-	for d in m.dadi_di(p, "pronto"):
-		v += 0.6 + 0.18 * d["v"]
-	for d in m.dadi_di(o, "pronto"):
-		v -= 0.6 + 0.18 * d["v"]
-	v += 0.9 * m.dadi_di(p, "conservato").size()
-	v -= 1.6 * m.dadi_di(p, "bloccato").size()
-	v += 1.6 * m.dadi_di(o, "bloccato").size()
-	v += 0.5 * m.ritmo_libero(p) - 0.5 * m.ritmo_libero(o)
-	# posizione
-	var d := Motore.dist(g["pos"], go["pos"])
-	var pref := distanza_preferita(m, p)
-	v -= 0.7 * absf(d - pref)
-	if Motore.in_fronte(g["pos"], g["dir"], go["pos"]):
-		v += 1.2
-	var mio_lato := Motore.lato(go["pos"], go["dir"], g["pos"])
-	if mio_lato == "fianco":
-		v += 0.8
-	elif mio_lato == "retro":
-		v += 1.6
-	if m.s["per"].has(g["pos"]):
-		v -= 3.0
+		v -= w["vita_bassa"]
+	if go["vita"] <= 3:
+		v += w["vita_bassa"]
+	v += _posizione(m, p, g["pos"], g["dir"], w)
 	if m.s["fase"] == "azione" and int(m.s["attivo"]) == p and not g["passato"]:
-		v += 0.8
+		v += w["iniziativa"]
+	return v
+
+static func _risorse(m: Motore, p: int, w: Dictionary) -> float:
+	var v := 0.0
+	for d in m.dadi_di(p, "mano"):
+		v += w["mano_base"] + w["mano_val"] * d["v"]
+	for d in m.dadi_di(p, "mucchio"):
+		v += w["mucchio_base"] + w["mucchio_val"] * d["v"]
+	v += w["conservato"] * m.dadi_di(p, "conservato").size()
+	v -= w["stordito"] * m.dadi_di(p, "stordito").size()
+	v -= w["eliminato"] * m.dadi_di(p, "eliminato").size()
+	var g: Dictionary = m.s["g"][p]
+	for k in g["occupati"]:
+		var parti: PackedStringArray = k.split("/")
+		if g["armati"].has(k):
+			v += w["armato"]
+		else:
+			v -= w["occupato"] * valore_spazio(m.slot_def(parti[0], parti[1]))
 	return v
 
 static func distanza_preferita(m: Motore, p: int) -> float:
@@ -112,40 +202,24 @@ static func distanza_preferita(m: Motore, p: int) -> float:
 	for ts in m.slot_del_giocatore(p):
 		var sl: Dictionary = ts[1]
 		if sl["tipo"] == "azione" and sl["effetto"] == "attacco":
-			if int(sl.get("gittata_min", 1)) >= 2 or (int(sl.get("portata", 1)) >= 4):
+			if int(sl.get("gittata_min", 1)) >= 2 or int(sl.get("portata", 1)) >= 4:
 				lontano += 1
-			elif ts[0] not in ["forza"]:
+			elif ts[0] != "forza":
 				vicino += 1
-	if lontano > vicino:
-		return 3.5
-	return 1.0
+	return 3.5 if lontano > vicino else 1.0
 
-static func _spinta_utile(m: Motore, p: int) -> Dictionary:
-	if m.costo_spinta(p) > 0 or not m.puo_agire(p):
-		return {}
-	var ids := []
-	for d in m.dadi_di(p, "pronto"):
-		if d["v"] <= 2:
-			ids.append(d["id"])
-	if ids.is_empty():
-		return {}
-	return {"t": "spinta", "dadi": ids}
+static func _posizione(m: Motore, p: int, pos: Vector2i, dir: int, w: Dictionary) -> float:
+	var go: Dictionary = m.s["g"][1 - p]
+	var v: float = -w["distanza"] * absf(Motore.dist(pos, go["pos"]) - distanza_preferita(m, p))
+	if Motore.in_fronte(pos, dir, go["pos"]):
+		v += w["fronte"]
+	var l := Motore.lato(go["pos"], go["dir"], pos)
+	v += w["fianco"] if l == "fianco" else (w["retro"] if l == "retro" else 0.0)
+	if m.s["per"].has(pos):
+		v -= w["pericolo"]
+	return v
 
-static func _conserva_utile(m: Motore, p: int) -> Dictionary:
-	var g: Dictionary = m.s["g"][p]
-	if m.dadi_di(p, "conservato").size() >= int(g["conserva_max"]):
-		return {}
-	var best := {}
-	for d in m.dadi_di(p, "pronto"):
-		if d["v"] >= 4 and (best.is_empty() or d["v"] > best["v"]):
-			best = d
-	if best.is_empty():
-		return {}
-	return {"t": "conserva", "dado": best["id"]}
-
-## Tiene tutte le opzioni tranne i movimenti, di cui conserva solo i più promettenti
-## (per ogni destinazione il dado più basso), per non simulare centinaia di passi.
-static func _sfoltisci(m: Motore, p: int, opz: Array) -> Array:
+static func _sfoltisci(m: Motore, p: int, opz: Array, w: Dictionary) -> Array:
 	var out := []
 	var mov := {}
 	for op in opz:
@@ -158,19 +232,41 @@ static func _sfoltisci(m: Motore, p: int, opz: Array) -> Array:
 			out.append(op)
 	var lista := []
 	for k in mov:
-		lista.append([_posizione(m, p, Vector2i(k.x, k.y), k.z) - 0.15 * mov[k][0], mov[k][1]])
+		lista.append([_posizione(m, p, Vector2i(k.x, k.y), k.z, w) - 0.15 * mov[k][0], mov[k][1]])
 	lista.sort_custom(func(a, b): return a[0] > b[0])
 	for i in mini(6, lista.size()):
 		out.append(lista[i][1])
 	return out
 
-static func _posizione(m: Motore, p: int, pos: Vector2i, dir: int) -> float:
-	var go: Dictionary = m.s["g"][1 - p]
-	var v := -0.7 * absf(Motore.dist(pos, go["pos"]) - distanza_preferita(m, p))
-	if Motore.in_fronte(pos, dir, go["pos"]):
-		v += 1.2
-	var l := Motore.lato(go["pos"], go["dir"], pos)
-	v += 0.8 if l == "fianco" else (1.6 if l == "retro" else 0.0)
-	if m.s["per"].has(pos):
-		v -= 3.0
-	return v
+static func _spinta_utile(m: Motore, p: int) -> Dictionary:
+	if not m.spinta_disponibile(p):
+		return {}
+	var ids := []
+	for d in m.dadi_di(p, "mano"):
+		if d["v"] > 2:
+			continue
+		var serve := false
+		for ts in m.slot_del_giocatore(p):
+			var sl: Dictionary = ts[1]
+			var c: Dictionary = sl.get("cond", {})
+			if (c.has("max") or c.has("valori")) and not m.occupato(p, ts[0], sl["id"]):
+				for req in sl["dadi"]:
+					if Motore.colore_ok(d["col"], req):
+						serve = true
+		if not serve:
+			ids.append(d["id"])
+	if ids.is_empty():
+		return {}
+	return {"t": "spinta", "dadi": ids}
+
+static func _conserva_utile(m: Motore, p: int) -> Dictionary:
+	var g: Dictionary = m.s["g"][p]
+	if m.dadi_di(p, "conservato").size() >= int(g["conserva_max"]):
+		return {}
+	var best := {}
+	for d in m.dadi_di(p, "mano"):
+		if (d["v"] >= 5 or d["v"] == 1) and (best.is_empty() or d["v"] > best["v"]):
+			best = d
+	if best.is_empty():
+		return {}
+	return {"t": "conserva", "dado": best["id"]}

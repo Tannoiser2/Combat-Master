@@ -18,6 +18,7 @@ var motore: Motore = null
 var giocatore := 0
 var evidenzia: Dictionary = {} # sid -> true (usabile) / false (no)
 var disattivo := false         # nel catalogo: non entra nel budget o già preso
+var scelta_spazi: Dictionary = {} # sid -> 0 (selezionabile) / 1 (scelto), per liberare spazi occupati
 
 var _rect_slot := {}
 var _rect_btn := {}
@@ -124,39 +125,63 @@ func _draw() -> void:
 	for sl in tok.get("slot", []):
 		var r: Rect2 = _rect_slot[sl["id"]]
 		var ev = evidenzia.get(sl["id"], null)
+		var key: String = tok["id"] + "/" + sl["id"]
+		var occ: Array = []
+		if motore != null and modo == "gioco":
+			occ = motore.s["g"][giocatore]["occupati"].get(key, [])
+		var sc = scelta_spazi.get(sl["id"], null)
 		var bg := Color(0, 0, 0, 0.06)
 		var bordo := Color(0, 0, 0, 0.15)
-		if ev == true:
+		var spess := 1
+		if sc != null:
+			bg = Color("#9fd18a") if sc == 1 else Color("#f7d77a")
+			bg.a = 0.7
+			bordo = Color("#2f7a2a") if sc == 1 else Color("#b07d1f")
+			spess = 3
+		elif not occ.is_empty():
+			bg = Color(0.25, 0.2, 0.15, 0.32)
+		elif ev == true:
 			bg = Color("#f7d77a")
 			bg.a = 0.55
 			bordo = Color("#b07d1f")
+			spess = 2
 		elif ev == false:
 			bg = Color(0, 0, 0, 0.12)
-		draw_style_box(Disegno.stile(bg, bordo, 6, 2 if ev == true else 1), r)
-		var tag := "REAZIONE" if sl["tipo"] == "reazione" else ("AZZARDO" if sl.get("azzardo", false) else "AZIONE")
-		var tagc := Color("#2f5d8a") if sl["tipo"] == "reazione" else (Color("#9a3324") if tag == "AZZARDO" else Color("#5a4630"))
+		draw_style_box(Disegno.stile(bg, bordo, 6, spess), r)
+		var tag := "AZIONE"
+		var tagc := Color("#5a4630")
+		match sl["tipo"]:
+			"reazione":
+				tag = "REAZIONE"
+				tagc = Color("#2f5d8a")
+			"supporto_attacco", "supporto_difesa":
+				tag = "SUPPORTO"
+				tagc = Color("#7a4a8a")
+			"libera":
+				tag = "LIBERA"
+				tagc = Color("#2f7a4a")
+		if sl.get("azzardo", false):
+			tag = "AZZARDO"
+			tagc = Color("#9a3324")
 		var fnt := Disegno.font_titolo()
 		var tw := fnt.get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x
 		draw_style_box(Disegno.stile(tagc, tagc, 4, 1), Rect2(r.end.x - tw - 14, r.position.y + 5, tw + 10, 17))
 		Disegno.testo(self, Vector2(r.end.x - tw - 9, r.position.y + 18), tag, 11, Color.WHITE, fnt)
 		Disegno.testo(self, Vector2(r.position.x + 6, r.position.y + 19), sl["nome"], 15, Disegno.INCHIOSTRO, fnt, r.size.x - tw - 26)
-		var piazzati := []
-		if motore != null and modo == "gioco":
-			var key: String = tok["id"] + "/" + sl["id"]
-			for id in motore.s["g"][giocatore]["piazzati"].get(key, []):
-				piazzati.append(motore.dado(giocatore, id))
 		var n: int = sl["dadi"].size()
 		for i in n:
 			var sr := Rect2(r.position.x + 6 + i * (SOCK + 4), r.position.y + 26, SOCK, SOCK)
 			Disegno.alloggio(self, sr, sl["dadi"][i])
-		for i in piazzati.size():
-			var d: Dictionary = piazzati[i]
-			var col := i % n
-			var riga := i / n
-			var sr := Rect2(r.position.x + 6 + col * (SOCK + 4) + riga * 6, r.position.y + 26 + riga * 6, SOCK, SOCK)
-			Disegno.dado(self, sr, d["col"], d["v"], d["st"])
+		for i in occ.size():
+			var d := motore.dado(giocatore, occ[i])
+			var sr := Rect2(r.position.x + 6 + (i % n) * (SOCK + 4), r.position.y + 26, SOCK, SOCK)
+			Disegno.dado(self, sr, d["col"], d["v"], "usato")
 		var sw := n * (SOCK + 4)
-		Disegno.testo_a_capo(self, Vector2(r.position.x + 10 + sw, r.position.y + 38), sl["testo"], 14, Disegno.INCHIOSTRO, r.size.x - 16 - sw)
+		var testo_sl: String = sl["testo"]
+		if not occ.is_empty():
+			Disegno.testo_a_capo(self, Vector2(r.position.x + 10 + sw, r.position.y + 38), "Occupato: si riusa dopo averlo liberato.", 14, Color("#7a2a1e"), r.size.x - 16 - sw)
+		else:
+			Disegno.testo_a_capo(self, Vector2(r.position.x + 10 + sw, r.position.y + 38), testo_sl, 14, Disegno.INCHIOSTRO, r.size.x - 16 - sw)
 	if _rect_btn.has("aggiungi"):
 		var r: Rect2 = _rect_btn["aggiungi"]
 		var c := Color("#3a2a1c") if not disattivo else Color("#8f8576")

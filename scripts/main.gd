@@ -53,6 +53,7 @@ var _diario_scroll: ScrollContainer
 var _msg: Label
 var _scambio: Label
 var _btn := {}
+var _scelte: HBoxContainer
 var _pannelli: Array[Control] = []
 var _timer_ia := 0.0
 var _fine: Control
@@ -452,10 +453,10 @@ func _off_aggiorna() -> void:
 		_off_scheda.add_child(l)
 	var st := Motore.statistiche(cat, pg_corrente)
 	var dadi := []
-	for c in ["rosso", "blu", "verde", "viola", "bianco"]:
+	for c in Motore.COLORI:
 		if st["dadi"].has(c):
 			dadi.append("%d %s" % [st["dadi"][c], Disegno.NOMI_COLORE[c]])
-	_off_info.text = "Punti %d su %d   |   Dadi: %s   |   Ferite %d   |   Ritmo %d   |   Armatura %d" % [costo, budget, ", ".join(dadi) if not dadi.is_empty() else "nessuno", st["vita"], st["ritmo"], st["armatura"]]
+	_off_info.text = "Punti %d su %d   |   Dadi nel mucchio: %s   |   Ferite %d   |   Ritmo %d (dadi pescati)   |   Recupero %d   |   Armatura %d" % [costo, budget, ", ".join(dadi) if not dadi.is_empty() else "nessuno", st["vita"], st["ritmo"], st["recupero"], st["armatura"]]
 	_off_info.add_theme_color_override("font_color", Color("#ff8a70") if costo > budget else Disegno.PERGAMENA)
 	for pg in tutti_personaggi():
 		var b := Button.new()
@@ -642,10 +643,10 @@ func _prep_desc_aggiorna() -> void:
 			var t: Dictionary = cat[id]
 			nomi.append(t["nome"] + ((" " + ["I", "II", "III"][int(pg["token"][id]) - 1]) if t.has("livelli") else ""))
 		var dadi := []
-		for c in ["rosso", "blu", "verde", "viola", "bianco"]:
+		for c in Motore.COLORI:
 			if st["dadi"].has(c):
 				dadi.append("%d %s" % [st["dadi"][c], Disegno.NOMI_COLORE[c]])
-		_prep_desc[p].text = "Dadi: %s. Ferite %d, ritmo %d, armatura %d.\n%s" % [", ".join(dadi), st["vita"], st["ritmo"], st["armatura"], ", ".join(nomi)]
+		_prep_desc[p].text = "Dadi: %s. Ferite %d, ritmo %d, recupero %d, armatura %d.\n%s" % [", ".join(dadi), st["vita"], st["ritmo"], st["recupero"], st["armatura"], ", ".join(nomi)]
 
 func _prep_via() -> void:
 	var validi := _prep_validi()
@@ -775,9 +776,8 @@ func _costruisci_hud() -> void:
 	riga.add_child(gb)
 	_btn.clear()
 	var comandi := [["spinta", "Spingi la fortuna", _cmd_spinta], ["conserva", "Conserva", _cmd_conserva],
-		["meno", "Dado -1", func(): _cmd_aggiusta(-1)], ["piu", "Dado +1", func(): _cmd_aggiusta(1)],
-		["passa", "Passa", _cmd_passa], ["risolvi", "Subisci il colpo", _cmd_risolvi],
-		["rilancia", "Rilancia", _cmd_rilancia], ["ferma", "Fermati", _cmd_ferma],
+		["passa", "Passa", _cmd_passa], ["sferra", "Sferra il colpo", _cmd_sferra], ["risolvi", "Subisci il colpo", _cmd_risolvi],
+		["rilancia", "Rilancia", _cmd_rilancia], ["ferma", "Fermati", _cmd_ferma], ["conferma", "Conferma", _cmd_conferma],
 		["annulla", "Annulla", _cmd_annulla], ["scheda", "Scheda avversario", _cmd_scheda]]
 	for c in comandi:
 		var b := _bottone(c[1], c[2], 186)
@@ -785,6 +785,9 @@ func _costruisci_hud() -> void:
 		b.add_theme_font_size_override("font_size", 14)
 		gb.add_child(b)
 		_btn[c[0]] = b
+	_scelte = HBoxContainer.new()
+	_scelte.add_theme_constant_override("separation", 6)
+	riga.add_child(_scelte)
 	var cs := ScrollContainer.new()
 	cs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	cs.custom_minimum_size = Vector2(0, 240)
@@ -872,47 +875,67 @@ func _messaggio() -> String:
 	if ia[chi]:
 		return "%s sta decidendo..." % nome
 	if not attesa.is_empty():
-		return "Tocca un esagono evidenziato." if attesa.get("passo", "") == "esagono" else "Tocca una freccia dorata per scegliere dove guardare."
+		match attesa["passo"]:
+			"esagono":
+				return "Tocca un esagono evidenziato."
+			"direzione":
+				return "Tocca una freccia dorata per scegliere dove guardare."
+			"spazi":
+				if attesa.get("passa", false):
+					return "Passi: tocca fino a %s da liberare, poi Conferma." % Motore.plurale(attesa["n"], "spazio occupato", "spazi occupati")
+				return "Tocca %s da liberare, poi Conferma." % Motore.plurale(attesa["n"], "spazio occupato", "spazi occupati")
+			"dadi":
+				return "Tocca %s in mano." % ("due dadi da scambiare" if attesa["n"] == 2 else "il dado da cambiare")
+			"segno":
+				return "Alzi o abbassi il dado?"
+			"colore":
+				return "Scegli il colore del dado da eliminare dal mucchio."
 	match m.s["fase"]:
+		"rinforzo":
+			var pe: Dictionary = m.s["pend"]
+			return "%s: %s a %s. Aggiungi supporti o sferra il colpo." % [nome, pe["nome"], Motore.plurale(int(pe["danno"]) + int(pe["bonus"]), "danno", "danni")]
 		"reazione":
 			var pe: Dictionary = m.s["pend"]
-			return "%s: arriva %s (%d danni, dado %d). Reagisci o subisci il colpo." % [nome, pe["nome"], int(pe["danno"]) + int(pe["bonus"]), pe["vd"]]
+			return "%s: arriva %s (%s, dado %d). Reagisci o subisci." % [nome, pe["nome"], Motore.plurale(int(pe["danno"]) + int(pe["bonus"]), "danno", "danni"), pe["vd"]]
 		"azzardo":
 			return "%s: Furia a %d. Rilancia un rosso (con 1 fallisce) o fermati." % [nome, m.s["azz"]["tot"]]
-	return "%s: scegli i dadi e tocca uno spazio azione evidenziato." % nome
+	if m.dadi_di(chi, "mano").is_empty():
+		return "%s: niente dadi in mano. Passa e libera uno spazio." % nome
+	return "%s: scegli i dadi e tocca uno spazio evidenziato." % nome
 
 func _aggiorna_evidenze() -> void:
 	var p := mostra
 	var chi := _umano_decide()
 	for carta in _carte:
 		carta.evidenzia = {}
-		if chi == p:
+		carta.scelta_spazi = {}
+		if attesa.get("passo", "") == "spazi":
+			for sl in carta.tok["slot"]:
+				var k := Motore.chiave(carta.tok["id"], sl["id"])
+				if attesa["selezionabili"].has(k):
+					carta.scelta_spazi[sl["id"]] = 1 if attesa["scelti"].has(k) else 0
+		elif chi == p and attesa.is_empty():
 			for sl in carta.tok["slot"]:
 				carta.evidenzia[sl["id"]] = _slot_usabile(p, carta.tok["id"], sl)
 		carta.queue_redraw()
-	if attesa.is_empty():
-		arena.pulisci_evidenza()
+	_vassoio.evidenziati = attesa.get("selezionabili", []) if attesa.get("passo", "") == "dadi" else []
+	if attesa.is_empty() or attesa["passo"] in ["spazi", "dadi", "colore", "segno"]:
+		if attesa.is_empty():
+			arena.pulisci_evidenza()
 
 func _slot_usabile(p: int, tok: String, sl: Dictionary) -> bool:
-	if m.s["fase"] == "azzardo":
-		return false
-	if m.s["fase"] == "reazione":
-		if not m.reazione_possibile(p, sl):
-			return false
-	elif sl["tipo"] != "azione":
+	if not m.slot_attivabile(p, tok, sl):
 		return false
 	var combos := []
 	if not sel.is_empty():
 		var o := m.ordina_dadi(p, sl, sel)
-		if o.is_empty() or o.size() > m.ritmo_libero(p):
+		if o.is_empty():
 			return false
 		combos = [o]
 	else:
 		combos = m.combinazioni(p, sl)
-	if m.s["fase"] == "reazione":
-		return not combos.is_empty()
 	for ids in combos:
-		if not m.bersagli(p, sl, ids).is_empty():
+		if not m.bersagli(p, tok, sl, ids).is_empty():
 			return true
 	return false
 
@@ -927,50 +950,73 @@ func _aggiorna_comandi() -> void:
 	_btn["scheda"].text = "La mia scheda" if mostra_avversario else "Scheda avversario"
 	if not attesa.is_empty():
 		_btn["annulla"].visible = true
+		if attesa["passo"] == "spazi":
+			_btn["conferma"].visible = true
+			var n: int = attesa["scelti"].size()
+			_btn["conferma"].disabled = n == 0 or n > attesa["n"] or (not attesa.get("passa", false) and n != attesa["n"])
 		return
 	if not mio:
 		return
-	var pronti_sel := []
+	var in_mano := []
 	var cons_sel := []
 	for id in sel:
 		var d := m.dado(chi, id)
-		if d.get("st", "") == "pronto":
-			pronti_sel.append(id)
+		if d.get("st", "") == "mano":
+			in_mano.append(id)
 		elif d.get("st", "") == "conservato":
 			cons_sel.append(id)
-	if fase in ["azione", "reazione"]:
+	if fase in ["azione", "rinforzo", "reazione"]:
 		var b: Button = _btn["spinta"]
 		b.visible = true
-		b.text = "Spingi la fortuna (%s)" % ("gratis" if m.costo_spinta(chi) == 0 else "1 ritmo")
-		b.disabled = pronti_sel.is_empty() or m.costo_spinta(chi) > m.ritmo_libero(chi)
+		b.disabled = in_mano.is_empty() or not m.spinta_disponibile(chi)
 		var c: Button = _btn["conserva"]
 		c.visible = true
 		c.text = "Riprendi" if not cons_sel.is_empty() else "Conserva"
 		c.disabled = not (sel.size() == 1 and (not cons_sel.is_empty() or m.dadi_di(chi, "conservato").size() < int(m.s["g"][chi]["conserva_max"])))
-		var g: Dictionary = m.s["g"][chi]
-		if g["flag"].has("aggiusta") and g["usi"].get("aggiusta", 0) == 0:
-			_btn["meno"].visible = true
-			_btn["piu"].visible = true
-			_btn["meno"].disabled = pronti_sel.size() != 1
-			_btn["piu"].disabled = pronti_sel.size() != 1
 	match fase:
 		"azione":
 			_btn["passa"].visible = true
+		"rinforzo":
+			_btn["sferra"].visible = true
 		"reazione":
 			_btn["risolvi"].visible = true
 		"azzardo":
 			_btn["rilancia"].visible = true
 			_btn["ferma"].visible = true
 			var ha := false
-			for d in m.dadi_di(chi, "pronto"):
+			for d in m.dadi_di(chi, "mano"):
 				if Motore.colore_ok(d["col"], ["rosso"]):
 					ha = true
 			_btn["rilancia"].disabled = not ha
 
+func _mostra_scelte(voci: Array) -> void:
+	for c in _scelte.get_children():
+		c.queue_free()
+	for v in voci:
+		var b := _bottone(v[0], v[1], 120)
+		b.custom_minimum_size.y = 42
+		b.add_theme_font_size_override("font_size", 14)
+		_scelte.add_child(b)
+
 # ----------------------------------------------------------------- input del giocatore
 
 func _dado(id: int) -> void:
-	if _umano_decide() != mostra or not attesa.is_empty():
+	if _umano_decide() != mostra:
+		return
+	if attesa.get("passo", "") == "dadi":
+		if not attesa["selezionabili"].has(id):
+			return
+		if attesa["scelti"].has(id):
+			attesa["scelti"].erase(id)
+		else:
+			attesa["scelti"].append(id)
+		_vassoio.selezionati = attesa["scelti"]
+		if attesa["scelti"].size() >= attesa["n"]:
+			_dadi_scelti()
+		else:
+			_aggiorna()
+		return
+	if not attesa.is_empty():
 		return
 	if sel.has(id):
 		sel.erase(id)
@@ -978,22 +1024,61 @@ func _dado(id: int) -> void:
 		sel.append(id)
 	_aggiorna()
 
+func _dadi_scelti() -> void:
+	var p := _umano_decide()
+	var sc: Array = attesa["scelti"]
+	match attesa["eff"]:
+		"scambia":
+			for b in attesa["bersagli"]:
+				if (b["a"] == sc[0] and b["b"] == sc[1]) or (b["a"] == sc[1] and b["b"] == sc[0]):
+					_esegui(p, _op_attesa(b))
+					return
+			_msg.text = "Questi due dadi hanno lo stesso valore: scegline altri."
+			attesa["scelti"] = []
+			_aggiorna()
+		"rovescia":
+			_esegui(p, _op_attesa({"dado": sc[0]}))
+		"ritocca":
+			attesa["passo"] = "segno"
+			var d := m.dado(p, sc[0])
+			var voci := []
+			if d["v"] < 6:
+				voci.append(["Alza a %d" % (d["v"] + 1), func(): _esegui(p, _op_attesa({"dado": sc[0], "d": 1}))])
+			if d["v"] > 1:
+				voci.append(["Abbassa a %d" % (d["v"] - 1), func(): _esegui(p, _op_attesa({"dado": sc[0], "d": -1}))])
+			_mostra_scelte(voci)
+			_aggiorna()
+
+func _op_attesa(b: Dictionary) -> Dictionary:
+	return {"t": "slot", "tok": attesa["tok"], "slot": attesa["slot"], "dadi": attesa["dadi"], "b": b}
+
 func _slot(tok: String, sid: String) -> void:
 	var p := _umano_decide()
 	if p < 0 or p != mostra:
 		return
+	if attesa.get("passo", "") == "spazi":
+		var k := Motore.chiave(tok, sid)
+		if attesa["selezionabili"].has(k):
+			if attesa["scelti"].has(k):
+				attesa["scelti"].erase(k)
+			elif attesa["scelti"].size() < attesa["n"]:
+				attesa["scelti"].append(k)
+			_aggiorna()
+		return
 	if not attesa.is_empty():
 		_cmd_annulla()
 	var sl := m.slot_def(tok, sid)
-	var fase: String = m.s["fase"]
-	if fase == "azzardo":
-		_msg.text = "Prima rilancia o fermati."
+	if m.occupato(p, tok, sid):
+		_msg.text = "%s è occupato: per riusarlo devi liberarlo." % sl["nome"]
 		return
-	if fase == "reazione" and not m.reazione_possibile(p, sl):
-		_msg.text = "%s non si può usare contro questo colpo." % sl["nome"]
-		return
-	if fase == "azione" and sl["tipo"] != "azione":
-		_msg.text = "%s è una reazione: si usa quando ti attaccano." % sl["nome"]
+	if not m.slot_attivabile(p, tok, sl):
+		match sl["tipo"]:
+			"reazione", "supporto_difesa":
+				_msg.text = "%s si usa quando ti attaccano." % sl["nome"]
+			"supporto_attacco":
+				_msg.text = "%s si usa dopo aver dichiarato un tuo colpo." % sl["nome"]
+			_:
+				_msg.text = "Ora non puoi usare %s." % sl["nome"]
 		return
 	var ids := []
 	if not sel.is_empty():
@@ -1005,14 +1090,14 @@ func _slot(tok: String, sid: String) -> void:
 		var best := []
 		var bv := -1
 		for c in m.combinazioni(p, sl):
-			if fase == "azione" and m.bersagli(p, sl, c).is_empty():
+			if m.bersagli(p, tok, sl, c).is_empty():
 				continue
 			var somma := 0
 			for id in c:
 				somma += int(m.dado(p, id)["v"])
-			# senza scelta si usa la combinazione più bassa che basta (i dadi alti restano)
+			# senza scelta: il dado più alto per colpire, difendere e muovere, altrimenti il più basso
 			var punteggio := 100 - somma
-			if sl["effetto"] in ["attacco", "para", "movimento", "assalto", "sblocca", "cura", "contrattacco", "blocca_avversario"]:
+			if not sl.has("fisso") and sl["effetto"] in ["attacco", "para", "movimento", "assalto", "sblocca", "contrattacco", "stordisci", "supp_danno", "supp_difesa", "concentrazione"]:
 				punteggio = somma
 			if punteggio > bv:
 				bv = punteggio
@@ -1021,31 +1106,33 @@ func _slot(tok: String, sid: String) -> void:
 			_msg.text = "Nessun dado adatto per %s." % sl["nome"]
 			return
 		ids = best
-	if ids.size() > m.ritmo_libero(p):
-		_msg.text = "Non ti resta abbastanza ritmo."
-		return
-	if fase == "reazione":
-		_esegui(p, {"t": "slot", "tok": tok, "slot": sid, "dadi": ids, "b": {}})
-		return
-	var bs := m.bersagli(p, sl, ids)
+	var bs := m.bersagli(p, tok, sl, ids)
 	if bs.is_empty():
 		match sl["effetto"]:
 			"attacco":
 				_msg.text = "Il nemico non è a portata o non è davanti a te."
 			"assalto":
 				_msg.text = "Non raggiungi il nemico per caricarlo frontalmente."
-			"blocca_avversario":
-				_msg.text = "Il nemico è troppo lontano o non ha dadi abbastanza bassi."
+			"stordisci":
+				_msg.text = "Il nemico è troppo lontano o non ha dadi in mano adatti."
 			"sblocca":
-				_msg.text = "Non hai dadi bloccati."
+				_msg.text = "Non hai altri spazi occupati da liberare."
 			"cura":
 				_msg.text = "Non hai ferite da recuperare."
+			"pesca":
+				_msg.text = "Il mucchio è vuoto."
+			"rimetti":
+				_msg.text = "Non hai dadi storditi."
+			"scambia", "rovescia", "ritocca":
+				_msg.text = "Ti servono altri dadi in mano su cui agire."
 			_:
 				_msg.text = "Nessun bersaglio valido."
 		return
+	var base := {"tok": tok, "slot": sid, "dadi": ids, "bersagli": bs, "eff": sl["effetto"], "scelti": []}
 	match sl["effetto"]:
 		"movimento", "assalto", "passo_ombra":
-			attesa = {"tok": tok, "slot": sid, "dadi": ids, "bersagli": bs, "passo": "esagono"}
+			attesa = base
+			attesa["passo"] = "esagono"
 			var hex := {}
 			for b in bs:
 				hex[b["pos"]] = true
@@ -1053,18 +1140,52 @@ func _slot(tok: String, sid: String) -> void:
 			arena.evidenzia(hex.keys(), Color("#5aa0d8") if sl["effetto"] == "movimento" else Color("#d9a441"))
 			_aggiorna()
 		"ruota":
-			attesa = {"tok": tok, "slot": sid, "dadi": ids, "bersagli": bs, "passo": "direzione"}
+			attesa = base
+			attesa["passo"] = "direzione"
 			var dirs := []
 			for b in bs:
 				dirs.append(b["dir"])
 			arena.pulisci_evidenza()
 			arena.mostra_direzioni(m.s["g"][p]["pos"], dirs)
 			_aggiorna()
+		"sblocca":
+			if bs.size() == 1:
+				_esegui(p, {"t": "slot", "tok": tok, "slot": sid, "dadi": ids, "b": bs[0]})
+				return
+			attesa = base
+			attesa["passo"] = "spazi"
+			attesa["n"] = bs[0]["slots"].size()
+			var tutte := {}
+			for b in bs:
+				for k in b["slots"]:
+					tutte[k] = true
+			attesa["selezionabili"] = tutte.keys()
+			_aggiorna()
+		"scambia", "rovescia", "ritocca":
+			attesa = base
+			attesa["passo"] = "dadi"
+			attesa["n"] = 2 if sl["effetto"] == "scambia" else 1
+			var cand := []
+			for d in m.dadi_di(p, "mano"):
+				if not ids.has(d["id"]):
+					cand.append(d["id"])
+			attesa["selezionabili"] = cand
+			sel.clear()
+			_aggiorna()
+		"elimina":
+			attesa = base
+			attesa["passo"] = "colore"
+			var voci := []
+			for b in bs:
+				var col: String = b["col"]
+				voci.append(["Dado %s" % col, func(): _esegui(p, _op_attesa({"col": col}))])
+			_mostra_scelte(voci)
+			_aggiorna()
 		_:
 			_esegui(p, {"t": "slot", "tok": tok, "slot": sid, "dadi": ids, "b": bs[0]})
 
 func _esagono(h: Vector2i, punto: Vector3) -> void:
-	if attesa.is_empty():
+	if attesa.is_empty() or not (attesa["passo"] in ["esagono", "direzione"]):
 		return
 	var p := _umano_decide()
 	if p < 0:
@@ -1076,7 +1197,7 @@ func _esagono(h: Vector2i, punto: Vector3) -> void:
 			return
 		for b in bs:
 			if b["dir"] == d and (not attesa.has("pos") or b["pos"] == attesa["pos"]):
-				_esegui(p, {"t": "slot", "tok": attesa["tok"], "slot": attesa["slot"], "dadi": attesa["dadi"], "b": b})
+				_esegui(p, _op_attesa(b))
 				return
 		return
 	var qui := []
@@ -1086,7 +1207,7 @@ func _esagono(h: Vector2i, punto: Vector3) -> void:
 	if qui.is_empty():
 		return
 	if qui.size() == 1:
-		_esegui(p, {"t": "slot", "tok": attesa["tok"], "slot": attesa["slot"], "dadi": attesa["dadi"], "b": qui[0]})
+		_esegui(p, _op_attesa(qui[0]))
 		return
 	attesa["passo"] = "direzione"
 	attesa["pos"] = h
@@ -1105,17 +1226,15 @@ func _esegui(p: int, op: Dictionary) -> void:
 		return
 	sel.clear()
 	attesa = {}
+	_mostra_scelte([])
 	arena.pulisci_evidenza()
 	_dopo_applica()
 
 func _dopo_applica() -> void:
-	var ev := m.prendi_eventi()
-	arena.accoda(ev)
-	# tieni nella selezione solo i dadi ancora pronti o conservati
+	arena.accoda(m.prendi_eventi())
 	var tenuti := []
 	for id in sel:
-		var d := m.dado(mostra, id)
-		if d.get("st", "") in ["pronto", "conservato"]:
+		if m.dado(mostra, id).get("st", "") in ["mano", "conservato"]:
 			tenuti.append(id)
 	sel = tenuti
 	_aggiorna()
@@ -1124,7 +1243,7 @@ func _cmd_spinta() -> void:
 	var p := _umano_decide()
 	var ids := []
 	for id in sel:
-		if m.dado(p, id).get("st", "") == "pronto":
+		if m.dado(p, id).get("st", "") == "mano":
 			ids.append(id)
 	_esegui(p, {"t": "spinta", "dadi": ids})
 
@@ -1135,19 +1254,29 @@ func _cmd_conserva() -> void:
 	var d := m.dado(p, sel[0])
 	_esegui(p, {"t": "riprendi" if d["st"] == "conservato" else "conserva", "dado": sel[0]})
 
-func _cmd_aggiusta(delta: int) -> void:
-	var p := _umano_decide()
-	if sel.size() != 1:
-		return
-	var id: int = sel[0]
-	var e := m.applica(p, {"t": "aggiusta", "dado": id, "d": delta})
-	if e != "":
-		_msg.text = e
-		return
-	_dopo_applica()
-
 func _cmd_passa() -> void:
-	_esegui(_umano_decide(), {"t": "passa"})
+	var p := _umano_decide()
+	if p < 0:
+		return
+	var occ: Array = m.s["g"][p]["occupati"].keys()
+	var n: int = m.s["g"][p]["recupero"]
+	if occ.size() <= n:
+		_esegui(p, {"t": "passa", "slots": occ})
+		return
+	attesa = {"passa": true, "passo": "spazi", "n": n, "scelti": [], "selezionabili": occ}
+	_aggiorna()
+
+func _cmd_conferma() -> void:
+	var p := _umano_decide()
+	if attesa.get("passo", "") != "spazi":
+		return
+	if attesa.get("passa", false):
+		_esegui(p, {"t": "passa", "slots": attesa["scelti"].duplicate()})
+		return
+	_esegui(p, _op_attesa({"slots": attesa["scelti"].duplicate()}))
+
+func _cmd_sferra() -> void:
+	_esegui(_umano_decide(), {"t": "sferra"})
 
 func _cmd_risolvi() -> void:
 	_esegui(_umano_decide(), {"t": "risolvi"})
@@ -1157,10 +1286,10 @@ func _cmd_rilancia() -> void:
 	var scelto := -1
 	for id in sel:
 		var d := m.dado(p, id)
-		if d.get("st", "") == "pronto" and Motore.colore_ok(d["col"], ["rosso"]):
+		if d.get("st", "") == "mano" and Motore.colore_ok(d["col"], ["rosso"]):
 			scelto = id
 	if scelto < 0:
-		for d in m.dadi_di(p, "pronto"):
+		for d in m.dadi_di(p, "mano"):
 			if Motore.colore_ok(d["col"], ["rosso"]):
 				scelto = d["id"]
 				break
@@ -1171,6 +1300,7 @@ func _cmd_ferma() -> void:
 
 func _cmd_annulla() -> void:
 	attesa = {}
+	_mostra_scelte([])
 	arena.pulisci_evidenza()
 	_aggiorna()
 

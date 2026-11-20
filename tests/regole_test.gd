@@ -21,7 +21,7 @@ func _init() -> void:
 	# ogni slot ha campi coerenti
 	for t in dati["token"]:
 		for sl in t["slot"]:
-			controlla(sl["tipo"] in ["azione", "reazione"], "%s/%s tipo" % [t["id"], sl["id"]])
+			controlla(sl["tipo"] in ["azione", "reazione", "libera", "supporto_attacco", "supporto_difesa", "segreto", "contatore"], "%s/%s tipo" % [t["id"], sl["id"]])
 			controlla(sl["dadi"].size() >= 1 and sl["dadi"].size() <= 3, "%s/%s dadi" % [t["id"], sl["id"]])
 			controlla(sl.has("testo") and sl.has("nome"), "%s/%s testo" % [t["id"], sl["id"]])
 
@@ -32,35 +32,35 @@ func _init() -> void:
 	controlla(Motore.lato(Vector2i(0, 0), 0, Vector2i(0, -1)) == "fianco", "fianco")
 	controlla(Motore.lato(Vector2i(0, 0), 0, Vector2i(1, -1)) == "fronte", "fronte diagonale")
 
-	# meccaniche di base
+	# meccaniche di base: si pesca il ritmo dal mucchio
 	var m := Motore.new(dati)
 	m.nuova_partita(dati["personaggi"][0], dati["personaggi"][1], "cortile", 7)
 	controlla(m.s["round"] == 1, "primo scambio")
+	controlla(m.s["fase"] == "pesca", "si comincia scegliendo dal mucchio")
+	for d in m.s["g"][0]["dadi"]:
+		controlla(d["v"] >= 1 and d["v"] <= 6, "il mucchio è già tirato")
+	controlla(m.applica(m.chi_decide(), {"t": "prendi", "dadi": []}) != "", "bisogna prendere il ritmo giusto")
+	while m.s["fase"] == "pesca":
+		var chi := m.chi_decide()
+		controlla(m.applica(chi, IA.scegli(m, chi)) == "", "scelta dal mucchio")
 	for p in 2:
-		controlla(m.dadi_di(p, "pronto").size() == m.s["g"][p]["dadi"].size(), "tutti i dadi tirati")
+		var g0: Dictionary = m.s["g"][p]
+		controlla(m.dadi_di(p, "mano").size() == mini(g0["ritmo"], g0["dadi"].size()), "in mano tanti dadi quanto il ritmo")
 	var p: int = m.chi_decide()
-	var opz := m.opzioni(p)
-	controlla(opz.size() > 1, "ci sono opzioni all'inizio")
-	# movimento: avanti costa 1
+	controlla(m.opzioni(p).size() > 1, "ci sono opzioni all'inizio")
 	var rag := m.raggiungibili(p, 1)
 	var g: Dictionary = m.s["g"][p]
 	var avanti: Vector2i = g["pos"] + Motore.DIRS[g["dir"]]
 	controlla(rag["costo"].has(Vector3i(avanti.x, avanti.y, g["dir"])), "un passo avanti con 1 punto")
 	var dietro: Vector2i = g["pos"] - Motore.DIRS[g["dir"]]
 	controlla(not rag["costo"].has(Vector3i(dietro.x, dietro.y, g["dir"])), "indietro costa 2")
-	# spinta: la prima è gratuita
-	var r0: int = m.ritmo_libero(p)
 	var ids := []
-	for d in m.dadi_di(p, "pronto"):
+	for d in m.dadi_di(p, "mano"):
 		ids.append(d["id"])
 	controlla(m.applica(p, {"t": "spinta", "dadi": [ids[0]]}) == "", "spinta")
-	controlla(m.ritmo_libero(p) == r0, "prima spinta gratis")
-	if m.dadi_di(p, "pronto").size() > 0:
-		var r1: int = m.ritmo_libero(p)
-		m.applica(p, {"t": "spinta", "dadi": [m.dadi_di(p, "pronto")[0]["id"]]})
-		controlla(m.ritmo_libero(p) == r1 - 1, "seconda spinta costa ritmo")
+	controlla(m.applica(p, {"t": "spinta", "dadi": [ids[0]]}) != "", "una sola spinta per scambio")
 
-	# attacco con reazione: due combattenti adiacenti
+	# un colpo occupa lo spazio; lo spazio si libera e il dado torna nel mucchio
 	var m2 := Motore.new(dati)
 	m2.nuova_partita(dati["personaggi"][0], dati["personaggi"][1], "cortile", 3)
 	m2.s["g"][0]["pos"] = Vector2i(0, 0)
@@ -68,20 +68,64 @@ func _init() -> void:
 	m2.s["g"][1]["pos"] = Vector2i(1, 0)
 	m2.s["g"][1]["dir"] = 3
 	m2.s["attivo"] = 0
+	m2.s["fase"] = "azione"
+	for d in m2.s["g"][0]["dadi"]:
+		d["st"] = "mucchio"
+	var rosso := -1
 	for d in m2.s["g"][0]["dadi"]:
 		if d["col"] == "rosso":
+			d["st"] = "mano"
 			d["v"] = 5
-	var rosso := -1
-	for d in m2.dadi_di(0, "pronto"):
-		if d["col"] == "rosso":
 			rosso = d["id"]
 			break
+	for d in m2.s["g"][1]["dadi"]:
+		d["st"] = "mucchio"
 	var vita1: int = m2.s["g"][1]["vita"]
 	var esito := m2.applica(0, {"t": "slot", "tok": "spada", "slot": "fendente", "dadi": [rosso], "b": {"bers": 1}})
 	controlla(esito == "", "fendente valido: " + esito)
+	if m2.s["fase"] == "rinforzo":
+		m2.applica(0, {"t": "sferra"})
 	if m2.s["fase"] == "reazione":
 		m2.applica(1, {"t": "risolvi"})
 	controlla(m2.s["g"][1]["vita"] == vita1 - (5 - m2.s["g"][1]["armatura"]), "danno del fendente meno armatura")
+	controlla(m2.occupato(0, "spada", "fendente"), "il fendente resta occupato")
+	controlla(m2.dado(0, rosso)["st"] == "token", "il dado resta sul token")
+	m2.s["attivo"] = 0
+	m2.s["g"][0]["passato"] = false
+	controlla(m2.applica(0, {"t": "passa", "slots": ["spada/fendente"]}) == "", "passando si libera uno spazio")
+	controlla(not m2.occupato(0, "spada", "fendente"), "spazio liberato")
+	controlla(m2.dado(0, rosso)["st"] == "mucchio", "il dado torna nel mucchio")
+
+	# segreto: la trappola scatta quando si viene attaccati in mischia
+	var m3 := Motore.new(dati)
+	var pg_t := {"nome": "Trappolatore", "token": {"forza": 1, "tempra": 1, "trappola": 1}}
+	var pg_a := {"nome": "Spadaccino", "token": {"forza": 2, "spada": 1}}
+	m3.nuova_partita(pg_t, pg_a, "cortile", 9)
+	m3.s["fase"] = "azione"
+	m3.s["attivo"] = 0
+	m3.s["g"][0]["pos"] = Vector2i(0, 0)
+	m3.s["g"][0]["dir"] = 0
+	m3.s["g"][1]["pos"] = Vector2i(1, 0)
+	m3.s["g"][1]["dir"] = 3
+	var r0 := -1
+	for d in m3.s["g"][0]["dadi"]:
+		if d["col"] == "rosso":
+			d["st"] = "mano"
+			d["v"] = 4
+			r0 = d["id"]
+	controlla(m3.applica(0, {"t": "slot", "tok": "trappola", "slot": "trappola", "dadi": [r0], "b": {}}) == "", "si carica la trappola")
+	controlla(m3.s["g"][0]["armati"].size() == 1, "trappola carica")
+	var r1 := -1
+	for d in m3.s["g"][1]["dadi"]:
+		if d["col"] == "rosso" and r1 < 0:
+			d["st"] = "mano"
+			d["v"] = 3
+			r1 = d["id"]
+	m3.s["attivo"] = 1
+	var v1: int = m3.s["g"][1]["vita"]
+	controlla(m3.applica(1, {"t": "slot", "tok": "spada", "slot": "fendente", "dadi": [r1], "b": {"bers": 0}}) == "", "attacco sulla trappola")
+	controlla(m3.s["g"][1]["vita"] == v1 - 4, "la trappola ferisce l'attaccante")
+	controlla(m3.s["g"][0]["rivelati"].has("trappola"), "il segreto si rivela")
 
 	# partite automatiche
 	var n := 40

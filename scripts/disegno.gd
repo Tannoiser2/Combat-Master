@@ -5,9 +5,9 @@ extends RefCounted
 
 const COLORI := {
 	"rosso": Color("#c8372d"), "blu": Color("#2f6fd0"), "verde": Color("#2f9a52"),
-	"viola": Color("#8a4fc4"), "bianco": Color("#ece6d6")
+	"viola": Color("#8a4fc4"), "giallo": Color("#d9a420"), "bianco": Color("#ece6d6")
 }
-const NOMI_COLORE := {"rosso": "Forza", "blu": "Agilità", "verde": "Tempra", "viola": "Mente", "bianco": "Prodigio"}
+const NOMI_COLORE := {"rosso": "rossi", "blu": "blu", "verde": "verdi", "viola": "viola", "giallo": "gialli", "bianco": "bianchi"}
 const CATEGORIE := {
 	"attributo": Color("#b08d57"), "arma": Color("#9a5b3c"), "armatura": Color("#6f7b86"),
 	"mossa": Color("#a8433a"), "talento": Color("#5d7f4a")
