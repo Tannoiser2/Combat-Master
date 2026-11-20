@@ -16,6 +16,11 @@ const RECUPERO_BASE := 1
 const DANNO_PERICOLO := 2
 const DANNO_URTO := 2
 const ROUND_MAX := 30
+const PASSO_BASE := 2          # punti movimento dell'azione base senza dadi, una volta per scambio
+const SUPPORTI_MAX := 2        # supporti per colpo, in attacco e in difesa
+
+## Regole di base regolabili (data/tokens.json, voce "regole"): ritmo, recupero, vita, conserva.
+static var regole: Dictionary = {}
 
 var cat: Dictionary = {}
 var dati: Dictionary = {}
@@ -32,6 +37,7 @@ static func carica_dati() -> Dictionary:
 	for t in d["token"]:
 		c[t["id"]] = t
 	d["per_id"] = c
+	regole = d.get("regole", {})
 	return d
 
 static func costo_token(t: Dictionary, livello: int) -> int:
@@ -47,8 +53,8 @@ static func costo_personaggio(c: Dictionary, pg: Dictionary) -> int:
 	return tot
 
 static func statistiche(c: Dictionary, pg: Dictionary) -> Dictionary:
-	var st := {"dadi": {}, "vita": VITA_BASE, "ritmo": RITMO_BASE, "armatura": 0, "movimento": 0,
-		"conserva": CONSERVA_BASE, "recupero": RECUPERO_BASE, "iniziativa": 0, "flag": {}}
+	var st := {"dadi": {}, "vita": int(regole.get("vita", VITA_BASE)), "ritmo": int(regole.get("ritmo", RITMO_BASE)), "armatura": 0, "movimento": 0,
+		"conserva": int(regole.get("conserva", CONSERVA_BASE)), "recupero": int(regole.get("recupero", RECUPERO_BASE)), "iniziativa": 0, "flag": {}}
 	for id in pg.get("token", {}):
 		if not c.has(id):
 			continue
@@ -97,7 +103,7 @@ func nuova_partita(pg0: Dictionary, pg1: Dictionary, arena_id: String, seme: int
 	s = {"round": 0, "attivo": 0, "primo": -1, "fase": "azione", "pend": {}, "azz": {},
 		"raggio": R, "ost": ost, "per": per, "arena": arena_id, "vinc": -1,
 		"log": [], "eventi": [], "g": []}
-	var partenze := [Vector2i(-(R - 2), 0), Vector2i(R - 2, 0)]
+	var partenze := [Vector2i(-(R - 3), 0), Vector2i(R - 3, 0)]
 	var dirs := [0, 3]
 	for i in 2:
 		var pg: Dictionary = [pg0, pg1][i]
@@ -338,9 +344,9 @@ func slot_attivabile(p: int, tok: String, sl: Dictionary) -> bool:
 		"libera":
 			return f in ["azione", "rinforzo", "reazione"]
 		"supporto_attacco":
-			return f == "rinforzo"
+			return f == "rinforzo" and int(s["pend"].get("supp_att", 0)) < SUPPORTI_MAX
 		"supporto_difesa":
-			return f == "reazione" and not s["pend"]["annullato"] and not s["pend"].get("imparabile", false)
+			return f == "reazione" and not s["pend"]["annullato"] and not s["pend"].get("imparabile", false) and int(s["pend"].get("supp_dif", 0)) < SUPPORTI_MAX
 		"reazione":
 			return reazione_possibile(p, sl)
 		"segreto":
@@ -557,7 +563,10 @@ func bersagli(p: int, tok: String, sl: Dictionary, ids: Array) -> Array:
 			if g["vita"] < g["vita_max"]:
 				out.append({})
 		"concentrazione":
-			out.append({})
+			for d in _mano_senza(p, ids):
+				if d["v"] <= 3:
+					out.append({})
+					break
 		"pesca":
 			var mu := dadi_di(p, "mucchio")
 			mu.sort_custom(func(a, b): return a["v"] > b["v"])
@@ -721,6 +730,8 @@ func opzioni(p: int) -> Array:
 				out.append({"t": "slot", "tok": ts[0], "slot": sl["id"], "dadi": ids, "b": b})
 	match f:
 		"azione":
+			for b in bersagli_passo(p):
+				out.append({"t": "passo", "b": b})
 			for k in opzioni_scarica(p):
 				out.append({"t": "scarica", "key": k})
 			for c in opzioni_recupero(p):
@@ -751,11 +762,42 @@ func _miglior_attacco_libero(o: int) -> String:
 		var sl: Dictionary = ts[1]
 		var k := chiave(ts[0], sl["id"])
 		if sl["effetto"] == "attacco" and sl["tipo"] == "azione" and not occupato(o, ts[0], sl["id"]) and not s["g"][o]["disarmati"].has(k):
-			var v := int(sl.get("bonus", 0)) + int(sl.get("fisso", 3)) + sl["dadi"].size()
+			var v: int = int(sl.get("bonus", 0)) + int(sl.get("fisso", 3)) + sl["dadi"].size()
 			if v > bv:
 				bv = v
 				best = k
 	return best
+
+## Azione base senza dadi: muoversi di PASSO_BASE, una volta per scambio.
+func bersagli_passo(p: int) -> Array:
+	var out := []
+	var g: Dictionary = s["g"][p]
+	if s["fase"] != "azione" or chi_decide() != p or g["usi"].get("passo", 0) > 0:
+		return out
+	var rag := raggiungibili(p, PASSO_BASE + int(g["mov"]))
+	for st in rag["costo"]:
+		if st != Vector3i(g["pos"].x, g["pos"].y, g["dir"]):
+			out.append({"pos": Vector2i(st.x, st.y), "dir": st.z})
+	return out
+
+func _passo(p: int, b: Dictionary) -> String:
+	var g: Dictionary = s["g"][p]
+	if s["fase"] != "azione" or g["usi"].get("passo", 0) > 0:
+		return "Il passo si fa una volta per scambio."
+	var rag := raggiungibili(p, PASSO_BASE + int(g["mov"]))
+	var fine := Vector3i(b["pos"].x, b["pos"].y, int(b["dir"]))
+	if not rag["costo"].has(fine) or fine == Vector3i(g["pos"].x, g["pos"].y, g["dir"]):
+		return "Destinazione non raggiungibile con un passo."
+	g["usi"]["passo"] = 1
+	var per := percorso(rag, fine)
+	g["pos"] = b["pos"]
+	g["dir"] = int(b["dir"])
+	_scrivi("%s fa un passo." % g["nome"])
+	_evento({"t": "muovi", "p": p, "percorso": per})
+	_pericolo(p)
+	_dopo_movimento(p)
+	_dopo_azione(p, false)
+	return ""
 
 func opzioni_recupero(p: int) -> Array:
 	var chiavi: Array = s["g"][p]["occupati"].keys()
@@ -828,6 +870,8 @@ func applica(p: int, op: Dictionary) -> String:
 			return _rilancia(p, int(op["dado"]))
 		"scarica":
 			return _scarica(p, String(op["key"]))
+		"passo":
+			return _passo(p, op["b"])
 		"ferma":
 			if s["fase"] != "azzardo":
 				return "Nessun azzardo in corso."
@@ -919,6 +963,8 @@ func _slot(p: int, op: Dictionary) -> String:
 			_risolvi_attacco()
 			return ""
 		"para", "supp_difesa":
+			if sl["tipo"] == "supporto_difesa":
+				s["pend"]["supp_dif"] = int(s["pend"].get("supp_dif", 0)) + 1
 			s["pend"]["riduz"] += q
 			if sl.get("no_spinta", false):
 				s["pend"]["no_spinta"] = true
@@ -941,6 +987,7 @@ func _slot(p: int, op: Dictionary) -> String:
 			return ""
 		"supp_danno":
 			var pe: Dictionary = s["pend"]
+			pe["supp_att"] = int(pe.get("supp_att", 0)) + 1
 			pe["danno"] += q
 			if sl.get("ignora_armatura", false):
 				pe["ignora"] = true
@@ -1463,6 +1510,8 @@ func _innesca(p: int, innesco: String) -> void:
 	for key in g["armati"].keys():
 		if s["vinc"] >= 0:
 			return
+		if not g["armati"].has(key):
+			continue
 		var parti: PackedStringArray = key.split("/")
 		var sl := slot_def(parti[0], parti[1])
 		if sl.get("innesco", "") != innesco:

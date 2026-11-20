@@ -1,0 +1,177 @@
+extends SceneTree
+## Banco di bilanciamento: avventurieri casuali, centinaia di partite IA contro IA,
+## statistiche per token e per spazio, aggiustamento automatico dei costi.
+## uso: godot --headless --path . --script tests/bilancia.gd -- partite=400 iterazioni=3 applica=1
+##      opzioni: budget=30|45|60|0 (0 = misto)  ritmo=N recupero=N vita=N  rapporto=percorso.md
+
+var dati: Dictionary
+var cat: Dictionary
+var rng := RandomNumberGenerator.new()
+
+func _init() -> void:
+	var arg := {"partite": "300", "iterazioni": "1", "applica": "0", "budget": "0", "seme": "1", "rapporto": ""}
+	for a in OS.get_cmdline_user_args():
+		var kv := a.split("=")
+		if kv.size() == 2:
+			arg[kv[0]] = kv[1]
+	dati = Motore.carica_dati()
+	cat = dati["per_id"]
+	for k in ["ritmo", "recupero", "vita", "conserva"]:
+		if arg.has(k):
+			Motore.regole[k] = int(arg[k])
+	rng.seed = int(arg["seme"])
+	var ultimo := {}
+	for it in int(arg["iterazioni"]):
+		ultimo = giro(int(arg["partite"]), int(arg["budget"]))
+		stampa(ultimo, it)
+		if arg["applica"] == "1":
+			var n := aggiusta(ultimo)
+			print("Iterazione %d: costi cambiati su %d token" % [it + 1, n])
+	if arg["applica"] == "1":
+		salva_catalogo()
+	if arg["rapporto"] != "":
+		scrivi_rapporto(ultimo, arg["rapporto"])
+	quit()
+
+func giro(n: int, budget_fisso: int) -> Dictionary:
+	var st := {"partite": 0, "scambi": 0, "tempo": 0, "rifiuti": 0, "token": {}, "spazi": {}, "coppie": {},
+		"budget": {}, "durate": [], "danno": 0, "senza_attacchi": 0}
+	var t0 := Time.get_ticks_msec()
+	for i in n:
+		var budget: int = budget_fisso if budget_fisso > 0 else [30, 45, 60][i % 3]
+		var a: Dictionary = Generatore.casuale(dati, budget, rng)
+		var b: Dictionary = Generatore.casuale(dati, budget, rng)
+		var m := Motore.new(dati)
+		m.nuova_partita(a, b, ["cortile", "rovine", "fossa"][rng.randi() % 3], rng.randi())
+		var passi := 0
+		var attacchi := [0, 0]
+		while m.s["vinc"] < 0 and passi < 5000:
+			var chi := m.chi_decide()
+			var op := IA.scegli(m, chi, rng)
+			if op.is_empty():
+				break
+			if op["t"] == "slot":
+				var k: String = op["tok"] + "/" + op["slot"]
+				st["spazi"][k] = int(st["spazi"].get(k, 0)) + 1
+				if m.slot_def(op["tok"], op["slot"])["effetto"] in ["attacco", "assalto"]:
+					attacchi[chi] += 1
+			elif op["t"] == "scarica":
+				st["spazi"][op["key"]] = int(st["spazi"].get(op["key"], 0)) + 1
+				attacchi[chi] += 1
+			var e := m.applica(chi, op)
+			if e != "":
+				st["rifiuti"] += 1
+				print("RIFIUTATA: ", e, " ", op)
+				break
+			passi += 1
+		st["partite"] += 1
+		st["scambi"] += int(m.s["round"])
+		st["durate"].append(int(m.s["round"]))
+		if int(m.s["round"]) >= Motore.ROUND_MAX:
+			st["tempo"] += 1
+		if attacchi[0] == 0 or attacchi[1] == 0:
+			st["senza_attacchi"] += 1
+		var w: int = maxi(0, m.s["vinc"])
+		for p in 2:
+			var pg: Dictionary = [a, b][p]
+			var vinto := 1 if p == w else 0
+			var ids: Array = pg["token"].keys()
+			for id in ids:
+				var r: Dictionary = st["token"].get(id, {"n": 0, "v": 0})
+				r["n"] += 1
+				r["v"] += vinto
+				st["token"][id] = r
+			ids.sort()
+			for x in ids.size():
+				for y in range(x + 1, ids.size()):
+					var k: String = ids[x] + "+" + ids[y]
+					var r2: Dictionary = st["coppie"].get(k, {"n": 0, "v": 0})
+					r2["n"] += 1
+					r2["v"] += vinto
+					st["coppie"][k] = r2
+	st["ms"] = Time.get_ticks_msec() - t0
+	return st
+
+func stampa(st: Dictionary, it: int) -> void:
+	var d: Array = st["durate"]
+	d.sort()
+	print("--- Giro %d: %d partite in %d s, scambi medi %.1f (mediana %d, massimo %d), a tempo %d, senza attacchi %d, rifiuti %d" % [
+		it + 1, st["partite"], st["ms"] / 1000, float(st["scambi"]) / st["partite"], d[d.size() / 2], d[-1], st["tempo"], st["senza_attacchi"], st["rifiuti"]])
+	var righe := []
+	for id in st["token"]:
+		var r: Dictionary = st["token"][id]
+		if r["n"] >= 12:
+			righe.append([float(r["v"]) / r["n"], id, r["n"]])
+	righe.sort_custom(func(x, y): return x[0] > y[0])
+	print("Più forti: ", righe.slice(0, 6).map(func(x): return "%s %.0f%% (%d)" % [x[1], x[0] * 100, x[2]]))
+	print("Più deboli: ", righe.slice(maxi(0, righe.size() - 6)).map(func(x): return "%s %.0f%% (%d)" % [x[1], x[0] * 100, x[2]]))
+
+## Alza il costo dei token che vincono troppo, abbassa quello dei token che perdono troppo.
+func aggiusta(st: Dictionary) -> int:
+	var cambiati := 0
+	for id in st["token"]:
+		var r: Dictionary = st["token"][id]
+		if r["n"] < 25:
+			continue
+		var wr: float = float(r["v"]) / r["n"]
+		var delta := 0
+		if wr > 0.57:
+			delta = 1
+		elif wr < 0.43:
+			delta = -1
+		if delta == 0:
+			continue
+		var t: Dictionary = cat[id]
+		if t.has("livelli"):
+			for L in t["livelli"]:
+				L["costo"] = maxi(1, int(L["costo"]) + delta)
+		else:
+			t["costo"] = maxi(1, int(t.get("costo", 3)) + delta)
+		cambiati += 1
+	return cambiati
+
+func salva_catalogo() -> void:
+	var out: Dictionary = dati.duplicate()
+	out.erase("per_id")
+	var f := FileAccess.open("res://data/tokens.json", FileAccess.WRITE)
+	f.store_string(JSON.stringify(out, " ", false))
+	print("Catalogo salvato con i nuovi costi.")
+
+func scrivi_rapporto(st: Dictionary, percorso: String) -> void:
+	var t := "# Rapporto di bilanciamento\n\n"
+	t += "%d partite simulate fra avventurieri casuali (30, 45 e 60 punti), IA contro IA.\n\n" % st["partite"]
+	var d: Array = st["durate"]
+	d.sort()
+	t += "- Scambi per partita: media %.1f, mediana %d, massimo %d\n" % [float(st["scambi"]) / st["partite"], d[d.size() / 2], d[-1]]
+	t += "- Partite finite al limite di tempo: %d\n- Partite in cui qualcuno non ha mai attaccato: %d\n- Opzioni rifiutate dal motore (errori): %d\n\n" % [st["tempo"], st["senza_attacchi"], st["rifiuti"]]
+	t += "## Token: percentuale di vittorie di chi li ha\n\n| Token | Categoria | Costo | Partite | Vittorie |\n| --- | --- | --- | --- | --- |\n"
+	var righe := []
+	for id in st["token"]:
+		var r: Dictionary = st["token"][id]
+		righe.append([float(r["v"]) / maxi(1, r["n"]), id, r["n"]])
+	righe.sort_custom(func(x, y): return x[0] > y[0])
+	for x in righe:
+		var tk: Dictionary = cat[x[1]]
+		var costo := str(Motore.costo_token(tk, 1)) if not tk.has("livelli") else "/".join(tk["livelli"].map(func(L): return str(L["costo"])))
+		t += "| %s | %s | %s | %d | %.0f%% |\n" % [tk["nome"], tk["categoria"], costo, x[2], x[0] * 100]
+	t += "\n## Spazi mai usati dall'IA\n\n"
+	var mai := []
+	for tk in dati["token"]:
+		for sl in tk["slot"]:
+			var k: String = tk["id"] + "/" + sl["id"]
+			if not st["spazi"].has(k) and st["token"].has(tk["id"]):
+				mai.append("%s (%s)" % [sl["nome"], tk["nome"]])
+	t += ("- " + "\n- ".join(mai) + "\n") if not mai.is_empty() else "Nessuno.\n"
+	t += "\n## Coppie di token sospette (almeno 20 partite)\n\n| Coppia | Partite | Vittorie |\n| --- | --- | --- |\n"
+	var cp := []
+	for k in st["coppie"]:
+		var r: Dictionary = st["coppie"][k]
+		if r["n"] >= 20:
+			cp.append([float(r["v"]) / r["n"], k, r["n"]])
+	cp.sort_custom(func(x, y): return x[0] > y[0])
+	for x in cp.slice(0, 12):
+		var parti: PackedStringArray = x[1].split("+")
+		t += "| %s + %s | %d | %.0f%% |\n" % [cat[parti[0]]["nome"], cat[parti[1]]["nome"], x[2], x[0] * 100]
+	var f := FileAccess.open(percorso, FileAccess.WRITE)
+	f.store_string(t)
+	print("Rapporto scritto in ", percorso)

@@ -10,6 +10,7 @@ const PESI_BASE := {
 	"mucchio_base": 0.4, "mucchio_val": 0.04, "stordito": 0.4, "eliminato": 0.9, "occupato": 1.0,
 	"armato": 1.5, "distanza": 0.7, "fronte": 1.2, "fianco": 0.8, "retro": 1.6, "pericolo": 3.0,
 	"iniziativa": 0.8, "azzardo": 7.0, "pesca_spazio": 0.5, "pesca_val": 0.1,
+	"minaccia": 1.2, "pericolo_subito": 1.0, "cede": 0.6,
 }
 
 static var _pesi_salvati: Dictionary = {}
@@ -174,6 +175,17 @@ static func valuta(m: Motore, p: int, w: Dictionary) -> float:
 	if go["vita"] <= 3:
 		v += w["vita_bassa"]
 	v += _posizione(m, p, g["pos"], g["dir"], w)
+	# minaccia: quanto può far male ciascuno con i dadi che ha in mano
+	var mia := minaccia(m, p)
+	var sua := minaccia(m, o)
+	v += w["minaccia"] * mia
+	if not go["passato"]:
+		v -= w["pericolo_subito"] * sua
+		# chi passa per primo lascia all'avversario azioni gratuite
+		if g["passato"]:
+			v -= w["cede"] * m.dadi_di(o, "mano").size()
+	elif not g["passato"]:
+		v += w["cede"] * m.dadi_di(p, "mano").size()
 	if m.s["fase"] == "azione" and int(m.s["attivo"]) == p and not g["passato"]:
 		v += w["iniziativa"]
 	return v
@@ -223,7 +235,11 @@ static func _sfoltisci(m: Motore, p: int, opz: Array, w: Dictionary) -> Array:
 	var out := []
 	var mov := {}
 	for op in opz:
-		if op["t"] == "slot" and op["b"].has("pos") and m.slot_def(op["tok"], op["slot"])["effetto"] == "movimento":
+		if op["t"] == "passo":
+			var kp := Vector3i(op["b"]["pos"].x, op["b"]["pos"].y, op["b"]["dir"])
+			if not mov.has(kp):
+				mov[kp] = [0, op]
+		elif op["t"] == "slot" and op["b"].has("pos") and m.slot_def(op["tok"], op["slot"])["effetto"] == "movimento":
 			var k := Vector3i(op["b"]["pos"].x, op["b"]["pos"].y, op["b"]["dir"])
 			var v: int = m.dado(p, op["dadi"][0])["v"]
 			if not mov.has(k) or v < mov[k][0]:
@@ -270,3 +286,31 @@ static func _conserva_utile(m: Motore, p: int) -> Dictionary:
 	if best.is_empty():
 		return {}
 	return {"t": "conserva", "dado": best["id"]}
+
+## Stima del colpo più forte che `p` può portare con i dadi in mano, se il nemico è a tiro
+## (contando anche un passo o un movimento ancora disponibili).
+static func minaccia(m: Motore, p: int) -> float:
+	var g: Dictionary = m.s["g"][p]
+	var go: Dictionary = m.s["g"][1 - p]
+	var mano := m.dadi_di(p, "mano")
+	if mano.is_empty():
+		return 0.0
+	var d := Motore.dist(g["pos"], go["pos"])
+	var avvicina := 0 if g["usi"].get("passo", 0) > 0 else Motore.PASSO_BASE
+	var best := 0.0
+	for ts in m.slot_del_giocatore(p):
+		var sl: Dictionary = ts[1]
+		if sl["tipo"] != "azione" or not (sl["effetto"] in ["attacco", "assalto"]) or m.occupato(p, ts[0], sl["id"]):
+			continue
+		var portata := int(sl.get("portata", 1))
+		if sl["effetto"] == "assalto":
+			portata = 6
+		if d - avvicina > portata or d < int(sl.get("gittata_min", 1)):
+			continue
+		for ids in m.combinazioni(p, sl):
+			var q := float(m.quantita(p, sl, ids))
+			if not sl.get("ignora_armatura", false):
+				q -= float(go["armatura"])
+			best = maxf(best, q)
+			break
+	return best
