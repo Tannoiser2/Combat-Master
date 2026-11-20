@@ -10,7 +10,7 @@ const PESI_BASE := {
 	"mucchio_base": 0.4, "mucchio_val": 0.04, "stordito": 0.4, "eliminato": 0.9, "occupato": 1.0,
 	"armato": 1.5, "distanza": 0.7, "fronte": 1.2, "fianco": 0.8, "retro": 1.6, "pericolo": 3.0,
 	"iniziativa": 0.8, "azzardo": 7.0, "pesca_spazio": 0.5, "pesca_val": 0.1,
-	"minaccia": 1.2, "pericolo_subito": 1.0, "cede": 0.6,
+	"minaccia": 1.2, "pericolo_subito": 1.0, "cede": 0.6, "guardia": 1.0,
 }
 
 static var _pesi_salvati: Dictionary = {}
@@ -37,7 +37,7 @@ static func pesi() -> Dictionary:
 	return _pesi_salvati
 
 static func versione_catalogo() -> int:
-	return 1
+	return 2
 
 ## Variante casuale dei pesi: si cambiano da 2 a 5 pesi di un fattore vicino a 1.
 static func muta(w: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
@@ -239,6 +239,8 @@ static func valuta(m: Motore, p: int, w: Dictionary) -> float:
 	if go["vita"] <= 3:
 		v += w["vita_bassa"]
 	v += _posizione(m, p, g["pos"], g["dir"], w)
+	# guardie: quanto coprono il lato da cui arriverebbe il nemico
+	v += w["guardia"] * (float(m.copertura(p, go["pos"])[0]) - float(m.copertura(o, g["pos"])[0]))
 	# minaccia: quanto può far male ciascuno con i dadi che ha in mano
 	var mia := minaccia(m, p)
 	var sua := minaccia(m, o)

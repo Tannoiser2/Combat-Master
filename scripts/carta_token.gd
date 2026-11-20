@@ -21,6 +21,7 @@ var evidenzia: Dictionary = {} # sid -> true (usabile) / false (no)
 var disattivo := false         # nel catalogo: non entra nel budget o già preso
 var scelta_spazi: Dictionary = {} # sid -> 0 (selezionabile) / 1 (scelto)
 var coperta := false           # segreto dell'avversario non ancora rivelato
+var in_volo: Dictionary = {}   # id dei dadi ancora in volo verso questo token: non si disegnano
 
 var _rect_slot := {}
 var _rect_btn := {}
@@ -73,7 +74,7 @@ func _ricalcola() -> void:
 	for sl in tok.get("slot", []):
 		var n: int = _alloggi(sl).size()
 		var sw := mini(n, 4) * (SOCK + 4)
-		var th := Disegno.altezza_testo(sl["testo"], 14, W - 24 - sw)
+		var th := Disegno.altezza_testo(sl["testo"], 14, W - 24 - sw - _largo_esagono(sl))
 		var extra := 18.0 if sl["tipo"] in ["contatore", "segreto"] or sl.has("capienza") else 0.0
 		var h := 26.0 + maxf(SOCK, th) + 8 + extra
 		_rect_slot[sl["id"]] = Rect2(6, y, W - 12, h)
@@ -249,16 +250,21 @@ func _disegna_spazio(sl: Dictionary) -> void:
 		var sr := Rect2(r.position.x + 6 + (i % cols) * (SOCK + 4) + (i / cols) * 6, r.position.y + 26 + (i / cols) * 6, SOCK, SOCK)
 		Disegno.alloggio(self, sr, all[i])
 	for i in occ.size():
+		if in_volo.has(occ[i]):
+			continue
 		var d := motore.dado(giocatore, occ[i])
 		var sr := Rect2(r.position.x + 6 + (i % cols) * (SOCK + 4) + (i / cols) * 6, r.position.y + 26 + (i / cols) * 6, SOCK, SOCK)
 		Disegno.dado(self, sr, d["col"], d["v"], "usato")
 	var sw := cols * (SOCK + 4)
-	if pieno and not armato and not carico:
+	var ew := _largo_esagono(sl)
+	if ew > 0:
+		_disegna_esagono(sl, key, g, Vector2(r.end.x - 24, r.position.y + 46))
+	if pieno and not armato and not carico and not (not g.is_empty() and g["guardie"].has(key)):
 		Disegno.testo_a_capo(self, Vector2(r.position.x + 10 + sw, r.position.y + 38), "Occupato: si riusa dopo averlo liberato.", 14, Color("#7a2a1e"), r.size.x - 16 - sw)
 	elif disarmato:
 		Disegno.testo_a_capo(self, Vector2(r.position.x + 10 + sw, r.position.y + 38), "Disarmato fino a fine scambio.", 14, Color("#7a2a1e"), r.size.x - 16 - sw)
 	else:
-		Disegno.testo_a_capo(self, Vector2(r.position.x + 10 + sw, r.position.y + 38), sl["testo"], 14, Disegno.INCHIOSTRO, r.size.x - 16 - sw)
+		Disegno.testo_a_capo(self, Vector2(r.position.x + 10 + sw, r.position.y + 38), sl["testo"], 14, Disegno.INCHIOSTRO, r.size.x - 16 - sw - ew)
 	var stato := ""
 	if sl["tipo"] == "contatore":
 		var somma := 0
@@ -271,6 +277,54 @@ func _disegna_spazio(sl: Dictionary) -> void:
 		stato = "%d su %d dadi" % [occ.size(), int(sl["capienza"])]
 	if stato != "" and modo == "gioco":
 		Disegno.testo(self, Vector2(r.position.x + 8, r.end.y - 6), stato, 13, Color("#5a3a10"), Disegno.font_titolo(), r.size.x - 16)
+
+## Rettangolo (in coordinate dello schermo) dell'alloggio i-esimo di uno spazio.
+func rect_alloggio(sid: String, i: int) -> Rect2:
+	if not _rect_slot.has(sid):
+		return Rect2()
+	var sl := {}
+	for x in tok.get("slot", []):
+		if x["id"] == sid:
+			sl = x
+	var r: Rect2 = _rect_slot[sid]
+	var cols := mini(_alloggi(sl).size(), 4)
+	var lr := Rect2(r.position.x + 6 + (i % cols) * (SOCK + 4) + (i / cols) * 6, r.position.y + 26 + (i / cols) * 6, SOCK, SOCK)
+	var t := get_global_transform()
+	return Rect2(t * lr.position, lr.size * t.get_scale())
+
+static func _largo_esagono(sl: Dictionary) -> float:
+	return 44.0 if sl.has("esagono") else 0.0
+
+## Esagono disegnato sul token: il lato pieno in oro, poi -1, -2, -3 sbiadendo.
+## In gioco, se il dado è in guardia, il lato pieno è quello scelto e al centro c'è il valore.
+func _disegna_esagono(sl: Dictionary, key: String, g: Dictionary, c: Vector2) -> void:
+	var raggio := 17.0
+	var pieno := 0
+	var valore := ""
+	if not g.is_empty() and g["guardie"].has(key):
+		pieno = int(g["guardie"][key]["lato"])
+		valore = str(motore.valore_guardia(giocatore, key))
+	var colori := [Disegno.ORO, Color("#c9852f"), Color("#a07a52"), Color("#8c8070")]
+	draw_colored_polygon(_punti_esagono(c, raggio), Color(0, 0, 0, 0.08))
+	for k in 6:
+		var a := deg_to_rad(-90.0 - 60.0 * k)
+		var p1 := c + Vector2.from_angle(a - PI / 6) * raggio
+		var p2 := c + Vector2.from_angle(a + PI / 6) * raggio
+		var sc := Motore.scarto_lati(k, pieno)
+		draw_line(p1, p2, colori[sc], 5.0 if sc == 0 else 2.5 - 0.4 * sc)
+	if valore != "":
+		Disegno.testo(self, c + Vector2(-12, 6), valore, 16, Disegno.INCHIOSTRO, Disegno.font_titolo(), 24, HORIZONTAL_ALIGNMENT_CENTER)
+	elif sl.get("esagono", "") == "mira":
+		draw_line(c + Vector2(0, 7), c + Vector2(0, -8), Disegno.INCHIOSTRO, 2.0)
+		draw_colored_polygon(PackedVector2Array([c + Vector2(0, -12), c + Vector2(-5, -5), c + Vector2(5, -5)]), Disegno.INCHIOSTRO)
+	else:
+		draw_arc(c, 6.0, PI, TAU, 12, Disegno.INCHIOSTRO, 2.0)
+
+static func _punti_esagono(c: Vector2, r: float) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	for i in 6:
+		pts.append(c + Vector2.from_angle(deg_to_rad(60.0 * i)) * r)
+	return pts
 
 func _gui_input(e: InputEvent) -> void:
 	if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:

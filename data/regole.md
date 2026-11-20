@@ -5,7 +5,7 @@ Due combattenti si affrontano in un'arena di esagoni. Ognuno ha una scheda fatta
 
 ## Creare il personaggio
 Lo scenario stabilisce il budget di punti (30, 45 o 60). Nell'Officina scegli i token e paghi il loro costo, oppure premi Casuale.
-- Caratteristiche: danno dadi del loro colore, di più ai livelli alti. Alcune danno molti dadi ma poche azioni: vanno accoppiate a talenti e mosse che consumano quel colore senza produrlo.
+- Caratteristiche: ogni colore ha una famiglia di stili fra cui scegliere (Forza del soldato, del berserker, del colosso, del lottatore; Agilità dello schermidore, Velocità del ladro, Equilibrio del danzatore, Riflessi del gatto; e così per Tempra, Mente e Destrezza, più l'Anima del prodigio). Ogni stile dà dadi del suo colore, di più ai livelli alti, e tre azioni di base molto diverse: già qui si decide come combatte il personaggio.
 - Oggetti: dadi in più o piccoli vantaggi, quasi sempre senza azioni.
 - Armi, armature e mosse: spazi d'azione, di reazione e di supporto.
 - Talenti: regole speciali, spesso consumatori di un colore.
@@ -43,6 +43,20 @@ Gli spazi possono chiedere: un valore minimo o massimo, un valore pari o dispari
 
 ## Manipolare i dadi
 Ritocco (±1), Rovescio (l'1 diventa 6), Cambio di peso (scambia due valori), Eco e Specchio (copiano un valore), Concentrazione (ritiri i dadi bassi), pesca dal mucchio, sblocco degli spazi, eliminazione per sempre di un dado dal mucchio, sacrificio di un dado per un effetto forte.
+
+## L'esagono sui token
+Alcuni token hanno un esagono disegnato. Il dado si mette su un lato dell'esagono, che corrisponde a un lato del corpo (davanti, avanti a sinistra, dietro a sinistra, dietro, dietro a destra, avanti a destra): su quel lato vale pieno, sui due lati vicini vale 1 in meno, sui due successivi 2 in meno, sul lato opposto 3 in meno.
+- Guardia (prima del colpo): si prepara come azione. Il dado resta sul token e ferma ogni colpo che arriva da quel lato per il suo valore, ridotto secondo la distanza dal lato scelto. Ogni colpo fermato toglie 1 al dado; a zero la guardia cede e il dado torna nel mucchio. La guardia gira con il corpo: se il nemico ti aggira o ti fa girare, ti trova scoperto.
+- Reazioni (dopo il colpo): una volta che l'attacco è partito si risponde solo con le reazioni (parate, schivate, passi laterali, spostare la guardia di un lato).
+- Colpo mirato: il dado si mette sul lato verso cui colpisci. Se prima che il colpo arrivi il nemico si sposta (passo laterale, balzo), il colpo arriva di sbieco e perde 1 per ogni lato di scarto; se il nemico esce dalla portata va a vuoto.
+- Alcuni token fanno più cose insieme: Lama e brocchiero colpisce e lascia il dado in guardia; Tenere la guardia e Spirito saldo alzano il dado di una guardia già messa; Sfondare e Rompiguardia abbassano quelli delle guardie nemiche.
+
+## Spinte, lanci e movimenti obbligati
+- Spinta: il difensore arretra; Spinta di lato lo sposta di traverso; Attirare lo tira verso di te.
+- Lancio: come la spinta, ma se sbatte contro una colonna, il bordo o l'altro combattente subisce 3 danni e perde il dado più alto in mano.
+- Sbilanciare: il difensore si gira di uno o più lati e ti offre il fianco o la schiena.
+- Colpo pesante: chi incassa 4 danni o più da un colpo arretra di un esagono.
+- Movimento obbligato: alcune mosse costringono chi le usa a muoversi dopo il colpo (arretrare, incalzare, girare attorno al nemico, passare oltre alle sue spalle). È automatico e si fa anche se il colpo va a vuoto; se non c'è spazio per muoversi perdi l'equilibrio e ti si stordisce il dado più alto in mano.
 
 ## Colpire e difendersi
 - Ogni combattente guarda verso uno dei sei lati. Muoversi in avanti costa 1, di lato o indietro 2, girarsi di un lato 1.

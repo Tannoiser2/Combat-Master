@@ -101,32 +101,138 @@
     ]
    },
    "punti": 0.6
+  },
+  {
+   "cambi": {
+    "mano_val": [
+     0.1,
+     0.19
+    ],
+    "pesca_val": [
+     0.1,
+     0.1
+    ]
+   },
+   "punti": 0.57
+  },
+  {
+   "cambi": {
+    "distanza": [
+     0.7,
+     0.67
+    ],
+    "eliminato": [
+     0.62,
+     0.35
+    ],
+    "iniziativa": [
+     0.3,
+     0.17
+    ],
+    "mucchio_val": [
+     0.07,
+     0.07
+    ],
+    "retro": [
+     2.16,
+     1.86
+    ]
+   },
+   "punti": 0.6
+  },
+  {
+   "cambi": {
+    "armato": [
+     1.59,
+     1.15
+    ],
+    "guardia": [
+     1.0,
+     1.65
+    ],
+    "mucchio_val": [
+     0.07,
+     0.09
+    ],
+    "pericolo": [
+     3.0,
+     3.43
+    ],
+    "pericolo_subito": [
+     0.94,
+     1.04
+    ]
+   },
+   "punti": 0.57
+  },
+  {
+   "cambi": {
+    "conservato": [
+     1.42,
+     1.24
+    ],
+    "fronte": [
+     1.47,
+     1.66
+    ],
+    "mano_base": [
+     0.55,
+     0.81
+    ],
+    "minaccia": [
+     1.2,
+     1.39
+    ]
+   },
+   "punti": 0.6
+  },
+  {
+   "cambi": {
+    "mano_base": [
+     0.81,
+     0.47
+    ],
+    "minaccia": [
+     1.39,
+     0.69
+    ],
+    "occupato": [
+     0.65,
+     0.41
+    ],
+    "vita_bassa": [
+     3.0,
+     2.14
+    ]
+   },
+   "punti": 0.6
   }
  ],
- "generazioni": 60,
+ "generazioni": 75,
  "pesi": {
-  "armato": 1.585,
+  "armato": 1.153,
   "azzardo": 7.112,
   "cede": 0.658,
-  "conservato": 1.419,
-  "distanza": 0.7,
-  "eliminato": 0.622,
+  "conservato": 1.239,
+  "distanza": 0.67,
+  "eliminato": 0.35,
   "fianco": 0.719,
-  "fronte": 1.469,
-  "iniziativa": 0.301,
-  "mano_base": 0.55,
-  "mano_val": 0.1,
-  "minaccia": 1.2,
+  "fronte": 1.664,
+  "guardia": 1.655,
+  "iniziativa": 0.171,
+  "mano_base": 0.472,
+  "mano_val": 0.194,
+  "minaccia": 0.686,
   "mucchio_base": 0.742,
-  "mucchio_val": 0.071,
-  "occupato": 0.651,
-  "pericolo": 3.0,
-  "pericolo_subito": 0.942,
+  "mucchio_val": 0.095,
+  "occupato": 0.412,
+  "pericolo": 3.435,
+  "pericolo_subito": 1.04,
   "pesca_spazio": 0.5,
-  "pesca_val": 0.1,
-  "retro": 2.161,
+  "pesca_val": 0.099,
+  "retro": 1.863,
   "stordito": 0.4,
   "vita": 4.0,
-  "vita_bassa": 3.0
+  "vita_bassa": 2.143
  }
 }

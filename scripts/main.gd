@@ -54,7 +54,11 @@ var _diario_scroll: ScrollContainer
 var _msg: Label
 var _scambio: Label
 var _btn := {}
-var _scelte: HBoxContainer
+var _scelte: GridContainer
+var _volo: Control
+var _tieni_vista := -1         # mentre i dadi volano si resta sulla scheda di chi ha giocato
+var _tieni_fino := 0
+var _voli := 0                 # dadi ancora in volo
 var _pannelli: Array[Control] = []
 var _timer_ia := 0.0
 var _fine: Control
@@ -196,6 +200,9 @@ func _process(dt: float) -> void:
 			_attesa_ripeti = 0.0
 			_scontro_casuale()
 		return
+	if _tieni_vista >= 0 and Time.get_ticks_msec() >= _tieni_fino and _voli <= 0:
+		_tieni_vista = -1
+		_aggiorna()
 	if m == null or m.s["vinc"] >= 0 or arena.occupato() or passo_ia < 0:
 		return
 	var chi := m.chi_decide()
@@ -206,7 +213,9 @@ func _process(dt: float) -> void:
 			var op := IA.scegli(m, chi, rng, _pesi_lato[chi])
 			if op.is_empty():
 				return
+			var prima := _istantanea(chi)
 			var e := m.applica(chi, op)
+			_anima_dadi(chi, prima)
 			if e != "":
 				push_warning("IA: " + e)
 				m.applica(chi, {"t": "passa"} if m.s["fase"] == "azione" else ({"t": "risolvi"} if m.s["fase"] == "reazione" else {"t": "ferma"}))
@@ -751,6 +760,8 @@ func _scontro_casuale() -> void:
 # ================================================================= battaglia
 
 func battaglia(a: Dictionary, b: Dictionary, scenario: Dictionary, ia_: Array) -> void:
+	_voli = 0
+	_tieni_vista = -1
 	_pulisci()
 	spettatore = ia_[0] and ia_[1]
 	if not spettatore:
@@ -891,8 +902,10 @@ func _costruisci_hud() -> void:
 		b.add_theme_font_size_override("font_size", 14)
 		gb.add_child(b)
 		_btn[c[0]] = b
-	_scelte = HBoxContainer.new()
-	_scelte.add_theme_constant_override("separation", 6)
+	_scelte = GridContainer.new()
+	_scelte.columns = 2
+	_scelte.add_theme_constant_override("h_separation", 6)
+	_scelte.add_theme_constant_override("v_separation", 6)
 	riga.add_child(_scelte)
 	var cs := ScrollContainer.new()
 	cs.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -902,6 +915,12 @@ func _costruisci_hud() -> void:
 	_carte_box.add_theme_constant_override("separation", 10)
 	cs.add_child(_carte_box)
 	_ricostruisci_carte()
+	# strato sopra tutto per i dadi che volano dal vassoio ai token
+	_volo = Control.new()
+	_volo.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_volo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_volo.z_index = 50
+	pagina.add_child(_volo)
 
 ## Vista iniziale: giocatore 1 a sinistra, avversario a destra, arena nella parte libera dello schermo.
 func _centra() -> void:
@@ -946,6 +965,8 @@ func _giocatore_proprio() -> int:
 
 ## Di chi sono la scheda e i dadi in basso.
 func _giocatore_mostrato() -> int:
+	if _tieni_vista >= 0 and Time.get_ticks_msec() < _tieni_fino:
+		return _tieni_vista
 	var base := 0
 	if (not ia[0] and not ia[1]) or (ia[0] and ia[1]):
 		var chi := m.chi_decide()
@@ -1006,7 +1027,11 @@ func _messaggio() -> String:
 			"esagono":
 				return "Tocca un esagono evidenziato."
 			"direzione":
+				if not attesa.get("bersagli", []).is_empty() and attesa["bersagli"][0].has("lato"):
+					return "Scegli il lato dell'esagono: tocca una freccia dorata o un pulsante."
 				return "Tocca una freccia dorata per scegliere dove guardare."
+			"scelta":
+				return "Scegli tra i pulsanti."
 			"spazi":
 				if attesa.get("passa", false):
 					return "Passi: tocca fino a %s da liberare, poi Conferma." % Motore.plurale(attesa["n"], "spazio occupato", "spazi occupati")
@@ -1046,7 +1071,7 @@ func _aggiorna_evidenze() -> void:
 				carta.evidenzia[sl["id"]] = _slot_usabile(p, carta.tok["id"], sl)
 		carta.queue_redraw()
 	_vassoio.evidenziati = attesa.get("selezionabili", []) if attesa.get("passo", "") == "dadi" else []
-	if attesa.is_empty() or attesa["passo"] in ["spazi", "dadi", "colore", "segno"]:
+	if attesa.is_empty() or attesa["passo"] in ["spazi", "dadi", "colore", "segno", "scelta"]:
 		if attesa.is_empty():
 			arena.pulisci_evidenza()
 
@@ -1129,7 +1154,7 @@ func _mostra_scelte(voci: Array) -> void:
 	for c in _scelte.get_children():
 		c.queue_free()
 	for v in voci:
-		var b := _bottone(v[0], v[1], 120)
+		var b := _bottone(v[0], v[1], 160)
 		b.custom_minimum_size.y = 42
 		b.add_theme_font_size_override("font_size", 14)
 		_scelte.add_child(b)
@@ -1283,8 +1308,52 @@ func _slot(tok: String, sid: String) -> void:
 				_msg.text = "Nessun bersaglio valido."
 		return
 	var base := {"tok": tok, "slot": sid, "dadi": ids, "bersagli": bs, "eff": sl["effetto"], "scelti": []}
+	if bs[0].has("lato") and not bs[0].has("key"):
+		# token con l'esagono: si sceglie il lato toccando una freccia o un pulsante
+		attesa = base
+		attesa["passo"] = "direzione"
+		attesa["pos"] = m.s["g"][p]["pos"]
+		var g: Dictionary = m.s["g"][p]
+		var lista := []
+		var dirs := []
+		var voci := []
+		for b in bs:
+			var bb: Dictionary = b.duplicate()
+			bb["dir"] = (int(g["dir"]) + int(b["lato"])) % 6
+			bb["pos"] = g["pos"]
+			lista.append(bb)
+			dirs.append(bb["dir"])
+			var bx: Dictionary = b
+			voci.append([Motore.NOMI_LATO[int(b["lato"])].capitalize(), func(): _esegui(p, _op_attesa(bx))])
+		attesa["bersagli"] = lista
+		arena.pulisci_evidenza()
+		arena.mostra_direzioni(g["pos"], dirs)
+		_mostra_scelte(voci)
+		_aggiorna()
+		return
 	match sl["effetto"]:
-		"movimento", "assalto", "passo_ombra":
+		"gira_guardia", "ritocca_guardia", "gira_nemico":
+			if bs.size() == 1:
+				_esegui(p, {"t": "slot", "tok": tok, "slot": sid, "dadi": ids, "b": bs[0]})
+				return
+			attesa = base
+			attesa["passo"] = "scelta"
+			var voci := []
+			for b in bs:
+				var bx: Dictionary = b
+				var t := ""
+				match sl["effetto"]:
+					"gira_guardia":
+						t = "Guardia %s" % Motore.NOMI_LATO[int(b["lato"])]
+					"ritocca_guardia":
+						var parti: PackedStringArray = String(b["key"]).split("/")
+						t = "Rinforza %s" % m.slot_def(parti[0], parti[1])["nome"]
+					"gira_nemico":
+						t = "Giralo a sinistra" if int(b["d"]) == 1 else "Giralo a destra"
+				voci.append([t, func(): _esegui(p, _op_attesa(bx))])
+			_mostra_scelte(voci)
+			_aggiorna()
+		"movimento", "assalto", "passo_ombra", "scarta":
 			attesa = base
 			attesa["passo"] = "esagono"
 			var hex := {}
@@ -1356,7 +1425,11 @@ func _esagono(h: Vector2i, punto: Vector3) -> void:
 			return
 		for b in bs:
 			if b["dir"] == d and (not attesa.has("pos") or b["pos"] == attesa["pos"]):
-				_esegui(p, _op_attesa(b))
+				var bb: Dictionary = b.duplicate()
+				if bb.has("lato"):
+					bb.erase("dir")
+					bb.erase("pos")
+				_esegui(p, _op_attesa(bb))
 				return
 		return
 	var qui := []
@@ -1379,15 +1452,97 @@ func _esagono(h: Vector2i, punto: Vector3) -> void:
 	_aggiorna()
 
 func _esegui(p: int, op: Dictionary) -> void:
+	var prima := _istantanea(p)
 	var e := m.applica(p, op)
 	if e != "":
 		_msg.text = e
 		return
+	_anima_dadi(p, prima)
 	sel.clear()
 	attesa = {}
 	_mostra_scelte([])
 	arena.pulisci_evidenza()
 	_dopo_applica()
+
+## Dove si trovano ora sullo schermo i dadi di p: id -> [rettangolo, "vassoio" o "token"].
+func _istantanea(p: int) -> Dictionary:
+	var out := {}
+	if _vassoio == null or _vassoio.giocatore != p or _carte.is_empty() or _carte[0].giocatore != p:
+		return out
+	_tieni_vista = p
+	_tieni_fino = Time.get_ticks_msec() + 4000
+	var rv := _vassoio.rect_globali()
+	for id in rv:
+		out[id] = [rv[id], "vassoio"]
+	for carta in _carte:
+		for sl in carta.tok.get("slot", []):
+			var k := Motore.chiave(carta.tok["id"], sl["id"])
+			var occ: Array = m.s["g"][p]["occupati"].get(k, [])
+			for i in occ.size():
+				out[occ[i]] = [carta.rect_alloggio(sl["id"], i), "token"]
+	return out
+
+## I dadi che sono passati dalla mano a un token (o da un token al mucchio) volano al loro posto.
+func _anima_dadi(p: int, prima: Dictionary) -> void:
+	if prima.is_empty() or not is_instance_valid(_volo):
+		return
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if m == null or mostra != p or not is_instance_valid(_volo):
+		_tieni_fino = 0
+		return
+	var dopo := _istantanea(p)
+	_tieni_fino = 0
+	var ritardo := 0.0
+	for id in prima:
+		if not dopo.has(id) or prima[id][1] == dopo[id][1]:
+			continue
+		var da: Rect2 = prima[id][0]
+		var a: Rect2 = dopo[id][0]
+		if a.size == Vector2.ZERO or da.size == Vector2.ZERO:
+			continue
+		var d := m.dado(p, id)
+		var verso_token: bool = dopo[id][1] == "token"
+		var carta_dest: CartaToken = null
+		if verso_token:
+			for carta in _carte:
+				for sl in carta.tok.get("slot", []):
+					if m.s["g"][p]["occupati"].get(Motore.chiave(carta.tok["id"], sl["id"]), []).has(id):
+						carta_dest = carta
+			if carta_dest != null:
+				carta_dest.in_volo[id] = true
+				carta_dest.queue_redraw()
+		else:
+			_vassoio.in_volo[id] = true
+			_vassoio.queue_redraw()
+		_voli += 1
+		var dv := DadoVolante.new()
+		dv.col = d["col"]
+		dv.v = d["v"]
+		dv.size = da.size
+		dv.position = da.position - _volo.get_global_rect().position
+		_volo.add_child(dv)
+		var arrivo := a.position - _volo.get_global_rect().position
+		var tw := dv.create_tween()
+		tw.tween_interval(ritardo)
+		tw.tween_method(func(t: float):
+			dv.position = (da.position - _volo.get_global_rect().position).lerp(arrivo, t) + Vector2(0, -60.0 * sin(PI * t))
+			dv.size = da.size.lerp(a.size, t)
+			dv.queue_redraw(), 0.0, 1.0, 0.42).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+		var id_carta := carta_dest.get_instance_id() if carta_dest != null else 0
+		var id_vassoio := _vassoio.get_instance_id()
+		tw.tween_callback(func():
+			var cd = instance_from_id(id_carta) if id_carta != 0 else null
+			if cd != null and is_instance_valid(cd):
+				cd.in_volo.erase(id)
+				cd.queue_redraw()
+			var va = instance_from_id(id_vassoio)
+			if va != null and is_instance_valid(va):
+				va.in_volo.erase(id)
+				va.queue_redraw()
+			_voli -= 1
+			dv.queue_free())
+		ritardo += 0.08
 
 func _dopo_applica() -> void:
 	arena.accoda(m.prendi_eventi())

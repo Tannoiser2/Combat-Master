@@ -391,6 +391,46 @@ func sincronizza() -> void:
 		if g["vita"] <= 0:
 			corpo.rotation.x = -PI / 2.2
 			corpo.position.y = 0.25
+	aggiorna_guardie()
+
+## Le guardie si vedono come muretti dorati sul lato protetto, alti quanto il loro valore.
+func aggiorna_guardie() -> void:
+	if m == null:
+		return
+	for i in figure.size():
+		var f := figure[i]
+		var vecchio := f.get_node_or_null("Guardie")
+		if vecchio != null:
+			f.remove_child(vecchio)
+			vecchio.queue_free()
+		var nodo := Node3D.new()
+		nodo.name = "Guardie"
+		f.add_child(nodo)
+		var g: Dictionary = m.s["g"][i]
+		for k in g["guardie"]:
+			var l := int(g["guardie"][k]["lato"])
+			var v := m.valore_guardia(i, k)
+			var perno := Node3D.new()
+			perno.rotation.y = angolo_y((int(g["dir"]) + l) % 6) - angolo_y(int(g["dir"]))
+			nodo.add_child(perno)
+			var alto := 0.1 + 0.07 * v
+			var muro := BoxMesh.new()
+			muro.size = Vector3(0.5, alto, 0.07)
+			var mt := _mat(Disegno.ORO, 0.4, 0.6)
+			mt.emission_enabled = true
+			mt.emission = Disegno.ORO
+			mt.emission_energy_multiplier = 0.35
+			_mesh(muro, mt, Vector3(0, alto / 2 + 0.02, -0.6), perno)
+			var et := Label3D.new()
+			et.text = str(v)
+			et.font = Disegno.font_titolo()
+			et.font_size = 40
+			et.pixel_size = 0.006
+			et.outline_size = 10
+			et.modulate = Disegno.ORO.lightened(0.3)
+			et.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			et.position = Vector3(0, alto + 0.18, -0.6)
+			perno.add_child(et)
 
 # ---------------------------------------------------------------- evidenziazioni
 
@@ -464,6 +504,7 @@ func accoda(eventi: Array) -> void:
 func _prossimo() -> void:
 	if _coda.is_empty():
 		_occupato = false
+		aggiorna_guardie()
 		animazioni_finite.emit()
 		return
 	_occupato = true
@@ -481,6 +522,9 @@ func _anima(e: Dictionary) -> Tween:
 	var f := figure[p]
 	var corpo: Node3D = f.get_node("Corpo")
 	match e["t"]:
+		"guardia":
+			aggiorna_guardie()
+			return null
 		"muovi", "spinto":
 			var per: Array = e["percorso"]
 			if per.is_empty():

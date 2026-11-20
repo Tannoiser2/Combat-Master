@@ -35,7 +35,7 @@ func _init() -> void:
 
 func giro(n: int, budget_fisso: int) -> Dictionary:
 	var st := {"partite": 0, "scambi": 0, "tempo": 0, "rifiuti": 0, "token": {}, "spazi": {}, "coppie": {},
-		"budget": {}, "durate": [], "danno": 0, "senza_attacchi": 0}
+		"budget": {}, "durate": [], "danno": 0, "senza_attacchi": 0, "esagoni": 0, "spinti": 0, "giri": 0}
 	var t0 := Time.get_ticks_msec()
 	for i in n:
 		var budget: int = budget_fisso if budget_fisso > 0 else [30, 45, 60][i % 3]
@@ -64,6 +64,18 @@ func giro(n: int, budget_fisso: int) -> Dictionary:
 				print("RIFIUTATA: ", e, " ", op)
 				break
 			passi += 1
+			for ev in m.prendi_eventi():
+				if ev["t"] in ["muovi", "spinto"]:
+					var per: Array = ev["percorso"]
+					for j in range(1, per.size()):
+						if Vector2i(per[j].x, per[j].y) != Vector2i(per[j - 1].x, per[j - 1].y):
+							st["esagoni"] += 1
+							if ev["t"] == "spinto":
+								st["spinti"] += 1
+					if per.size() == 1 or (per.size() > 1 and per[-1].z != per[0].z):
+						st["giri"] += 1
+				elif ev["t"] == "salto":
+					st["esagoni"] += 1
 		st["partite"] += 1
 		st["scambi"] += int(m.s["round"])
 		st["durate"].append(int(m.s["round"]))
@@ -97,6 +109,7 @@ func stampa(st: Dictionary, it: int) -> void:
 	d.sort()
 	print("--- Giro %d: %d partite in %d s, scambi medi %.1f (mediana %d, massimo %d), a tempo %d, senza attacchi %d, rifiuti %d" % [
 		it + 1, st["partite"], st["ms"] / 1000, float(st["scambi"]) / st["partite"], d[d.size() / 2], d[-1], st["tempo"], st["senza_attacchi"], st["rifiuti"]])
+	print("    Movimento per partita: %.1f esagoni percorsi, di cui %.1f per spinte, %.1f rotazioni" % [float(st["esagoni"]) / st["partite"], float(st["spinti"]) / st["partite"], float(st["giri"]) / st["partite"]])
 	var righe := []
 	for id in st["token"]:
 		var r: Dictionary = st["token"][id]
@@ -175,6 +188,7 @@ func scrivi_rapporto(st: Dictionary, percorso: String) -> void:
 	var d: Array = st["durate"]
 	d.sort()
 	t += "- Scambi per partita: media %.1f, mediana %d, massimo %d\n" % [float(st["scambi"]) / st["partite"], d[d.size() / 2], d[-1]]
+	t += "- Movimento per partita: %.1f esagoni percorsi (%.1f per spinte e lanci), %.1f rotazioni\n" % [float(st["esagoni"]) / st["partite"], float(st["spinti"]) / st["partite"], float(st["giri"]) / st["partite"]]
 	t += "- Partite finite al limite di tempo: %d\n- Partite in cui qualcuno non ha mai attaccato: %d\n- Opzioni rifiutate dal motore (errori): %d\n\n" % [st["tempo"], st["senza_attacchi"], st["rifiuti"]]
 	t += "## Token: percentuale di vittorie di chi li ha\n\n| Token | Categoria | Costo | Partite | Vittorie |\n| --- | --- | --- | --- | --- |\n"
 	var righe := []

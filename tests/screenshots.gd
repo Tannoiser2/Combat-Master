@@ -62,6 +62,54 @@ func _giro() -> void:
 		main._cmd_passo()
 		await _foto("passo")
 		main._cmd_annulla()
+	# guardie sull'esagono e scelta del lato
+	var pa := {"nome": "Aldra", "token": {"forza": 2, "tempra": 2, "spada": 1, "postura": 1, "scudo": 1}}
+	var pb := {"nome": "Brun", "token": {"forza": 2, "tempra": 2, "lama_scudo": 1, "sgambetto": 1, "destrezza": 1}}
+	main.battaglia(pa, pb, d["scenari"][0], [false, false])
+	await _attendi(5)
+	var m: Motore = main.m
+	m.s["fase"] = "azione"
+	m.s["attivo"] = 0
+	m.s["da_pescare"] = []
+	m.s["g"][0]["pos"] = Vector2i(-1, 0)
+	m.s["g"][0]["dir"] = 0
+	m.s["g"][1]["pos"] = Vector2i(0, 0)
+	m.s["g"][1]["dir"] = 3
+	for p in 2:
+		for dd in m.s["g"][p]["dadi"]:
+			dd["st"] = "mucchio"
+	var vb := -1
+	for dd in m.s["g"][1]["dadi"]:
+		if dd["col"] == "verde":
+			dd["st"] = "token"
+			dd["v"] = 5
+			vb = dd["id"]
+			break
+	m.s["g"][1]["occupati"]["lama_scudo/taglia_copri"] = [vb]
+	m.s["g"][1]["guardie"]["lama_scudo/taglia_copri"] = {"lato": 0}
+	var conta := 0
+	for dd in m.s["g"][0]["dadi"]:
+		if dd["col"] in ["verde", "rosso"] and conta < 3:
+			dd["st"] = "mano"
+			dd["v"] = [4, 6, 3][conta]
+			conta += 1
+	main.arena.sincronizza()
+	main._ricostruisci_carte()
+	main._aggiorna()
+	main._slot("postura", "in_guardia")
+	await _attendi(20)
+	await _foto("guardia_lato")
+	var bl: Array = main.attesa.get("bersagli", [])
+	if not bl.is_empty():
+		var bb: Dictionary = bl[0].duplicate()
+		bb.erase("dir")
+		bb.erase("pos")
+		main._esegui(0, main._op_attesa(bb))
+	await _attendi(1)
+	await _foto("dado_in_volo")
+	await _attendi(60)
+	main._aggiorna()
+	await _foto("guardia_attiva")
 	# modalità spettatore veloce
 	main.battaglia(Generatore.casuale(d, 45, main.rng), Generatore.casuale(d, 45, main.rng), d["scenari"][1], [true, true])
 	main.passo_ia = 0.05

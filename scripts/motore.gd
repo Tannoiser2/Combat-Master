@@ -18,6 +18,8 @@ const DANNO_URTO := 2
 const ROUND_MAX := 30
 const PASSO_BASE := 2          # punti movimento dell'azione base senza dadi, una volta per scambio
 const SUPPORTI_MAX := 2        # supporti per colpo, in attacco e in difesa
+## Lati del corpo, dal davanti in senso antiorario visto dall'alto (1 = avanti a sinistra).
+const NOMI_LATO := ["davanti", "avanti a sinistra", "dietro a sinistra", "dietro", "dietro a destra", "avanti a destra"]
 
 ## Regole di base regolabili (data/tokens.json, voce "regole"): ritmo, recupero, vita, conserva.
 static var regole: Dictionary = {}
@@ -119,7 +121,7 @@ func nuova_partita(pg0: Dictionary, pg1: Dictionary, arena_id: String, seme: int
 			"armatura": st["armatura"], "mov": st["movimento"], "conserva_max": st["conserva"],
 			"ini": st["iniziativa"], "flag": st["flag"], "pos": partenze[i], "dir": dirs[i],
 			"dadi": dadi, "occupati": {}, "passato": false, "spinte": 0, "usi": {}, "armati": {}, "rivelati": {}, "bonus_ritmo": 0,
-			"carichi": {}, "disarmati": {}})
+			"carichi": {}, "disarmati": {}, "guardie": {}})
 	_nuovo_round()
 
 # ================================================================ esagoni
@@ -157,6 +159,59 @@ static func dir_verso(da: Vector2i, a: Vector2i) -> int:
 			bd = d
 			best = i
 	return best
+
+## Quanti lati separano due lati dell'esagono (0-3).
+static func scarto_lati(a: int, b: int) -> int:
+	var d := absi(a - b) % 6
+	return mini(d, 6 - d)
+
+## Lato del corpo di p (0 = davanti) rivolto verso l'esagono h.
+func lato_rel(p: int, h: Vector2i) -> int:
+	var g: Dictionary = s["g"][p]
+	return (dir_verso(g["pos"], h) - int(g["dir"]) + 6) % 6
+
+## Valore attuale di una guardia: il dado sullo spazio, diviso e corretto come dice lo spazio.
+func valore_guardia(p: int, key: String) -> int:
+	var ids := dadi_su(p, key)
+	if ids.is_empty():
+		return 0
+	var parti: PackedStringArray = key.split("/")
+	var sl := slot_def(parti[0], parti[1])
+	var v := int(dado(p, ids[0])["v"])
+	var dv := int(sl.get("guardia_div", 1))
+	if dv > 1:
+		v = int(ceil(float(v) / dv))
+	return maxi(0, v + int(sl.get("guardia_bonus", 0)))
+
+## Quanto riduce un colpo che arriva da h la guardia migliore di p: [riduzione, chiave].
+func copertura(p: int, h: Vector2i) -> Array:
+	var g: Dictionary = s["g"][p]
+	if g["pos"] == h:
+		return [0, ""]
+	var rel := lato_rel(p, h)
+	var best := 0
+	var bk := ""
+	for k in g["guardie"]:
+		var r := maxi(0, valore_guardia(p, k) - scarto_lati(int(g["guardie"][k]["lato"]), rel))
+		if r > best:
+			best = r
+			bk = k
+	return [best, bk]
+
+## La guardia si consuma: il suo dado perde n; a zero lo spazio si libera.
+func _erodi_guardia(p: int, key: String, n: int) -> void:
+	var ids := dadi_su(p, key)
+	if ids.is_empty():
+		s["g"][p]["guardie"].erase(key)
+		return
+	var d := dado(p, ids[0])
+	d["v"] = int(d["v"]) - n
+	if d["v"] <= 0:
+		d["v"] = 1
+		_libera(p, key)
+		_scrivi("La guardia di %s cede." % s["g"][p]["nome"])
+	_evento({"t": "dadi", "p": p})
+	_evento({"t": "guardia", "p": p})
 
 func in_arena(h: Vector2i) -> bool:
 	return dist(h, Vector2i.ZERO) <= int(s["raggio"])
@@ -505,6 +560,7 @@ func _libera(p: int, key: String, in_mano := false) -> void:
 	g["occupati"].erase(key)
 	g["armati"].erase(key)
 	g["carichi"].erase(key)
+	g["guardie"].erase(key)
 
 # ================================================================ bersagli
 
@@ -524,7 +580,35 @@ func bersagli(p: int, tok: String, sl: Dictionary, ids: Array) -> Array:
 	match sl["effetto"]:
 		"attacco":
 			if _attacco_possibile(p, sl, g["pos"], g["dir"]):
-				out.append({"bers": o})
+				if sl.get("guardia", false):
+					for l in 6:
+						out.append({"bers": o, "lato": l})
+				elif sl.get("esagono", "") == "mira":
+					for l in [0, 1, 5]:
+						out.append({"bers": o, "lato": l})
+				else:
+					out.append({"bers": o})
+		"guardia":
+			for l in 6:
+				out.append({"lato": l})
+		"gira_guardia":
+			for k in g["guardie"]:
+				for dd in [1, 5]:
+					out.append({"key": k, "lato": (int(g["guardie"][k]["lato"]) + dd) % 6})
+		"ritocca_guardia":
+			for k in g["guardie"]:
+				var ids2 := dadi_su(p, k)
+				if not ids2.is_empty() and int(dado(p, ids2[0])["v"]) < 6:
+					out.append({"key": k})
+		"scarta":
+			for k in 6:
+				var h: Vector2i = g["pos"] + DIRS[k]
+				if libero(h, p):
+					out.append({"pos": h})
+		"gira_nemico":
+			if dist(g["pos"], go["pos"]) <= int(sl.get("gittata", 1)):
+				out.append({"bers": o, "d": 1})
+				out.append({"bers": o, "d": 5})
 		"movimento":
 			var mp := quantita(p, sl, ids) + int(g["mov"])
 			var rag := raggiungibili(p, mp)
@@ -658,8 +742,11 @@ func reazione_possibile(dif: int, sl: Dictionary) -> bool:
 	if sl.get("quando", "qualsiasi") == "mischia" and not pe["mischia"]:
 		return false
 	match sl["effetto"]:
-		"schiva":
+		"schiva", "scarta":
 			if pe["non_schivabile"]:
+				return false
+		"gira_guardia":
+			if s["g"][dif]["guardie"].is_empty():
 				return false
 		"para":
 			if pe["lato"] == "retro" and not sl.get("anche_retro", false):
@@ -884,7 +971,7 @@ func applica(p: int, op: Dictionary) -> String:
 			s["fase"] = "azione"
 			s["azz"] = {}
 			_scrivi("%s si ferma a %d." % [s["g"][p]["nome"], az["tot"]])
-			_dichiara_attacco(p, az["sl"], az["tot"], az["vd"])
+			_dichiara_attacco(p, az["sl"], az["tot"], az["vd"], az.get("extra", {}))
 			return ""
 		"slot":
 			return _slot(p, op)
@@ -973,6 +1060,7 @@ func _slot(p: int, op: Dictionary) -> String:
 			s["pend"]["riduz"] += q
 			if sl.get("no_spinta", false):
 				s["pend"]["no_spinta"] = true
+			s["pend"]["respingi"] = int(s["pend"].get("respingi", 0)) + int(sl.get("respingi", 0))
 			_scrivi("%s: %s, -%d." % [g["nome"], sl["nome"], q])
 			_evento({"t": "para", "p": p})
 			_dopo_risposta()
@@ -1001,6 +1089,10 @@ func _slot(p: int, op: Dictionary) -> String:
 			if sl.get("catena", false):
 				pe["catena"] = true
 			pe["spingi"] += int(sl.get("spingi", 0))
+			pe["gira"] = int(pe.get("gira", 0)) + int(sl.get("gira", 0))
+			pe["rompi"] = int(pe.get("rompi", 0)) + int(sl.get("rompi_guardia", 0))
+			if sl.has("poi"):
+				pe["poi"] = sl["poi"]
 			var extra := []
 			if sl.get("ignora_armatura", false):
 				extra.append("ignora l'armatura")
@@ -1014,13 +1106,60 @@ func _slot(p: int, op: Dictionary) -> String:
 			var vd := 0
 			for v in vals:
 				vd = maxi(vd, v)
+			var extra := {}
+			if b.has("lato"):
+				if sl.get("guardia", false):
+					var kg := chiave(tok, sl["id"])
+					if not dadi_su(p, kg).is_empty():
+						g["guardie"][kg] = {"lato": int(b["lato"])}
+						_evento({"t": "guardia", "p": p})
+				if sl.get("esagono", "") == "mira":
+					extra["mira"] = (int(g["dir"]) + int(b["lato"])) % 6
 			if sl.get("azzardo", false):
 				s["fase"] = "azzardo"
-				s["azz"] = {"p": p, "sl": sl, "tot": q, "vd": vd, "key": chiave(tok, sl["id"])}
+				s["azz"] = {"p": p, "sl": sl, "tot": q, "vd": vd, "key": chiave(tok, sl["id"]), "extra": extra}
 				_scrivi("%s scatena %s: %d. Rilancia o fermati." % [g["nome"], sl["nome"], q])
 				return ""
-			_dichiara_attacco(p, sl, q, vd)
+			_dichiara_attacco(p, sl, q, vd, extra)
 			return ""
+		"guardia":
+			var kg := chiave(tok, sl["id"])
+			if not dadi_su(p, kg).is_empty():
+				g["guardie"][kg] = {"lato": int(b["lato"])}
+				_scrivi("%s si mette in guardia %s (%d)." % [g["nome"], NOMI_LATO[int(b["lato"])], valore_guardia(p, kg)])
+				_evento({"t": "guardia", "p": p})
+		"ritocca_guardia":
+			var ids3 := dadi_su(p, String(b["key"]))
+			var dg := dado(p, ids3[0])
+			dg["v"] = mini(6, int(dg["v"]) + q)
+			_scrivi("%s rafforza la guardia: ora vale %d." % [g["nome"], valore_guardia(p, String(b["key"]))])
+			_evento({"t": "guardia", "p": p})
+		"gira_guardia":
+			g["guardie"][String(b["key"])]["lato"] = int(b["lato"])
+			_scrivi("%s sposta la guardia %s." % [g["nome"], NOMI_LATO[int(b["lato"])]])
+			_evento({"t": "guardia", "p": p})
+			if fase == "reazione":
+				_evento({"t": "dadi", "p": p})
+				_dopo_risposta()
+				return ""
+		"scarta":
+			var da0 := Vector3i(g["pos"].x, g["pos"].y, g["dir"])
+			g["pos"] = b["pos"]
+			_scrivi("%s scarta di lato." % g["nome"])
+			_evento({"t": "muovi", "p": p, "percorso": [da0, Vector3i(g["pos"].x, g["pos"].y, g["dir"])]})
+			_pericolo(p)
+			if s["vinc"] >= 0:
+				return ""
+			if fase == "reazione":
+				s["pend"]["scartato"] = true
+				_evento({"t": "dadi", "p": p})
+				_dopo_risposta()
+				return ""
+		"gira_nemico":
+			var go2: Dictionary = s["g"][o]
+			go2["dir"] = (int(go2["dir"]) + int(b["d"])) % 6
+			_scrivi("%s fa girare %s." % [g["nome"], go2["nome"]])
+			_evento({"t": "muovi", "p": o, "percorso": [Vector3i(go2["pos"].x, go2["pos"].y, go2["dir"])]})
 		"movimento":
 			var rag := raggiungibili(p, q + int(g["mov"]))
 			var per := percorso(rag, Vector3i(b["pos"].x, b["pos"].y, b["dir"]))
@@ -1167,6 +1306,8 @@ func _slot(p: int, op: Dictionary) -> String:
 	return ""
 
 func _dopo_risposta() -> void:
+	if s["vinc"] >= 0:
+		return
 	match s["fase"]:
 		"rinforzo":
 			if not _ha_risposte(int(s["pend"]["att"])):
@@ -1204,7 +1345,7 @@ func _rilancia(p: int, id: int) -> String:
 	_scrivi("%s rilancia: %d (totale %d)." % [g["nome"], d["v"], az["tot"]])
 	return ""
 
-func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int) -> void:
+func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionary = {}) -> void:
 	var o := 1 - p
 	var g: Dictionary = s["g"][p]
 	var go: Dictionary = s["g"][o]
@@ -1234,7 +1375,9 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int) -> void:
 		"lato": l, "ignora": sl.get("ignora_armatura", false), "non_schivabile": sl.get("non_schivabile", false),
 		"riduz": 0, "annullato": false, "contro": 0, "spingi": int(sl.get("spingi", 0)), "attira": int(sl.get("attira", 0)),
 		"blocca": int(sl.get("blocca", 0)), "catena": sl.get("catena", false), "nome": sl["nome"], "ruba": false, "no_spinta": false,
-		"imparabile": sl.get("imparabile", false)}
+		"imparabile": sl.get("imparabile", false), "mira": int(extra.get("mira", -1)), "portata": int(sl.get("portata", 1)),
+		"area": sl.has("area"), "gira": int(sl.get("gira", 0)), "spingi_lato": int(sl.get("spingi_lato", 0)), "lancia": sl.get("lancia", false),
+		"poi": sl.get("poi", {}), "rompi": int(sl.get("rompi_guardia", 0)), "respingi": 0, "scartato": false}
 	if sl.get("esecuzione", false):
 		s["pend"]["danno"] = 99
 		s["pend"]["non_schivabile"] = true
@@ -1266,16 +1409,43 @@ func _risolvi_attacco() -> void:
 	var gd: Dictionary = s["g"][dif]
 	s["fase"] = "azione"
 	s["pend"] = {}
+	if not pe["annullato"] and pe.get("scartato", false):
+		var dd := dist(ga["pos"], gd["pos"])
+		var arriva: bool = dd <= (1 if pe["area"] else int(pe["portata"])) and (pe["area"] or in_fronte(ga["pos"], ga["dir"], gd["pos"]))
+		if not arriva:
+			pe["annullato"] = true
+			_scrivi("%s si è scansato: il colpo va a vuoto." % gd["nome"])
+			_evento({"t": "schiva", "p": dif})
 	if not pe["annullato"]:
 		s["pend"] = pe
 		_innesca(dif, "colpito")
 		s["pend"] = {}
 		pe["riduz"] += _accumulo(dif, "accumulo_difesa")
+		if int(pe.get("mira", -1)) >= 0:
+			var sc := scarto_lati(int(pe["mira"]), dir_verso(ga["pos"], gd["pos"]))
+			if sc > 0:
+				pe["danno"] = maxi(0, int(pe["danno"]) - sc)
+				_scrivi("Il colpo mirato arriva di sbieco: -%d." % sc)
+		if int(pe.get("rompi", 0)) > 0 and not gd["guardie"].is_empty():
+			_scrivi("%s sfonda la guardia di %s." % [ga["nome"], gd["nome"]])
+			for k in gd["guardie"].keys():
+				_erodi_guardia(dif, k, int(pe["rompi"]))
+		var cop := copertura(dif, ga["pos"])
+		if int(cop[0]) > 0:
+			pe["riduz"] += int(cop[0])
+			_scrivi("%s ferma il colpo con la guardia: -%d." % [gd["nome"], cop[0]])
+			_evento({"t": "para", "p": dif})
+			_erodi_guardia(dif, String(cop[1]), 1)
 		var arm: int = 0 if pe["ignora"] else int(gd["armatura"])
 		var tot: int = maxi(0, int(pe["danno"]) + int(pe["bonus"]) - int(pe["riduz"]))
 		# l'armatura da sola non annulla un colpo andato a segno: almeno 1 danno passa
 		tot = maxi(mini(tot, 1), tot - arm)
 		_ferisci(dif, tot)
+		# colpo pesante: chi incassa molti danni arretra di un esagono
+		var soglia := int(regole.get("colpo_pesante", 4))
+		if s["vinc"] < 0 and soglia > 0 and tot >= soglia and pe["spingi"] == 0 and int(pe.get("spingi_lato", 0)) == 0 and pe["attira"] == 0 and not pe["no_spinta"]:
+			_scrivi("Il colpo è pesante: %s arretra." % gd["nome"])
+			_spingi(att, dif, 1, false)
 		if s["vinc"] < 0 and pe["blocca"] > 0:
 			var mano := dadi_di(dif, "mano")
 			mano.sort_custom(func(a, b): return a["v"] > b["v"])
@@ -1290,13 +1460,24 @@ func _risolvi_attacco() -> void:
 				_evento({"t": "blocco", "p": dif, "n": n})
 				_evento({"t": "dadi", "p": dif})
 		if s["vinc"] < 0 and pe["spingi"] > 0 and not pe["no_spinta"]:
-			_spingi(att, dif, pe["spingi"], false)
+			_spingi(att, dif, pe["spingi"], false, 0, pe.get("lancia", false))
+		if s["vinc"] < 0 and int(pe.get("spingi_lato", 0)) > 0 and not pe["no_spinta"]:
+			var dv := dir_verso(ga["pos"], gd["pos"])
+			var dev := 1 if libero(gd["pos"] + DIRS[(dv + 1) % 6], dif) else 5
+			_spingi(att, dif, int(pe["spingi_lato"]), false, dev, pe.get("lancia", false))
+		if s["vinc"] < 0 and int(pe.get("gira", 0)) > 0 and not pe["no_spinta"]:
+			_sbilancia(att, dif, int(pe["gira"]))
 		if s["vinc"] < 0 and pe["attira"] > 0 and not pe["no_spinta"]:
 			_spingi(att, dif, pe["attira"], true)
 	if s["vinc"] < 0 and pe["contro"] > 0:
 		var dn: int = maxi(0, int(pe["contro"]) - int(ga["armatura"]))
 		_evento({"t": "attacco", "p": dif, "bers": att, "dist": 1})
 		_ferisci(att, dn)
+	if s["vinc"] < 0 and int(pe.get("respingi", 0)) > 0:
+		_scrivi("%s respinge %s." % [gd["nome"], ga["nome"]])
+		_spingi(dif, att, int(pe["respingi"]), false)
+	if s["vinc"] < 0 and not pe.get("poi", {}).is_empty():
+		_mossa_obbligata(att, dif, pe["poi"])
 	if s["vinc"] >= 0:
 		return
 	if pe["ruba"] and puo_agire(dif):
@@ -1322,9 +1503,9 @@ func _ferisci(p: int, n: int) -> void:
 	elif n > 0:
 		_innesca(p, "ferito")
 
-func _spingi(att: int, dif: int, n: int, verso: bool) -> void:
+func _spingi(att: int, dif: int, n: int, verso: bool, deviazione := 0, lancia := false) -> void:
 	var gd: Dictionary = s["g"][dif]
-	var d := dir_verso(s["g"][att]["pos"], gd["pos"])
+	var d := (dir_verso(s["g"][att]["pos"], gd["pos"]) + deviazione) % 6
 	if verso:
 		d = (d + 3) % 6
 	var per := [Vector3i(gd["pos"].x, gd["pos"].y, gd["dir"])]
@@ -1339,9 +1520,99 @@ func _spingi(att: int, dif: int, n: int, verso: bool) -> void:
 	_evento({"t": "spinto", "p": dif, "percorso": per})
 	if urto:
 		_scrivi("%s sbatte contro un ostacolo!" % gd["nome"])
-		_ferisci(dif, DANNO_URTO)
+		_ferisci(dif, DANNO_URTO + (1 if lancia else 0))
+		if lancia and s["vinc"] < 0:
+			var mano := dadi_di(dif, "mano")
+			mano.sort_custom(func(a, b): return a["v"] > b["v"])
+			if not mano.is_empty():
+				mano[0]["st"] = "stordito"
+				_scrivi("%s è stordito dall'urto: perde un %d." % [gd["nome"], mano[0]["v"]])
+				_evento({"t": "blocco", "p": dif, "n": 1})
+				_evento({"t": "dadi", "p": dif})
 	if s["vinc"] < 0:
 		_pericolo(dif)
+
+## Il colpo sbilancia il difensore: si gira di n lati, offrendo il fianco o la schiena.
+func _sbilancia(att: int, dif: int, n: int) -> void:
+	var gd: Dictionary = s["g"][dif]
+	var ap: Vector2i = s["g"][att]["pos"]
+	var a := (int(gd["dir"]) + n) % 6
+	var b := (int(gd["dir"]) + 6 - n) % 6
+	gd["dir"] = a if angolo(gd["pos"], a, ap) >= angolo(gd["pos"], b, ap) else b
+	_scrivi("%s perde l'equilibrio e si gira." % gd["nome"])
+	_evento({"t": "muovi", "p": dif, "percorso": [Vector3i(gd["pos"].x, gd["pos"].y, gd["dir"])]})
+
+## Movimento che una mossa impone a chi l'ha usata: indietro, avanti, di lato, oltre il nemico.
+## Se non riesce a muoversi perde l'equilibrio: un suo dado in mano resta stordito.
+func _mossa_obbligata(att: int, dif: int, poi: Dictionary) -> void:
+	var ga: Dictionary = s["g"][att]
+	var gd: Dictionary = s["g"][dif]
+	var tipo := String(poi.get("mossa", "indietro"))
+	var n := int(poi.get("n", 1))
+	var per := [Vector3i(ga["pos"].x, ga["pos"].y, ga["dir"])]
+	var visti := {ga["pos"]: true}
+	match tipo:
+		"indietro":
+			var d := dir_verso(gd["pos"], ga["pos"])
+			for i in n:
+				var nh: Vector2i = ga["pos"] + DIRS[d]
+				if not libero(nh, att):
+					break
+				ga["pos"] = nh
+				per.append(Vector3i(nh.x, nh.y, ga["dir"]))
+		"avanti":
+			for i in n:
+				if dist(ga["pos"], gd["pos"]) <= 1:
+					break
+				var nh: Vector2i = ga["pos"] + DIRS[dir_verso(ga["pos"], gd["pos"])]
+				if not libero(nh, att):
+					break
+				ga["pos"] = nh
+				per.append(Vector3i(nh.x, nh.y, ga["dir"]))
+		"attraversa":
+			var nh: Vector2i = gd["pos"] + DIRS[dir_verso(ga["pos"], gd["pos"])]
+			if dist(ga["pos"], gd["pos"]) == 1 and libero(nh, att):
+				ga["pos"] = nh
+				per.append(Vector3i(nh.x, nh.y, ga["dir"]))
+			else:
+				tipo = "lato"
+				n = 2
+	if tipo == "lato":
+		for i in n:
+			var best := Vector2i.ZERO
+			var bv := -INF
+			var dmax := maxi(dist(ga["pos"], gd["pos"]), 1)
+			for k in 6:
+				var nh: Vector2i = ga["pos"] + DIRS[k]
+				if visti.has(nh) or not libero(nh, att) or dist(nh, gd["pos"]) > dmax:
+					continue
+				var v := angolo(gd["pos"], gd["dir"], nh)
+				if v > bv:
+					bv = v
+					best = nh
+			if bv == -INF:
+				break
+			visti[best] = true
+			ga["pos"] = best
+			per.append(Vector3i(best.x, best.y, ga["dir"]))
+	if per.size() == 1:
+		var mano := dadi_di(att, "mano")
+		mano.sort_custom(func(a, b): return a["v"] > b["v"])
+		if not mano.is_empty():
+			mano[0]["st"] = "stordito"
+			_evento({"t": "blocco", "p": att, "n": 1})
+			_evento({"t": "dadi", "p": att})
+		_scrivi("%s non riesce a completare il movimento e perde l'equilibrio." % ga["nome"])
+		return
+	if tipo != "indietro":
+		ga["dir"] = dir_verso(ga["pos"], gd["pos"])
+		per[per.size() - 1] = Vector3i(ga["pos"].x, ga["pos"].y, ga["dir"])
+	var testi := {"indietro": "arretra", "avanti": "incalza", "attraversa": "passa oltre", "lato": "gira attorno al nemico"}
+	_scrivi("%s %s." % [ga["nome"], testi.get(tipo, "si sposta")])
+	_evento({"t": "muovi", "p": att, "percorso": per})
+	_pericolo(att)
+	if s["vinc"] < 0:
+		_dopo_movimento(att)
 
 func _pericolo(p: int) -> void:
 	if s["per"].has(s["g"][p]["pos"]):

@@ -81,7 +81,7 @@ func _init() -> void:
 	for d in m2.s["g"][1]["dadi"]:
 		d["st"] = "mucchio"
 	var vita1: int = m2.s["g"][1]["vita"]
-	var esito := m2.applica(0, {"t": "slot", "tok": "spada", "slot": "fendente", "dadi": [rosso], "b": {"bers": 1}})
+	var esito := m2.applica(0, {"t": "slot", "tok": "spada", "slot": "fendente", "dadi": [rosso], "b": {"bers": 1, "lato": 0}})
 	controlla(esito == "", "fendente valido: " + esito)
 	if m2.s["fase"] == "rinforzo":
 		m2.applica(0, {"t": "sferra"})
@@ -123,7 +123,7 @@ func _init() -> void:
 			r1 = d["id"]
 	m3.s["attivo"] = 1
 	var v1: int = m3.s["g"][1]["vita"]
-	controlla(m3.applica(1, {"t": "slot", "tok": "spada", "slot": "fendente", "dadi": [r1], "b": {"bers": 0}}) == "", "attacco sulla trappola")
+	controlla(m3.applica(1, {"t": "slot", "tok": "spada", "slot": "fendente", "dadi": [r1], "b": {"bers": 0, "lato": 0}}) == "", "attacco sulla trappola")
 	controlla(m3.s["g"][1]["vita"] == v1 - 4, "la trappola ferisce l'attaccante")
 	controlla(m3.s["g"][0]["rivelati"].has("trappola"), "il segreto si rivela")
 

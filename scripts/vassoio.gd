@@ -16,6 +16,8 @@ var evidenziati: Array = []   # dadi selezionabili come bersaglio (scambio, rove
 var interattivo := true
 var scegli_mucchio := false   # true quando si scelgono dadi dal mucchio
 var _rect := {}
+var _tutti := {}              # id -> rettangolo di ogni dado disegnato
+var in_volo: Dictionary = {}  # dadi che stanno arrivando in volo: non si disegnano ancora
 var _premuto := Vector2.ZERO
 
 func _init() -> void:
@@ -24,6 +26,7 @@ func _init() -> void:
 
 func _draw() -> void:
 	_rect.clear()
+	_tutti.clear()
 	if motore == null:
 		return
 	var x := 4.0
@@ -56,7 +59,9 @@ func _draw() -> void:
 			if evidenziati.has(d["id"]):
 				draw_rect(r.grow(6), Color(0.6, 0.85, 0.5, 0.45))
 			var st: String = "pronto" if k == 2 else ("bloccato" if k == 3 else d["st"])
-			Disegno.dado(self, r, d["col"], d["v"], st, selezionati.has(d["id"]))
+			_tutti[d["id"]] = r
+			if not in_volo.has(d["id"]):
+				Disegno.dado(self, r, d["col"], d["v"], st, selezionati.has(d["id"]))
 			if tocc:
 				_rect[d["id"]] = r
 			x += dim + GAP * (1.0 if tocc else 0.5)
@@ -68,6 +73,15 @@ func _draw() -> void:
 		Disegno.testo(self, Vector2(x, 56), str(elim), 20, Color(1, 1, 1, 0.6))
 		x += 100
 	custom_minimum_size.x = maxf(560.0, x)
+
+## Rettangoli in coordinate dello schermo di tutti i dadi disegnati.
+func rect_globali() -> Dictionary:
+	var out := {}
+	var t := get_global_transform()
+	for id in _tutti:
+		var r: Rect2 = _tutti[id]
+		out[id] = Rect2(t * r.position, r.size * t.get_scale())
+	return out
 
 func _gui_input(e: InputEvent) -> void:
 	if not interattivo:
