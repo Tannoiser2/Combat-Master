@@ -7,7 +7,7 @@ extends RefCounted
 ## Nessuna dipendenza grafica: serve all'interfaccia, all'IA e ai test headless.
 
 const DIRS: Array[Vector2i] = [Vector2i(1, 0), Vector2i(1, -1), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(-1, 1), Vector2i(0, 1)]
-const COLORI := ["rosso", "blu", "verde", "viola", "giallo", "bianco"]
+const COLORI := ["rosso", "blu", "verde", "viola", "bianco"]
 const NOMI_COLORE := {"rosso": "rosso", "blu": "blu", "verde": "verde", "viola": "viola", "giallo": "giallo", "bianco": "bianco"}
 const RITMO_BASE := 3
 const VITA_BASE := 10
@@ -41,6 +41,26 @@ static func carica_dati() -> Dictionary:
 	d["per_id"] = c
 	regole = d.get("regole", {})
 	return d
+
+## Le quattro caratteristiche obbligatorie: ogni combattente ha una e una sola scheda per ognuna.
+const CARATTERISTICHE := ["rosso", "blu", "verde", "viola"]
+const NOMI_CARATTERISTICA := {"rosso": "Forza", "blu": "Destrezza", "verde": "Tempra", "viola": "Mente"}
+
+## Cosa manca o è doppio fra le caratteristiche del personaggio (vuoto se è tutto a posto).
+static func problemi_caratteristiche(c: Dictionary, pg: Dictionary) -> Array:
+	var conta := {}
+	for id in pg.get("token", {}):
+		if c.has(id) and c[id]["categoria"] == "attributo":
+			var k: String = c[id].get("caratteristica", c[id].get("colore", ""))
+			conta[k] = int(conta.get(k, 0)) + 1
+	var out := []
+	for k in CARATTERISTICHE:
+		var n := int(conta.get(k, 0))
+		if n == 0:
+			out.append("manca la %s" % NOMI_CARATTERISTICA[k])
+		elif n > 1:
+			out.append("ci sono %d schede di %s" % [n, NOMI_CARATTERISTICA[k]])
+	return out
 
 static func costo_token(t: Dictionary, livello: int) -> int:
 	if t.has("livelli"):
@@ -447,6 +467,87 @@ func _valori(p: int, ids: Array) -> Array:
 	for id in ids:
 		v.append(int(dado(p, id)["v"]))
 	return v
+
+## I colori accettati da uno spazio, in parole: "rosso o blu", "blu + rosso".
+static func testo_colori(req: Array) -> String:
+	var parti := []
+	for alloggio in req:
+		parti.append(" o ".join(alloggio))
+	return " + ".join(parti)
+
+## La condizione sui valori di uno spazio, in parole.
+func testo_condizione(sl: Dictionary) -> String:
+	var c: Dictionary = sl.get("cond", {})
+	var t := []
+	if c.has("min") and c.has("max"):
+		t.append("dado da %d a %d" % [int(c["min"]), int(c["max"])])
+	elif c.has("min"):
+		t.append("dado %d o più" % int(c["min"]))
+	elif c.has("max"):
+		t.append("dado %d o meno" % int(c["max"]) if int(c["max"]) > 1 else "dado 1")
+	if c.get("coppia", false):
+		t.append("dadi uguali")
+	if c.get("scala", false):
+		t.append("dadi in scala")
+	if c.has("valori"):
+		var w := []
+		for x in c["valori"]:
+			w.append(str(int(x)))
+		t.append("i valori %s" % "-".join(w))
+	if c.get("pari", false):
+		t.append("dadi pari")
+	if c.get("dispari", false):
+		t.append("dadi dispari")
+	if c.has("somma_min"):
+		t.append("somma %d o più" % int(c["somma_min"]))
+	if c.has("somma_max"):
+		t.append("somma %d o meno" % int(c["somma_max"]))
+	if c.has("somma_esatta"):
+		t.append("somma esattamente %d" % int(c["somma_esatta"]))
+	if c.get("vs_attacco", false):
+		if s["fase"] == "reazione" and not s["pend"].is_empty():
+			t.append("dado almeno %d (quanto il dado d'attacco)" % int(s["pend"].get("vd", 0)))
+		else:
+			t.append("dado almeno quanto il dado d'attacco, quando ti attaccano")
+	return ", ".join(t)
+
+## Perché questi dadi non vanno su questo spazio (vuoto se vanno bene).
+func spiega_dadi(p: int, sl: Dictionary, ids: Array) -> String:
+	var req: Array = sl["dadi"]
+	if ids.size() != req.size():
+		return "%s vuole %s (%s), ne hai scelti %d." % [sl["nome"], plurale(req.size(), "dado", "dadi"), testo_colori(req), ids.size()]
+	for id in ids:
+		if dado(p, id).get("st", "") != "mano":
+			return "Si usano solo i dadi in mano."
+	var colori_ok := false
+	for perm in _permutazioni(ids):
+		var ok := true
+		for i in perm.size():
+			if not colore_ok(dado(p, perm[i])["col"], req[i]):
+				ok = false
+		if ok:
+			colori_ok = true
+	if not colori_ok:
+		return "%s accetta solo dadi %s." % [sl["nome"], testo_colori(req)]
+	if not _condizione_ok(p, sl, ids):
+		return "%s vuole: %s." % [sl["nome"], testo_condizione(sl)]
+	return ""
+
+## Perché nessun dado in mano va su questo spazio.
+func spiega_mano(p: int, sl: Dictionary) -> String:
+	var req: Array = sl["dadi"]
+	var mano := dadi_di(p, "mano")
+	var adatti := 0
+	for d in mano:
+		for alloggio in req:
+			if colore_ok(d["col"], alloggio):
+				adatti += 1
+				break
+	if adatti == 0:
+		return "Non hai in mano dadi %s per %s." % [testo_colori(req), sl["nome"]]
+	if adatti < req.size():
+		return "%s vuole %s (%s): non ne hai abbastanza in mano." % [sl["nome"], plurale(req.size(), "dado", "dadi"), testo_colori(req)]
+	return "Nessun dado in mano va bene per %s, che vuole: %s." % [sl["nome"], testo_condizione(sl)]
 
 func _condizione_ok(p: int, sl: Dictionary, ids: Array) -> bool:
 	var v := _valori(p, ids)

@@ -28,6 +28,8 @@ static func _usabile(sl: Dictionary, prodotti: Dictionary) -> bool:
 
 ## Il personaggio ha almeno un attacco e un modo per raggiungere il nemico (o un attacco a distanza)?
 static func valido(cat: Dictionary, pg: Dictionary) -> bool:
+	if not Motore.problemi_caratteristiche(cat, pg).is_empty():
+		return false
 	var st := Motore.statistiche(cat, pg)
 	var n := 0
 	for c in st["dadi"]:
@@ -55,6 +57,14 @@ static func casuale(dati: Dictionary, budget: int, rng: RandomNumberGenerator) -
 	for tentativo in 60:
 		var pg := {"nome": "%s %s" % [NOMI[rng.randi() % NOMI.size()], EPITETI[rng.randi() % EPITETI.size()]],
 			"budget": budget, "token": {}}
+		# prima una scheda per ogni caratteristica, che danno i dadi
+		for k in Motore.CARATTERISTICHE:
+			var schede := []
+			for t in dati["token"]:
+				if t["categoria"] == "attributo" and t.get("caratteristica", "") == k:
+					schede.append(t)
+			if not schede.is_empty():
+				pg["token"][schede[rng.randi() % schede.size()]["id"]] = 1
 		var guardie := 0
 		while guardie < 300:
 			guardie += 1
@@ -67,14 +77,7 @@ static func casuale(dati: Dictionary, budget: int, rng: RandomNumberGenerator) -
 				ndadi += int(prodotti[c])
 			var t: Dictionary = dati["token"][rng.randi() % dati["token"].size()]
 			var id: String = t["id"]
-			if t["categoria"] == "base":
-				continue
-			if pg["token"].has(id):
-				# per le caratteristiche si può salire di livello
-				if t.has("livelli") and int(pg["token"][id]) < t["livelli"].size():
-					var extra := Motore.costo_token(t, int(pg["token"][id]) + 1) - Motore.costo_token(t, int(pg["token"][id]))
-					if extra <= resto and rng.randf() < 0.5:
-						pg["token"][id] = int(pg["token"][id]) + 1
+			if t["categoria"] in ["base", "attributo"] or pg["token"].has(id):
 				continue
 			# prima di tutto servono dadi
 			var produce := t.has("livelli") or t.has("produce")

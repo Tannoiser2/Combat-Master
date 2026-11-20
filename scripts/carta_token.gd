@@ -34,7 +34,7 @@ func _init() -> void:
 
 func imposta(t: Dictionary, livello_: int = 1, modo_: String = "catalogo") -> void:
 	tok = t
-	lv = livello_
+	lv = clampi(livello_, 1, t["livelli"].size()) if t.has("livelli") else livello_
 	modo = modo_
 	_ricalcola()
 	queue_redraw()
@@ -43,7 +43,7 @@ func imposta(t: Dictionary, livello_: int = 1, modo_: String = "catalogo") -> vo
 func dadi_prodotti() -> Array:
 	var out := []
 	if tok.has("livelli"):
-		out.append([tok["colore"], int(tok["livelli"][lv - 1]["dadi"])])
+		out.append([tok["colore"], int(tok["livelli"][clampi(lv, 1, tok["livelli"].size()) - 1]["dadi"])])
 	for c in tok.get("produce", {}):
 		out.append([c, int(tok["produce"][c])])
 	return out
@@ -96,7 +96,7 @@ func _testo_passivo() -> String:
 	if tok.has("testo"):
 		parti.append(tok["testo"])
 	if tok.has("livelli"):
-		var L: Dictionary = tok["livelli"][lv - 1]
+		var L: Dictionary = tok["livelli"][clampi(lv, 1, tok["livelli"].size()) - 1]
 		if L.has("vita"):
 			parti.append("+%d ferite massime." % L["vita"])
 		if L.has("iniziativa"):
@@ -114,6 +114,8 @@ func _draw() -> void:
 	if tok.is_empty():
 		return
 	var cc: Color = Disegno.CATEGORIE.get(tok["categoria"], Color.GRAY)
+	if tok.has("caratteristica"):
+		cc = Disegno.colore(tok["caratteristica"]).darkened(0.35)
 	if coperta:
 		var dorso := Disegno.stile(Color("#2b2438"), Color("#8a7ab0"), 10, 3)
 		draw_style_box(dorso, Rect2(0, 0, W, _h))
@@ -138,11 +140,19 @@ func _draw() -> void:
 	testa.corner_radius_top_right = 9
 	draw_style_box(testa, Rect2(2, 2, W - 4, 38))
 	var nome: String = tok["nome"]
-	if tok.has("livelli"):
+	if tok.has("livelli") and tok["livelli"].size() > 1:
 		nome += " " + ["I", "II", "III"][lv - 1]
 	var larg_nome := W - 70 if modo == "scheda" else W - 58
-	Disegno.testo(self, Vector2(10, 21), nome, 17, Color.WHITE, Disegno.font_titolo(), larg_nome)
-	Disegno.testo(self, Vector2(10, 35), Disegno.NOME_CATEGORIA.get(tok["categoria"], ""), 12, Color(1, 1, 1, 0.8))
+	# i nomi lunghi si rimpiccioliscono invece di essere tagliati
+	var fs := 17
+	var ft := Disegno.font_titolo()
+	while fs > 12 and ft.get_string_size(nome, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > larg_nome:
+		fs -= 1
+	Disegno.testo(self, Vector2(10, 21), nome, fs, Color.WHITE, ft, larg_nome)
+	var sotto: String = Disegno.NOME_CATEGORIA.get(tok["categoria"], "")
+	if tok.has("caratteristica"):
+		sotto = "Caratteristica: " + String(Motore.NOMI_CARATTERISTICA.get(tok["caratteristica"], ""))
+	Disegno.testo(self, Vector2(10, 35), sotto, 12, Color(1, 1, 1, 0.8))
 	var cpos := Vector2(W - 22, 21) if modo != "scheda" else Vector2(W - 50, 21)
 	draw_circle(cpos, 14, Color("#2a1f17"))
 	draw_arc(cpos, 14, 0, TAU, 24, Disegno.ORO, 2)
@@ -173,6 +183,10 @@ func _draw() -> void:
 		Disegno.testo_a_capo(self, Vector2(10, y + 13), info, 15, Disegno.INCHIOSTRO.lightened(0.15), W - 20)
 	for sl in tok.get("slot", []):
 		_disegna_spazio(sl)
+		if evidenzia.get(sl["id"], null) == false:
+			var sbiadito := Disegno.PERGAMENA
+			sbiadito.a = 0.45
+			draw_rect(_rect_slot[sl["id"]], sbiadito)
 	if _rect_btn.has("aggiungi"):
 		var r: Rect2 = _rect_btn["aggiungi"]
 		var c := Color("#3a2a1c") if not disattivo else Color("#8f8576")
@@ -215,7 +229,7 @@ func _disegna_spazio(sl: Dictionary) -> void:
 		bordo = Color("#b07d1f")
 		spess = 2
 	elif ev == false:
-		bg = Color(0, 0, 0, 0.12)
+		bg = Color(0.2, 0.16, 0.12, 0.28)
 	draw_style_box(Disegno.stile(bg, bordo, 6, spess), r)
 	var tag := "AZIONE"
 	var tagc := Color("#5a4630")

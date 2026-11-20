@@ -343,9 +343,9 @@ func officina() -> void:
 	vc.add_child(gcat)
 	_off_cat_btn.clear()
 	for c in dati["categorie"]:
-		var b := _bottone(c["nome"], func(): _off_categoria(c["id"]), 132)
+		var b := _bottone(c["nome"], func(): _off_categoria(c["id"]), 142)
 		b.toggle_mode = true
-		b.add_theme_font_size_override("font_size", 15)
+		b.add_theme_font_size_override("font_size", 14)
 		gcat.add_child(b)
 		_off_cat_btn[c["id"]] = b
 	var sc := ScrollContainer.new()
@@ -459,16 +459,33 @@ func _off_aggiorna() -> void:
 		c.queue_free()
 	var costo := Motore.costo_personaggio(cat, pg_corrente)
 	var budget: int = int(pg_corrente["budget"])
+	var gruppo := ""
 	for t in dati["token"]:
 		if t["categoria"] != cat_corrente:
 			continue
+		if t["categoria"] == "attributo" and t.get("caratteristica", "") != gruppo:
+			# le caratteristiche si scelgono una per tipo
+			gruppo = t.get("caratteristica", "")
+			var scelta := ""
+			for id in pg_corrente["token"]:
+				if cat.has(id) and cat[id].get("caratteristica", "") == gruppo:
+					scelta = cat[id]["nome"]
+			var tl := _label("%s: scegline una%s" % [Motore.NOMI_CARATTERISTICA.get(gruppo, gruppo), ("  (ora: %s)" % scelta) if scelta != "" else ""], 17, Disegno.colore(gruppo).lightened(0.25), Disegno.font_titolo())
+			tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			tl.custom_minimum_size = Vector2(260, 0)
+			_off_catalogo.add_child(tl)
 		var carta := CartaToken.new()
 		carta.imposta(t, 1, "catalogo")
 		var gia: bool = pg_corrente["token"].has(t["id"])
-		carta.disattivo = gia or costo + Motore.costo_token(t, 1) > budget
+		var al_posto := 0
+		if t["categoria"] == "attributo":
+			for id in pg_corrente["token"]:
+				if cat.has(id) and cat[id]["categoria"] == "attributo" and cat[id].get("caratteristica", "") == t.get("caratteristica", ""):
+					al_posto += Motore.costo_token(cat[id], int(pg_corrente["token"][id]))
+		carta.disattivo = gia or costo - al_posto + Motore.costo_token(t, 1) > budget
 		carta.carta_premuta.connect(_off_aggiungi)
 		_off_catalogo.add_child(carta)
-	var ordine := ["base", "attributo", "oggetto", "arma", "armatura", "mossa", "talento", "segreto"]
+	var ordine := ["base", "attributo", "arma", "mossa", "armatura", "oggetto", "talento", "magia", "segreto"]
 	var ids: Array = pg_corrente["token"].keys()
 	ids.sort_custom(func(a, b): return ordine.find(cat[a]["categoria"]) * 100 + dati["token"].find(cat[a]) < ordine.find(cat[b]["categoria"]) * 100 + dati["token"].find(cat[b]))
 	for id in ids:
@@ -488,8 +505,11 @@ func _off_aggiorna() -> void:
 		if st["dadi"].has(c):
 			dadi.append("%d %s" % [st["dadi"][c], Disegno.NOMI_COLORE[c]])
 	_off_info.text = "Punti %d su %d   |   Dadi nel mucchio: %s   |   Ferite %d   |   Ritmo %d (dadi pescati)   |   Recupero %d   |   Armatura %d" % [costo, budget, ", ".join(dadi) if not dadi.is_empty() else "nessuno", st["vita"], st["ritmo"], st["recupero"], st["armatura"]]
-	if not ids.is_empty() and not Generatore.valido(cat, pg_corrente):
-		_off_info.text += "\nAttenzione: servono almeno 4 dadi, un attacco semplice che i tuoi dadi possano pagare e un modo per avvicinarsi (o un attacco a distanza)."
+	var probl := Motore.problemi_caratteristiche(cat, pg_corrente)
+	if not probl.is_empty():
+		_off_info.text += "\nCaratteristiche: serve una scheda per ognuna fra Forza, Destrezza, Tempra e Mente (%s)." % ", ".join(probl)
+	elif not Generatore.valido(cat, pg_corrente):
+		_off_info.text += "\nAttenzione: servono almeno 4 dadi e un attacco semplice che i tuoi dadi possano pagare."
 	_off_info.add_theme_color_override("font_color", Color("#ff8a70") if costo > budget or (not ids.is_empty() and not Generatore.valido(cat, pg_corrente)) else Disegno.PERGAMENA)
 	for pg in tutti_personaggi():
 		var b := Button.new()
@@ -504,8 +524,14 @@ func _off_aggiorna() -> void:
 		_off_lista.add_child(b)
 
 func _off_aggiungi(id: String) -> void:
+	var tolta := ""
+	if cat[id]["categoria"] == "attributo":
+		for k in pg_corrente["token"].keys():
+			if cat.has(k) and cat[k]["categoria"] == "attributo" and cat[k].get("caratteristica", "") == cat[id].get("caratteristica", ""):
+				tolta = cat[k]["nome"]
+				pg_corrente["token"].erase(k)
 	pg_corrente["token"][id] = 1
-	_off_msg.text = "Aggiunto: %s" % cat[id]["nome"]
+	_off_msg.text = ("%s al posto di %s" % [cat[id]["nome"], tolta]) if tolta != "" else ("Aggiunto: %s" % cat[id]["nome"])
 	_off_aggiorna()
 
 func _off_rimuovi(id: String) -> void:
@@ -525,17 +551,24 @@ func _off_casuale() -> void:
 	_off_msg.text = "Ecco %s: premi Salva per tenerlo." % pg["nome"]
 
 func _off_nuovo() -> void:
-	_off_carica_in_editor({"nome": "Nuovo combattente", "budget": pg_corrente.get("budget", 30), "token": {}})
-	_off_msg.text = "Scheda nuova."
+	# si parte con la prima scheda di ogni caratteristica: si cambiano dal catalogo
+	var tk := {}
+	for k in Motore.CARATTERISTICHE:
+		for t in dati["token"]:
+			if t["categoria"] == "attributo" and t.get("caratteristica", "") == k:
+				tk[t["id"]] = 1
+				break
+	_off_carica_in_editor({"nome": "Nuovo combattente", "budget": pg_corrente.get("budget", 30), "token": tk})
+	_off_msg.text = "Scheda nuova: cambia le quattro caratteristiche dal catalogo, poi aggiungi il resto."
 
 func _off_salva() -> void:
 	var nome: String = _off_nome.text.strip_edges()
 	if nome == "":
 		_off_msg.text = "Dai un nome al combattente."
 		return
-	var st := Motore.statistiche(cat, pg_corrente)
-	if st["dadi"].is_empty():
-		_off_msg.text = "Serve almeno una caratteristica che dia dei dadi."
+	var probl := Motore.problemi_caratteristiche(cat, pg_corrente)
+	if not probl.is_empty():
+		_off_msg.text = "Serve una scheda per ogni caratteristica: %s." % ", ".join(probl)
 		return
 	pg_corrente["nome"] = nome
 	var nuovo: Dictionary = pg_corrente.duplicate(true)
@@ -662,7 +695,7 @@ func _prep_validi() -> Array:
 	var out := [{"nome": CASUALE, "token": {}, "casuale": true}]
 	for pg in tutti_personaggi():
 		var c := Motore.costo_personaggio(cat, pg)
-		if c <= budget and not Motore.statistiche(cat, pg)["dadi"].is_empty():
+		if c <= budget and Motore.problemi_caratteristiche(cat, pg).is_empty():
 			out.append(pg)
 	return out
 
@@ -938,7 +971,7 @@ func _ricostruisci_carte() -> void:
 		c.queue_free()
 	_carte.clear()
 	var p := _giocatore_mostrato()
-	var ordine := ["base", "attributo", "oggetto", "arma", "armatura", "mossa", "talento", "segreto"]
+	var ordine := ["base", "attributo", "arma", "mossa", "armatura", "oggetto", "talento", "magia", "segreto"]
 	var ids: Array = m.s["g"][p]["pg"]["token"].keys()
 	ids.sort_custom(func(a, b): return ordine.find(cat[a]["categoria"]) * 100 + dati["token"].find(cat[a]) < ordine.find(cat[b]["categoria"]) * 100 + dati["token"].find(cat[b]))
 	if cat.has("base"):
@@ -1193,6 +1226,42 @@ func _dado(id: int) -> void:
 	else:
 		sel.append(id)
 	_aggiorna()
+	_suggerisci_spazi()
+
+## Dopo aver scelto dei dadi dice dove possono andare (gli spazi giusti sono anche evidenziati in oro).
+func _suggerisci_spazi() -> void:
+	if sel.is_empty():
+		return
+	var nomi_dadi := []
+	for i in sel:
+		var d := m.dado(mostra, i)
+		nomi_dadi.append("%d %s" % [d["v"], d["col"]])
+	var dove := []
+	var vicini := []
+	for carta in _carte:
+		for sl in carta.tok["slot"]:
+			if carta.evidenzia.get(sl["id"], false):
+				dove.append(sl["nome"])
+			elif m.ordina_dadi(mostra, sl, sel).size() > 0 and not m.occupato(mostra, carta.tok["id"], sl["id"]):
+				vicini.append(sl)
+	if not dove.is_empty():
+		_msg.text = "Con %s puoi usare: %s." % [", ".join(nomi_dadi), ", ".join(dove)]
+	elif not vicini.is_empty():
+		var sl: Dictionary = vicini[0]
+		var quando := "adesso non c'è un bersaglio valido"
+		if sl["effetto"] in ["attacco", "assalto"]:
+			quando = "il nemico non è a portata o non è davanti a te"
+		match sl["tipo"]:
+			"reazione", "supporto_difesa":
+				quando = "si usa quando ti attaccano"
+			"supporto_attacco":
+				quando = "si usa dopo aver dichiarato un tuo colpo"
+			"azione":
+				if m.s["fase"] != "azione":
+					quando = "si usa solo quando hai l'iniziativa"
+		_msg.text = "Con %s andrebbe bene %s, ma %s." % [", ".join(nomi_dadi), sl["nome"], quando]
+	else:
+		_msg.text = "Nessuno spazio accetta %s: guarda colori e condizioni scritti sugli spazi." % ", ".join(nomi_dadi)
 
 func _dadi_scelti() -> void:
 	var p := _umano_decide()
@@ -1263,12 +1332,18 @@ func _slot(tok: String, sid: String) -> void:
 	if not sel.is_empty():
 		ids = m.ordina_dadi(p, sl, sel)
 		if ids.is_empty():
-			_msg.text = "I dadi scelti non vanno bene per %s." % sl["nome"]
+			_msg.text = m.spiega_dadi(p, sl, sel)
+			if _msg.text == "":
+				_msg.text = "I dadi scelti non vanno bene per %s." % sl["nome"]
 			return
 	else:
 		var best := []
 		var bv := -1
-		for c in m.combinazioni(p, sl):
+		var combo: Array = m.combinazioni(p, sl)
+		if combo.is_empty():
+			_msg.text = m.spiega_mano(p, sl)
+			return
+		for c in combo:
 			if m.bersagli(p, tok, sl, c).is_empty():
 				continue
 			var somma := 0
@@ -1282,9 +1357,9 @@ func _slot(tok: String, sid: String) -> void:
 				bv = punteggio
 				best = c
 		if best.is_empty():
-			_msg.text = "Nessun dado adatto per %s." % sl["nome"]
-			return
-		ids = best
+			ids = combo[0]
+		else:
+			ids = best
 	var bs := m.bersagli(p, tok, sl, ids)
 	if bs.is_empty():
 		match sl["effetto"]:

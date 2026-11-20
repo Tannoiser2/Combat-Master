@@ -6,7 +6,8 @@ Ogni giocatore compone il proprio personaggio con dei **token** che mettono **da
 Le regole complete sono in [`data/regole.md`](data/regole.md) e si leggono anche nel gioco.
 
 ## Cosa c'è
-- **Quasi 120 token** in sette categorie: caratteristiche, oggetti, armi, armature, mosse, talenti e segreti. Ogni colore ha quattro stili di caratteristica con tre azioni ciascuno, per dare subito un carattere al combattente.
+- **Quasi 150 token**. Quattro caratteristiche obbligatorie (Forza, Destrezza, Tempra, Mente), ognuna con dieci schede fra cui sceglierne una: 2-3 azioni e i dadi del mucchio. Poi armi e strategie (1-2 azioni), equipaggiamento, oggetti, talenti e magie (1 azione), segreti.
+- **Chiarezza in battaglia**: toccando un dado si illuminano gli spazi dove può andare, e un messaggio spiega perché non va negli altri (colore, valore, fase o bersaglio).
 - **Esagono sui token**: guardie messe prima del colpo su un lato del corpo (pieno, -1, -2, -3 sui lati lontani), colpi mirati che perdono valore se il nemico scarta, token che rafforzano o sfondano le guardie.
 - **Movimento**: spinte, lanci contro le colonne, colpi che fanno girare il nemico, colpi pesanti che fanno arretrare, mosse che obbligano chi le usa ad arretrare, incalzare, girare attorno o passare oltre. Produttori e consumatori di dadi, spazi liberi, supporti, reazioni, contatori a soglia, accumuli, segreti che scattano da soli, condizioni su coppie, scale, somme, pari e dispari, effetti che valorizzano i dadi bassi.
 - **Officina dei personaggi**: catalogo per categoria, scheda componibile, costo e statistiche in tempo reale, avvisi se manca un attacco, generatore di avventurieri casuali, salvataggio sul dispositivo, codici `CM1-…` da condividere.

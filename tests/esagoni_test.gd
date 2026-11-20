@@ -113,7 +113,7 @@ func _init() -> void:
 
 	# sgambetto: il nemico si gira e offre il fianco, l'attaccante si sposta
 	m = duello({"destrezza": 2, "sgambetto": 1}, {"tempra": 1})
-	var y := in_mano(m, 0, "giallo", 2)
+	var y := in_mano(m, 0, "blu", 2)
 	var dir0: int = m.s["g"][1]["dir"]
 	controlla(m.applica(0, {"t": "slot", "tok": "sgambetto", "slot": "sgambetto", "dadi": [y], "b": {"bers": 1}}) == "", "sgambetto")
 	chiudi(m)

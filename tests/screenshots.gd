@@ -30,8 +30,10 @@ func _giro() -> void:
 	main.officina()
 	main._off_carica_in_editor(main.dati["personaggi"][7])
 	await _foto("officina")
-	main._off_categoria("segreto")
-	await _foto("officina_segreti")
+	main._off_categoria("attributo")
+	await _foto("officina_caratteristiche")
+	main._off_categoria("magia")
+	await _foto("officina_magie")
 	main.preparazione("spettatore")
 	await _foto("preparazione")
 	var d: Dictionary = main.dati
@@ -55,6 +57,11 @@ func _giro() -> void:
 	main.ia = [false, true]
 	main._aggiorna()
 	await _foto("battaglia")
+	var mano: Array = main.m.dadi_di(0, "mano")
+	if not mano.is_empty():
+		main._dado(mano[0]["id"])
+		await _foto("suggerimento")
+		main._dado(mano[0]["id"])
 	main._cmd_scheda()
 	await _foto("scheda_avversario")
 	main._cmd_scheda()

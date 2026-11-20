@@ -1,16 +1,16 @@
 # Combat Master — Regole
 
 ## L'idea
-Due combattenti si affrontano in un'arena di esagoni. Ognuno ha una scheda fatta di token: caratteristiche, oggetti, armi, armature, mosse, talenti e segreti. I token mettono dadi colorati nel mucchio e offrono spazi su cui piazzarli. Il giocatore costruisce un motore: chi produce dadi di un colore, chi li consuma, chi li sblocca, chi li trasforma. Non ci sono turni fissi: l'iniziativa salta da un combattente all'altro secondo le azioni, le combo e le reazioni.
+Due combattenti si affrontano in un'arena di esagoni. Ognuno ha una scheda fatta di token: quattro caratteristiche, armi, strategie, equipaggiamento, oggetti, talenti, magie e segreti. I token mettono dadi colorati nel mucchio e offrono spazi su cui piazzarli. Il giocatore costruisce un motore: chi produce dadi di un colore, chi li consuma, chi li sblocca, chi li trasforma. Non ci sono turni fissi: l'iniziativa salta da un combattente all'altro secondo le azioni, le combo e le reazioni.
 
 ## Creare il personaggio
 Lo scenario stabilisce il budget di punti (30, 45 o 60). Nell'Officina scegli i token e paghi il loro costo, oppure premi Casuale.
-- Caratteristiche: ogni colore ha una famiglia di stili fra cui scegliere (Forza del soldato, del berserker, del colosso, del lottatore; Agilità dello schermidore, Velocità del ladro, Equilibrio del danzatore, Riflessi del gatto; e così per Tempra, Mente e Destrezza, più l'Anima del prodigio). Ogni stile dà dadi del suo colore, di più ai livelli alti, e tre azioni di base molto diverse: già qui si decide come combatte il personaggio.
-- Oggetti: dadi in più o piccoli vantaggi, quasi sempre senza azioni.
-- Armi, armature e mosse: spazi d'azione, di reazione e di supporto.
-- Talenti: regole speciali, spesso consumatori di un colore.
+- Caratteristiche (obbligatorie): Forza (dadi rossi), Destrezza (blu), Tempra (verdi) e Mente (viola). Per ognuna scegli una e una sola scheda fra dieci stili molto diversi (per esempio Forza del soldato, del berserker, del colosso, del lottatore, del pugile…). Ogni scheda ha 2 o 3 azioni e dà un numero fisso di dadi del suo colore, da 1 a 4: pochi dadi con azioni forti, o molti dadi con azioni semplici che vanno sfruttati con altri token. Già qui si decide come combatte il personaggio; i dadi del mucchio vengono quasi tutti da qui.
+- Armi e strategie: 1 o 2 azioni ciascuna.
+- Equipaggiamento, oggetti, talenti e magie: 1 azione ciascuno. Alcuni danno anche un dado in più o un vantaggio fisso (armatura, ferite, ritmo), ma sempre insieme a un'azione.
 - Segreti: restano coperti per l'avversario finché non scattano.
-Il mucchio è la somma dei dadi indicati su tutti i token. Ogni spazio accetta solo certi colori (le strisce colorate sotto l'alloggiamento); il dado bianco vale come qualsiasi colore.
+Il mucchio è la somma dei dadi indicati sui token. Ogni spazio accetta solo certi colori (le strisce colorate sotto l'alloggio) e spesso chiede un valore (dado 4 o più, dado 1-2, due dadi uguali…); il dado bianco vale come qualsiasi colore.
+In battaglia, quando tocchi un dado in mano, gli spazi dove può andare si illuminano d'oro e quelli inutilizzabili si sbiadiscono; in alto compare dove puoi usarlo, oppure il motivo per cui non va (colore, valore, fase o bersaglio).
 Si parte con 14 ferite, Ritmo 3, Recupero 1 e la possibilità di conservare 1 dado.
 
 ## Il ciclo dei dadi
