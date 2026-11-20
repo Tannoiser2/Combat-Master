@@ -1,0 +1,60 @@
+{
+ "adottate": [
+  {
+   "cambi": {
+    "fronte": [
+     1.2,
+     2.13
+    ],
+    "occupato": [
+     1.0,
+     0.65
+    ]
+   },
+   "punti": 0.57
+  },
+  {
+   "cambi": {
+    "azzardo": [
+     7.0,
+     7.11
+    ],
+    "conservato": [
+     0.9,
+     1.42
+    ],
+    "mucchio_base": [
+     0.4,
+     0.74
+    ]
+   },
+   "punti": 0.63
+  }
+ ],
+ "generazioni": 40,
+ "pesi": {
+  "armato": 1.5,
+  "azzardo": 7.112,
+  "cede": 0.6,
+  "conservato": 1.419,
+  "distanza": 0.7,
+  "eliminato": 0.9,
+  "fianco": 0.8,
+  "fronte": 2.133,
+  "iniziativa": 0.8,
+  "mano_base": 0.55,
+  "mano_val": 0.1,
+  "minaccia": 1.2,
+  "mucchio_base": 0.742,
+  "mucchio_val": 0.04,
+  "occupato": 0.651,
+  "pericolo": 3.0,
+  "pericolo_subito": 1.0,
+  "pesca_spazio": 0.5,
+  "pesca_val": 0.1,
+  "retro": 1.6,
+  "stordito": 0.4,
+  "vita": 4.0,
+  "vita_bassa": 3.0
+ }
+}

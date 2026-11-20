@@ -38,6 +38,19 @@ func _init() -> void:
 		out["pesi"][k] = snappedf(w[k], 0.001)
 	FileAccess.open("res://data/ia_pesi.json", FileAccess.WRITE).store_string(JSON.stringify(out, " "))
 	print("Pesi salvati. Varianti adottate in questo giro: %d" % storia.size())
+	var t := "# Allenamento dell'IA\n\n"
+	t += "L'IA prova varianti dei pesi della sua valutazione e le fa combattere contro i pesi in uso, con avventurieri casuali e ogni coppia giocata due volte a lati invertiti. Una variante è adottata se vince almeno il %.0f%% delle partite.\n\n" % (float(arg["soglia"]) * 100)
+	t += "- Generazioni totali: %d (questo giro: %s, %s partite ciascuna)\n" % [out["generazioni"], arg["generazioni"], arg["partite"]]
+	t += "- Varianti adottate in questo giro: %d\n" % storia.size()
+	t += "- Partite al limite di tempo: %d su %d\n- Opzioni rifiutate dal motore: %d\n\n" % [difetti["a_tempo"], difetti["partite"], difetti["rifiutate"].size()]
+	t += "## Pesi attuali\n\n| Peso | Valore | Valore iniziale |\n| --- | --- | --- |\n"
+	for k in out["pesi"]:
+		t += "| %s | %.2f | %.2f |\n" % [k, out["pesi"][k], IA.PESI_BASE[k]]
+	if not storia.is_empty():
+		t += "\n## Varianti adottate\n\n"
+		for x in storia:
+			t += "- vince il %.0f%%: %s\n" % [x["punti"] * 100, str(x["cambi"])]
+	FileAccess.open("res://docs/allenamento_ia.md", FileAccess.WRITE).store_string(t)
 	print("Difetti: %d opzioni rifiutate, %d partite al limite di tempo su %d" % [difetti["rifiutate"].size(), difetti["a_tempo"], difetti["partite"]])
 	for r in difetti["rifiutate"].slice(0, 10):
 		print("  ", r)

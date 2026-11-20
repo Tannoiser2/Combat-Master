@@ -63,6 +63,13 @@ var passo_ia := PASSO_IA
 var spettatore := false
 var a_ripetizione := false
 var _attesa_ripeti := 0.0
+# allenamento continuo nella modalità spettatore: campione contro sfidante
+var allenamento := false
+var _pesi_lato: Array = [{}, {}]
+var _sfidante: Dictionary = {}
+var _lato_sfidante := 1
+var _sfida := {"giocate": 0, "vinte": 0, "generazioni": 0, "adottate": 0}
+var _registrato := false
 
 func _ready() -> void:
 	dati = Motore.carica_dati()
@@ -181,7 +188,9 @@ func _demo_arena() -> void:
 func _process(dt: float) -> void:
 	if _demo and arena != null:
 		arena.ruota_vista(dt * 0.08)
-	if m != null and m.s["vinc"] >= 0 and a_ripetizione and not arena.occupato():
+	if m != null and m.s["vinc"] >= 0 and allenamento and not _registrato:
+		_registra_sfida()
+	if m != null and m.s["vinc"] >= 0 and (a_ripetizione or allenamento) and not arena.occupato():
 		_attesa_ripeti += dt
 		if _attesa_ripeti > 3.0:
 			_attesa_ripeti = 0.0
@@ -194,7 +203,7 @@ func _process(dt: float) -> void:
 		_timer_ia += dt
 		if _timer_ia >= passo_ia:
 			_timer_ia = 0.0
-			var op := IA.scegli(m, chi, rng)
+			var op := IA.scegli(m, chi, rng, _pesi_lato[chi])
 			if op.is_empty():
 				return
 			var e := m.applica(chi, op)
@@ -450,7 +459,7 @@ func _off_aggiorna() -> void:
 		carta.disattivo = gia or costo + Motore.costo_token(t, 1) > budget
 		carta.carta_premuta.connect(_off_aggiungi)
 		_off_catalogo.add_child(carta)
-	var ordine := ["attributo", "arma", "armatura", "mossa", "talento"]
+	var ordine := ["base", "attributo", "oggetto", "arma", "armatura", "mossa", "talento", "segreto"]
 	var ids: Array = pg_corrente["token"].keys()
 	ids.sort_custom(func(a, b): return ordine.find(cat[a]["categoria"]) * 100 + dati["token"].find(cat[a]) < ordine.find(cat[b]["categoria"]) * 100 + dati["token"].find(cat[b]))
 	for id in ids:
@@ -630,6 +639,12 @@ func preparazione(modo: String) -> void:
 		rip.toggled.connect(func(on): a_ripetizione = on)
 		rip.add_theme_color_override("font_color", Disegno.PERGAMENA)
 		hb.add_child(rip)
+		var all := CheckButton.new()
+		all.text = "Allenamento dell'IA"
+		all.button_pressed = allenamento
+		all.toggled.connect(func(on): allenamento = on)
+		all.add_theme_color_override("font_color", Disegno.PERGAMENA)
+		hb.add_child(all)
 	hb.add_child(_bottone("Guarda!" if modo == "spettatore" else "Combatti!", _prep_via, 220))
 	_prep_set_scenario(_prep_scenario)
 
@@ -698,7 +713,32 @@ func _prep_via() -> void:
 	if a["nome"] == b["nome"]:
 		b["nome"] = b["nome"] + " (ombra)"
 	spettatore = _prep_modo == "spettatore"
+	if not spettatore:
+		allenamento = false
 	battaglia(a, b, dati["scenari"][_prep_scenario], [spettatore, _prep_modo != "due"])
+
+## Allenamento: lo sfidante gioca a lati alterni contro i pesi attuali; dopo 6 partite,
+## se ne ha vinte almeno 4 i suoi pesi diventano quelli dell'IA (salvati sul dispositivo).
+func _registra_sfida() -> void:
+	_registrato = true
+	_sfida["giocate"] += 1
+	if int(m.s["vinc"]) == _lato_sfidante:
+		_sfida["vinte"] += 1
+	var nota := "Allenamento: lo sfidante ha vinto %d su %d." % [_sfida["vinte"], _sfida["giocate"]]
+	if _sfida["giocate"] >= 6:
+		_sfida["generazioni"] += 1
+		if _sfida["vinte"] >= 4:
+			_sfida["adottate"] += 1
+			IA.adotta(_sfidante, _sfida["generazioni"])
+			nota = "Allenamento: lo sfidante ha vinto %d su 6, l'IA adotta il suo modo di giocare." % _sfida["vinte"]
+		else:
+			nota = "Allenamento: lo sfidante ha vinto solo %d su 6, si prova una nuova variante." % _sfida["vinte"]
+		_sfidante = IA.muta(IA.pesi(), rng)
+		_sfida["giocate"] = 0
+		_sfida["vinte"] = 0
+	m.s["log"].append(nota)
+	m.s["log"].append("Varianti provate %d, adottate %d." % [_sfida["generazioni"], _sfida["adottate"]])
+	_aggiorna()
 
 ## Modalità spettatore a ripetizione: nuovo scenario e nuovi avventurieri casuali.
 func _scontro_casuale() -> void:
@@ -715,7 +755,15 @@ func battaglia(a: Dictionary, b: Dictionary, scenario: Dictionary, ia_: Array) -
 	spettatore = ia_[0] and ia_[1]
 	if not spettatore:
 		passo_ia = PASSO_IA
+		allenamento = false
 	_attesa_ripeti = 0.0
+	_registrato = false
+	_pesi_lato = [{}, {}]
+	if spettatore and allenamento:
+		if _sfidante.is_empty():
+			_sfidante = IA.muta(IA.pesi(), rng)
+		_lato_sfidante = _sfida["giocate"] % 2
+		_pesi_lato[_lato_sfidante] = _sfidante
 	_demo = false
 	ia = ia_
 	_scenario = scenario
@@ -871,16 +919,18 @@ func _ricostruisci_carte() -> void:
 		c.queue_free()
 	_carte.clear()
 	var p := _giocatore_mostrato()
-	var ordine := ["attributo", "arma", "armatura", "mossa", "talento"]
+	var ordine := ["base", "attributo", "oggetto", "arma", "armatura", "mossa", "talento", "segreto"]
 	var ids: Array = m.s["g"][p]["pg"]["token"].keys()
 	ids.sort_custom(func(a, b): return ordine.find(cat[a]["categoria"]) * 100 + dati["token"].find(cat[a]) < ordine.find(cat[b]["categoria"]) * 100 + dati["token"].find(cat[b]))
+	if cat.has("base"):
+		ids.push_front("base")
 	for id in ids:
 		var carta := CartaToken.new()
 		carta.motore = m
 		carta.giocatore = p
 		var proprio := _giocatore_proprio()
 		carta.coperta = cat[id]["categoria"] == "segreto" and not m.s["g"][p]["rivelati"].has(id) and proprio >= 0 and p != proprio
-		carta.imposta(cat[id], int(m.s["g"][p]["pg"]["token"][id]), "gioco")
+		carta.imposta(cat[id], int(m.s["g"][p]["pg"]["token"].get(id, 1)), "gioco")
 		carta.slot_premuto.connect(_slot)
 		_carte_box.add_child(carta)
 		_carte.append(carta)

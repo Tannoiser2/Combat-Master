@@ -14,6 +14,9 @@ const PESI_BASE := {
 }
 
 static var _pesi_salvati: Dictionary = {}
+## 1 = guarda solo la propria mossa; 2 = per le mosse migliori guarda anche la risposta dell'avversario.
+static var profondita := 2
+const CANDIDATI := 3
 
 static func pesi() -> Dictionary:
 	if _pesi_salvati.is_empty():
@@ -24,7 +27,33 @@ static func pesi() -> Dictionary:
 				for k in d.get("pesi", {}):
 					if PESI_BASE.has(k):
 						_pesi_salvati[k] = float(d["pesi"][k])
+		# pesi migliorati sul dispositivo guardando l'IA allenarsi
+		if FileAccess.file_exists("user://ia_pesi.json"):
+			var u = JSON.parse_string(FileAccess.open("user://ia_pesi.json", FileAccess.READ).get_as_text())
+			if u is Dictionary and int(u.get("versione_catalogo", 0)) == versione_catalogo():
+				for k in u.get("pesi", {}):
+					if PESI_BASE.has(k):
+						_pesi_salvati[k] = float(u["pesi"][k])
 	return _pesi_salvati
+
+static func versione_catalogo() -> int:
+	return 1
+
+## Variante casuale dei pesi: si cambiano da 2 a 5 pesi di un fattore vicino a 1.
+static func muta(w: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
+	var c := w.duplicate()
+	var chiavi: Array = c.keys()
+	for i in rng.randi_range(2, 5):
+		var k: String = chiavi[rng.randi() % chiavi.size()]
+		c[k] = maxf(0.01, float(c[k]) * exp(rng.randfn(0.0, 0.3)))
+	return c
+
+## Adotta nuovi pesi e li salva sul dispositivo.
+static func adotta(w: Dictionary, generazioni: int) -> void:
+	_pesi_salvati = w.duplicate()
+	var f := FileAccess.open("user://ia_pesi.json", FileAccess.WRITE)
+	if f != null:
+		f.store_string(JSON.stringify({"pesi": w, "generazioni": generazioni, "versione_catalogo": versione_catalogo()}))
 
 static func scegli(m: Motore, p: int, rng: RandomNumberGenerator = null, w: Dictionary = {}) -> Dictionary:
 	if w.is_empty():
@@ -49,13 +78,23 @@ static func scegli(m: Motore, p: int, rng: RandomNumberGenerator = null, w: Dict
 	var opz := _sfoltisci(m, p, m.opzioni(p), w)
 	var migliore := {}
 	var bv := -INF
+	var classifica := []
 	for op in opz:
 		var v := valuta_opzione(m, p, op, w)
 		if rng != null:
 			v += rng.randf() * 0.3
+		classifica.append([v, op])
 		if v > bv:
 			bv = v
 			migliore = op
+	if profondita >= 2 and m.s["fase"] == "azione" and classifica.size() > 1:
+		classifica.sort_custom(func(a, b): return a[0] > b[0])
+		bv = -INF
+		for i in mini(CANDIDATI, classifica.size()):
+			var v2 := _valuta_con_risposta(m, p, classifica[i][1], w)
+			if v2 > bv:
+				bv = v2
+				migliore = classifica[i][1]
 	if migliore.get("t", "") == "passa":
 		var cons := _conserva_utile(m, p)
 		if not cons.is_empty():
@@ -94,10 +133,35 @@ static func scelta_mucchio(m: Motore, p: int, n: int, w: Dictionary = {}) -> Arr
 
 static func valuta_opzione(m: Motore, p: int, op: Dictionary, w: Dictionary) -> float:
 	var c := m.clona()
+	# l'IA non conosce i segreti dell'avversario: nella simulazione non scattano
+	c.s["g"][1 - p]["armati"] = {}
 	if c.applica(p, op) != "":
 		return -INF
 	_completa(c, p, w)
 	return valuta(c, p, w)
+
+## Valore della mossa dopo la risposta migliore dell'avversario (se tocca a lui).
+static func _valuta_con_risposta(m: Motore, p: int, op: Dictionary, w: Dictionary) -> float:
+	var c := m.clona()
+	c.s["g"][1 - p]["armati"] = {}
+	if c.applica(p, op) != "":
+		return -INF
+	_completa(c, p, w)
+	var o := 1 - p
+	if c.s["vinc"] >= 0 or c.chi_decide() != o or c.s["fase"] != "azione":
+		return valuta(c, p, w)
+	var peggiore := INF
+	var meglio_per_o := -INF
+	for op2 in _sfoltisci(c, o, c.opzioni(o), w):
+		var c2 := c.clona()
+		if c2.applica(o, op2) != "":
+			continue
+		_completa(c2, o, w)
+		var vo := valuta(c2, o, w)
+		if vo > meglio_per_o:
+			meglio_per_o = vo
+			peggiore = valuta(c2, p, w)
+	return peggiore if peggiore < INF else valuta(c, p, w)
 
 static func _completa(c: Motore, p: int, w: Dictionary) -> void:
 	var guard := 0
@@ -216,7 +280,7 @@ static func distanza_preferita(m: Motore, p: int) -> float:
 		if sl["tipo"] == "azione" and sl["effetto"] == "attacco":
 			if int(sl.get("gittata_min", 1)) >= 2 or int(sl.get("portata", 1)) >= 4:
 				lontano += 1
-			elif ts[0] != "forza":
+			elif not (ts[0] in ["forza", "base"]):
 				vicino += 1
 	return 3.5 if lontano > vicino else 1.0
 

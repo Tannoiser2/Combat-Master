@@ -67,6 +67,8 @@ static func casuale(dati: Dictionary, budget: int, rng: RandomNumberGenerator) -
 				ndadi += int(prodotti[c])
 			var t: Dictionary = dati["token"][rng.randi() % dati["token"].size()]
 			var id: String = t["id"]
+			if t["categoria"] == "base":
+				continue
 			if pg["token"].has(id):
 				# per le caratteristiche si può salire di livello
 				if t.has("livelli") and int(pg["token"][id]) < t["livelli"].size():

@@ -312,7 +312,12 @@ static func chiave(tok: String, sid: String) -> String:
 
 func slot_del_giocatore(p: int) -> Array:
 	var out := []
+	if cat.has("base"):
+		for sl in cat["base"]["slot"]:
+			out.append(["base", sl])
 	for tok in s["g"][p]["pg"]["token"]:
+		if tok == "base":
+			continue
 		if cat.has(tok):
 			for sl in cat[tok]["slot"]:
 				out.append([tok, sl])
@@ -907,7 +912,7 @@ static func _stesso_bersaglio(a: Dictionary, b: Dictionary) -> bool:
 func _slot(p: int, op: Dictionary) -> String:
 	var tok: String = op["tok"]
 	var sl := slot_def(tok, op["slot"])
-	if sl.is_empty() or not s["g"][p]["pg"]["token"].has(tok):
+	if sl.is_empty() or (not s["g"][p]["pg"]["token"].has(tok) and tok != "base"):
 		return "Spazio inesistente."
 	if occupato(p, tok, sl["id"]):
 		return "%s è occupato: prima va liberato." % sl["nome"]
@@ -1223,6 +1228,8 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int) -> void:
 	if vd == 6:
 		bonus += int(sl.get("se_sei", 0))
 	bonus += _accumulo(p, "accumulo_attacco")
+	# l'arena si scalda: più si combatte, più i colpi fanno male
+	bonus += int(s["round"]) / 10
 	s["pend"] = {"att": p, "dif": o, "danno": q, "bonus": bonus, "vd": vd, "mischia": d <= 2 and int(sl.get("portata", 1)) <= 2,
 		"lato": l, "ignora": sl.get("ignora_armatura", false), "non_schivabile": sl.get("non_schivabile", false),
 		"riduz": 0, "annullato": false, "contro": 0, "spingi": int(sl.get("spingi", 0)), "attira": int(sl.get("attira", 0)),
