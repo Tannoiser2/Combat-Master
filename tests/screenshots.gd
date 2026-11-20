@@ -57,14 +57,15 @@ func _giro() -> void:
 	main.ia = [false, true]
 	main._aggiorna()
 	await _foto("battaglia")
+	main._mostra_dettaglio(0, main.m.s["g"][0]["pg"]["token"].keys()[1])
+	await _foto("dettaglio")
+	main._chiudi_dettaglio()
 	var mano: Array = main.m.dadi_di(0, "mano")
 	if not mano.is_empty():
 		main._dado(mano[0]["id"])
 		await _foto("suggerimento")
 		main._dado(mano[0]["id"])
-	main._cmd_scheda()
-	await _foto("scheda_avversario")
-	main._cmd_scheda()
+
 	if main.m.chi_decide() == 0 and main.m.s["fase"] == "azione" and not main.m.bersagli_passo(0).is_empty():
 		main._cmd_passo()
 		await _foto("passo")

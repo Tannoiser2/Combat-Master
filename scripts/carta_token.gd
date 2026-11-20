@@ -8,9 +8,11 @@ signal slot_premuto(tok: String, sid: String)
 signal carta_premuta(tok: String)
 signal rimuovi(tok: String)
 signal livello(tok: String, delta: int)
+signal dettaglio(tok: String)
 
 const W := 256.0
 const SOCK := 34.0
+const SOCKC := 24.0            # alloggi nella versione compatta (a corpo 11; crescono col testo)
 
 var tok: Dictionary = {}
 var lv := 1
@@ -22,6 +24,11 @@ var disattivo := false         # nel catalogo: non entra nel budget o già preso
 var scelta_spazi: Dictionary = {} # sid -> 0 (selezionabile) / 1 (scelto)
 var coperta := false           # segreto dell'avversario non ancora rivelato
 var in_volo: Dictionary = {}   # id dei dadi ancora in volo verso questo token: non si disegnano
+# versione compatta, in battaglia: tutte le carte devono stare sullo schermo senza scorrere
+var compatta := false
+var larg := W
+var fs := 11                   # corpo del testo delle regole
+var righe := 0                 # righe di testo per spazio (0 = tutte)
 
 var _rect_slot := {}
 var _rect_btn := {}
@@ -60,6 +67,9 @@ func _alloggi(sl: Dictionary) -> Array:
 func _ricalcola() -> void:
 	_rect_slot.clear()
 	_rect_btn.clear()
+	if compatta:
+		_ricalcola_compatta()
+		return
 	var y := 44.0
 	if coperta:
 		_h = 150.0
@@ -82,7 +92,7 @@ func _ricalcola() -> void:
 	if modo == "catalogo":
 		_rect_btn["aggiungi"] = Rect2(10, y + 2, W - 20, 30)
 		y += 36
-	if modo == "scheda":
+	if modo == "scheda" and not tok.has("caratteristica"):
 		_rect_btn["rimuovi"] = Rect2(W - 30, 8, 22, 22)
 		if tok.has("livelli") and tok["livelli"].size() > 1:
 			_rect_btn["meno"] = Rect2(W - 66, 47, 24, 24)
@@ -90,6 +100,61 @@ func _ricalcola() -> void:
 	_h = y + 6
 	custom_minimum_size = Vector2(W, _h)
 	size = custom_minimum_size
+
+func _k() -> float:
+	return fs / 11.0
+
+func _sc() -> float:
+	return SOCKC * _k()
+
+func _cols_c(n: int) -> int:
+	return mini(n, 3)
+
+func _ricalcola_compatta() -> void:
+	var k := _k()
+	var y := 22.0 * k
+	_rect_btn["dettaglio"] = Rect2(0, 0, larg, 22.0 * k)
+	if coperta:
+		_h = 46.0 * k
+	else:
+		for sl in tok.get("slot", []):
+			var n: int = _alloggi(sl).size()
+			var sw := _cols_c(n) * (_sc() + 2) + 6
+			var tw := larg - 14 - sw - (22.0 * k if sl.has("esagono") else 0.0)
+			var th := _alt_testo(_testo_compatto(sl), tw)
+			var hs := _sc() + 6 if n <= 3 else _sc() * 2 + 8
+			var h := maxf(hs, 15.0 * k + th + 4)
+			_rect_slot[sl["id"]] = Rect2(3, y, larg - 6, h)
+			y += h + 2
+		_h = y + 2
+	custom_minimum_size = Vector2(larg, _h)
+	size = custom_minimum_size
+
+## Regola dello spazio, con davanti il tipo quando non lo dice già (Reazione, Supporto, Libera...).
+func _testo_compatto(sl: Dictionary) -> String:
+	var t: String = sl["testo"]
+	if sl["tipo"] == "azione":
+		return t
+	var nome_tipo: String = String(TIPI_C.get(sl["tipo"], ["AZIONE"])[0]).capitalize()
+	if t.to_lower().begins_with(nome_tipo.to_lower().left(5)):
+		return t
+	return nome_tipo + ". " + t
+
+func _alt_testo(t: String, w: float) -> float:
+	var h := Disegno.altezza_testo(t, fs, w)
+	if righe > 0:
+		h = minf(h, righe * Disegno.font_testo().get_height(fs))
+	return h
+
+## Rettangolo dell'alloggio i-esimo dentro lo spazio r (coordinate della carta).
+func _rect_sock(sl: Dictionary, r: Rect2, i: int) -> Rect2:
+	var n: int = _alloggi(sl).size()
+	if compatta:
+		var c := _cols_c(n)
+		var q := _sc()
+		return Rect2(r.position.x + 4 + (i % c) * (q + 2), r.position.y + 3 + (i / c) * (q + 2), q, q)
+	var cols := mini(n, 4)
+	return Rect2(r.position.x + 6 + (i % cols) * (SOCK + 4) + (i / cols) * 6, r.position.y + 26 + (i / cols) * 6, SOCK, SOCK)
 
 func _testo_passivo() -> String:
 	var parti := []
@@ -116,6 +181,9 @@ func _draw() -> void:
 	var cc: Color = Disegno.CATEGORIE.get(tok["categoria"], Color.GRAY)
 	if tok.has("caratteristica"):
 		cc = Disegno.colore(tok["caratteristica"]).darkened(0.35)
+	if compatta:
+		_draw_compatta(cc)
+		return
 	if coperta:
 		var dorso := Disegno.stile(Color("#2b2438"), Color("#8a7ab0"), 10, 3)
 		draw_style_box(dorso, Rect2(0, 0, W, _h))
@@ -261,14 +329,12 @@ func _disegna_spazio(sl: Dictionary) -> void:
 	var n: int = all.size()
 	var cols := mini(n, 4)
 	for i in n:
-		var sr := Rect2(r.position.x + 6 + (i % cols) * (SOCK + 4) + (i / cols) * 6, r.position.y + 26 + (i / cols) * 6, SOCK, SOCK)
-		Disegno.alloggio(self, sr, all[i])
+		Disegno.alloggio(self, _rect_sock(sl, r, i), all[i])
 	for i in occ.size():
 		if in_volo.has(occ[i]):
 			continue
 		var d := motore.dado(giocatore, occ[i])
-		var sr := Rect2(r.position.x + 6 + (i % cols) * (SOCK + 4) + (i / cols) * 6, r.position.y + 26 + (i / cols) * 6, SOCK, SOCK)
-		Disegno.dado(self, sr, d["col"], d["v"], "usato")
+		Disegno.dado(self, _rect_sock(sl, r, i), d["col"], d["v"], "usato")
 	var sw := cols * (SOCK + 4)
 	var ew := _largo_esagono(sl)
 	if ew > 0:
@@ -292,6 +358,109 @@ func _disegna_spazio(sl: Dictionary) -> void:
 	if stato != "" and modo == "gioco":
 		Disegno.testo(self, Vector2(r.position.x + 8, r.end.y - 6), stato, 13, Color("#5a3a10"), Disegno.font_titolo(), r.size.x - 16)
 
+## Versione compatta: intestazione sottile, alloggi piccoli a sinistra, nome, tipo e regola in corpo minore.
+func _draw_compatta(cc: Color) -> void:
+	draw_style_box(Disegno.stile(Disegno.PERGAMENA, cc.darkened(0.3), 6, 2), Rect2(0, 0, larg, _h))
+	var testa := StyleBoxFlat.new()
+	testa.bg_color = cc
+	testa.corner_radius_top_left = 5
+	testa.corner_radius_top_right = 5
+	var k := _k()
+	draw_style_box(testa, Rect2(1, 1, larg - 2, 20 * k))
+	var ft := Disegno.font_titolo()
+	var nome: String = tok["nome"]
+	var fn := int(round(12 * k))
+	while fn > 9 and ft.get_string_size(nome, HORIZONTAL_ALIGNMENT_LEFT, -1, fn).x > larg - 12:
+		fn -= 1
+	Disegno.testo(self, Vector2(6, 15 * k), nome, fn, Color.WHITE, ft, larg - 10)
+	if coperta:
+		Disegno.testo(self, Vector2(0, 38 * k), "Segreto coperto", int(12 * k), Disegno.INCHIOSTRO, ft, larg, HORIZONTAL_ALIGNMENT_CENTER)
+		return
+	for sl in tok.get("slot", []):
+		_disegna_spazio_c(sl)
+		if evidenzia.get(sl["id"], null) == false:
+			var sbiadito := Disegno.PERGAMENA
+			sbiadito.a = 0.45
+			draw_rect(_rect_slot[sl["id"]], sbiadito)
+
+const TIPI_C := {"azione": ["AZIONE", "#5a4630"], "reazione": ["REAZIONE", "#2f5d8a"], "supporto_attacco": ["SUPPORTO", "#7a4a8a"],
+	"supporto_difesa": ["SUPPORTO", "#7a4a8a"], "libera": ["LIBERA", "#2f7a4a"], "segreto": ["SEGRETO", "#3d3550"], "contatore": ["CONTATORE", "#8a5a1a"]}
+
+func _disegna_spazio_c(sl: Dictionary) -> void:
+	var r: Rect2 = _rect_slot[sl["id"]]
+	var ev = evidenzia.get(sl["id"], null)
+	var key: String = tok["id"] + "/" + sl["id"]
+	var occ: Array = []
+	var g: Dictionary = {}
+	if motore != null:
+		g = motore.s["g"][giocatore]
+		occ = g["occupati"].get(key, [])
+	var pieno: bool = not occ.is_empty() and (int(sl.get("capienza", 0)) == 0 or occ.size() >= int(sl.get("capienza", 0)))
+	var carico: bool = not g.is_empty() and g["carichi"].has(key)
+	var disarmato: bool = not g.is_empty() and g["disarmati"].has(key)
+	var guardia: bool = not g.is_empty() and g["guardie"].has(key)
+	var sc = scelta_spazi.get(sl["id"], null)
+	var bg := Color(0, 0, 0, 0.06)
+	var bordo := Color(0, 0, 0, 0.15)
+	var spess := 1
+	if sc != null:
+		bg = Color("#9fd18a") if sc == 1 else Color("#f7d77a")
+		bg.a = 0.7
+		bordo = Color("#2f7a2a") if sc == 1 else Color("#b07d1f")
+		spess = 2
+	elif carico:
+		bg = Color("#e8a64a")
+		bg.a = 0.6
+		bordo = Color("#9a3324")
+		spess = 2
+	elif pieno or disarmato:
+		bg = Color(0.25, 0.2, 0.15, 0.3)
+	elif ev == true:
+		bg = Color("#f7d77a")
+		bg.a = 0.6
+		bordo = Color("#b07d1f")
+		spess = 2
+	draw_style_box(Disegno.stile(bg, bordo, 4, spess), r)
+	var all := _alloggi(sl)
+	for i in all.size():
+		Disegno.alloggio(self, _rect_sock(sl, r, i), all[i])
+	for i in occ.size():
+		if in_volo.has(occ[i]):
+			continue
+		var d := motore.dado(giocatore, occ[i])
+		Disegno.dado(self, _rect_sock(sl, r, i), d["col"], d["v"], "usato")
+	var k := _k()
+	var x0 := r.position.x + 4 + _cols_c(all.size()) * (_sc() + 2) + 2
+	var tipo: Array = TIPI_C.get(sl["tipo"], ["AZIONE", "#5a4630"])
+	var tag: String = "AZZARDO" if sl.get("azzardo", false) else tipo[0]
+	var tagc := Color("#9a3324") if sl.get("azzardo", false) else Color(tipo[1])
+	var ft := Disegno.font_titolo()
+	# il tipo è una striscia colorata sul bordo destro dello spazio (il nome si legge per intero)
+	draw_rect(Rect2(r.end.x - 5, r.position.y + 2, 3, r.size.y - 4), tagc)
+	var ln := r.end.x - x0 - 10
+	var fnome := float(fs)
+	while fnome > 8.0 and ft.get_string_size(sl["nome"], HORIZONTAL_ALIGNMENT_LEFT, -1, int(fnome)).x > ln:
+		fnome -= 0.5
+	Disegno.testo(self, Vector2(x0, r.position.y + 12 * k), sl["nome"], int(fnome), Disegno.INCHIOSTRO, ft, ln)
+	var ew := 22.0 * k if sl.has("esagono") else 0.0
+	if ew > 0:
+		_disegna_esagono(sl, key, g, Vector2(r.end.x - 11 * k, r.end.y - 12 * k), 9.0 * k)
+	var tw2 := r.end.x - x0 - 8 - ew
+	var testo: String = _testo_compatto(sl)
+	var colore := Disegno.INCHIOSTRO
+	if pieno and not guardia and not carico:
+		testo = "Occupato: si riusa dopo averlo liberato."
+		colore = Color("#7a2a1e")
+	elif disarmato:
+		testo = "Disarmato fino a fine scambio."
+		colore = Color("#7a2a1e")
+	elif sl["tipo"] == "contatore":
+		var somma := 0
+		for id in occ:
+			somma += int(motore.dado(giocatore, id)["v"])
+		testo = ("CARICO: toccalo per scaricarlo. " if carico else "Somma %d su %d. " % [somma, int(sl.get("soglia", 10))]) + testo
+	Disegno.testo_a_capo(self, Vector2(x0, r.position.y + 14 * k + fs), testo, fs, colore, tw2, righe if righe > 0 else -1)
+
 ## Rettangolo (in coordinate dello schermo) dell'alloggio i-esimo di uno spazio.
 func rect_alloggio(sid: String, i: int) -> Rect2:
 	if not _rect_slot.has(sid):
@@ -301,8 +470,7 @@ func rect_alloggio(sid: String, i: int) -> Rect2:
 		if x["id"] == sid:
 			sl = x
 	var r: Rect2 = _rect_slot[sid]
-	var cols := mini(_alloggi(sl).size(), 4)
-	var lr := Rect2(r.position.x + 6 + (i % cols) * (SOCK + 4) + (i / cols) * 6, r.position.y + 26 + (i / cols) * 6, SOCK, SOCK)
+	var lr := _rect_sock(sl, r, i)
 	var t := get_global_transform()
 	return Rect2(t * lr.position, lr.size * t.get_scale())
 
@@ -311,8 +479,7 @@ static func _largo_esagono(sl: Dictionary) -> float:
 
 ## Esagono disegnato sul token: il lato pieno in oro, poi -1, -2, -3 sbiadendo.
 ## In gioco, se il dado è in guardia, il lato pieno è quello scelto e al centro c'è il valore.
-func _disegna_esagono(sl: Dictionary, key: String, g: Dictionary, c: Vector2) -> void:
-	var raggio := 17.0
+func _disegna_esagono(sl: Dictionary, key: String, g: Dictionary, c: Vector2, raggio := 17.0) -> void:
 	var pieno := 0
 	var valore := ""
 	if not g.is_empty() and g["guardie"].has(key):
@@ -325,14 +492,16 @@ func _disegna_esagono(sl: Dictionary, key: String, g: Dictionary, c: Vector2) ->
 		var p1 := c + Vector2.from_angle(a - PI / 6) * raggio
 		var p2 := c + Vector2.from_angle(a + PI / 6) * raggio
 		var sc := Motore.scarto_lati(k, pieno)
-		draw_line(p1, p2, colori[sc], 5.0 if sc == 0 else 2.5 - 0.4 * sc)
+		var k2 := raggio / 17.0
+		draw_line(p1, p2, colori[sc], (5.0 if sc == 0 else 2.5 - 0.4 * sc) * k2)
+	var q := raggio / 17.0
 	if valore != "":
-		Disegno.testo(self, c + Vector2(-12, 6), valore, 16, Disegno.INCHIOSTRO, Disegno.font_titolo(), 24, HORIZONTAL_ALIGNMENT_CENTER)
+		Disegno.testo(self, c + Vector2(-12, 6) * q, valore, int(16 * q), Disegno.INCHIOSTRO, Disegno.font_titolo(), 24 * q, HORIZONTAL_ALIGNMENT_CENTER)
 	elif sl.get("esagono", "") == "mira":
-		draw_line(c + Vector2(0, 7), c + Vector2(0, -8), Disegno.INCHIOSTRO, 2.0)
-		draw_colored_polygon(PackedVector2Array([c + Vector2(0, -12), c + Vector2(-5, -5), c + Vector2(5, -5)]), Disegno.INCHIOSTRO)
+		draw_line(c + Vector2(0, 7) * q, c + Vector2(0, -8) * q, Disegno.INCHIOSTRO, 2.0)
+		draw_colored_polygon(PackedVector2Array([c + Vector2(0, -12) * q, c + Vector2(-5, -5) * q, c + Vector2(5, -5) * q]), Disegno.INCHIOSTRO)
 	else:
-		draw_arc(c, 6.0, PI, TAU, 12, Disegno.INCHIOSTRO, 2.0)
+		draw_arc(c, 6.0 * q, PI, TAU, 12, Disegno.INCHIOSTRO, 2.0)
 
 static func _punti_esagono(c: Vector2, r: float) -> PackedVector2Array:
 	var pts := PackedVector2Array()
@@ -358,6 +527,8 @@ func _clic(p: Vector2) -> void:
 						carta_premuta.emit(tok["id"])
 				"rimuovi":
 					rimuovi.emit(tok["id"])
+				"dettaglio":
+					dettaglio.emit(tok["id"])
 				"meno":
 					livello.emit(tok["id"], -1)
 				"piu":

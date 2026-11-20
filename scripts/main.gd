@@ -19,7 +19,7 @@ var rng := RandomNumberGenerator.new()
 var pg_corrente := {"nome": "Nuovo combattente", "budget": 30, "token": {}}
 var cat_corrente := "attributo"
 var _off_catalogo: VBoxContainer
-var _off_scheda: HFlowContainer
+var _off_scheda: VBoxContainer
 var _off_info: Label
 var _off_nome: LineEdit
 var _off_budget: OptionButton
@@ -47,7 +47,12 @@ var mostra := 0
 var mostra_avversario := false
 var _stati: Array = []
 var _vassoio: Vassoio
-var _carte_box: HBoxContainer
+var _lati: Array = []          # per ogni combattente: vassoio dei dadi e carte della scheda
+const LATO := 360
+var _ll := 360.0              # larghezza delle schede ai lati, secondo lo schermo
+var _verticale := false        # schermo in verticale: mappa in alto, le due schede affiancate sotto
+const ALTO_MAPPA := 0.36       # in verticale, frazione di schermo per barra e mappa
+var _dettaglio: Control
 var _carte: Array = []
 var _diario: Label
 var _diario_scroll: ScrollContainer
@@ -200,9 +205,6 @@ func _process(dt: float) -> void:
 			_attesa_ripeti = 0.0
 			_scontro_casuale()
 		return
-	if _tieni_vista >= 0 and Time.get_ticks_msec() >= _tieni_fino and _voli <= 0:
-		_tieni_vista = -1
-		_aggiorna()
 	if m == null or m.s["vinc"] >= 0 or arena.occupato() or passo_ia < 0:
 		return
 	var chi := m.chi_decide()
@@ -390,10 +392,9 @@ func officina() -> void:
 	ss.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	ss.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	vs.add_child(ss)
-	_off_scheda = HFlowContainer.new()
+	_off_scheda = VBoxContainer.new()
 	_off_scheda.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_off_scheda.add_theme_constant_override("h_separation", 12)
-	_off_scheda.add_theme_constant_override("v_separation", 12)
+	_off_scheda.add_theme_constant_override("separation", 10)
 	ss.add_child(_off_scheda)
 	_off_msg = _label("", 17, Disegno.ORO)
 	_off_msg.custom_minimum_size = Vector2(600, 24)
@@ -487,18 +488,50 @@ func _off_aggiorna() -> void:
 		_off_catalogo.add_child(carta)
 	var ordine := ["base", "attributo", "arma", "mossa", "armatura", "oggetto", "talento", "magia", "segreto"]
 	var ids: Array = pg_corrente["token"].keys()
-	ids.sort_custom(func(a, b): return ordine.find(cat[a]["categoria"]) * 100 + dati["token"].find(cat[a]) < ordine.find(cat[b]["categoria"]) * 100 + dati["token"].find(cat[b]))
+	ids.sort_custom(func(a, b): return _ordine_carta(a, ordine) < _ordine_carta(b, ordine))
+	# le quattro caratteristiche hanno sempre il loro posto in cima alla scheda
+	_off_scheda.add_child(_label("Caratteristiche (obbligatorie, una per tipo: si cambiano dal catalogo)", 17, Disegno.ORO, Disegno.font_titolo()))
+	var fc := HFlowContainer.new()
+	fc.add_theme_constant_override("h_separation", 12)
+	fc.add_theme_constant_override("v_separation", 12)
+	_off_scheda.add_child(fc)
+	for k in Motore.CARATTERISTICHE:
+		var trovata := ""
+		for id in ids:
+			if cat[id].get("caratteristica", "") == k:
+				trovata = id
+		if trovata != "":
+			var carta := CartaToken.new()
+			carta.imposta(cat[trovata], 1, "scheda")
+			fc.add_child(carta)
+		else:
+			var vuoto := _pannello(fc)
+			vuoto.custom_minimum_size = Vector2(CartaToken.W, 120)
+			vuoto.add_theme_stylebox_override("panel", Disegno.stile(Color(1, 1, 1, 0.04), Disegno.colore(k), 10, 2))
+			var lv := _label("%s: manca.\nScegline una dal catalogo, categoria Caratteristiche." % Motore.NOMI_CARATTERISTICA[k], 16, Disegno.colore(k).lightened(0.3))
+			lv.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			lv.custom_minimum_size = Vector2(CartaToken.W - 24, 0)
+			vuoto.add_child(lv)
+	_off_scheda.add_child(_label("Altri token (facoltativi)", 17, Disegno.ORO, Disegno.font_titolo()))
+	var fa := HFlowContainer.new()
+	fa.add_theme_constant_override("h_separation", 12)
+	fa.add_theme_constant_override("v_separation", 12)
+	_off_scheda.add_child(fa)
+	var altri := 0
 	for id in ids:
+		if cat[id]["categoria"] == "attributo":
+			continue
+		altri += 1
 		var carta := CartaToken.new()
 		carta.imposta(cat[id], int(pg_corrente["token"][id]), "scheda")
 		carta.rimuovi.connect(_off_rimuovi)
 		carta.livello.connect(_off_livello)
-		_off_scheda.add_child(carta)
-	if ids.is_empty():
-		var l := _label("La scheda è vuota: scegli i token dal catalogo a sinistra. Parti dalle caratteristiche, che danno i dadi.", 18, Color(1, 1, 1, 0.65))
+		fa.add_child(carta)
+	if altri == 0:
+		var l := _label("Nessuno per ora: aggiungi armi, strategie, equipaggiamento, oggetti, talenti, magie e segreti dal catalogo a sinistra, finché il budget lo permette.", 17, Color(1, 1, 1, 0.65))
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		l.custom_minimum_size = Vector2(560, 0)
-		_off_scheda.add_child(l)
+		l.custom_minimum_size = Vector2(520, 0)
+		fa.add_child(l)
 	var st := Motore.statistiche(cat, pg_corrente)
 	var dadi := []
 	for c in Motore.COLORI:
@@ -535,6 +568,9 @@ func _off_aggiungi(id: String) -> void:
 	_off_aggiorna()
 
 func _off_rimuovi(id: String) -> void:
+	if cat[id]["categoria"] == "attributo":
+		_off_msg.text = "Le caratteristiche non si tolgono: scegline un'altra dello stesso tipo dal catalogo."
+		return
 	pg_corrente["token"].erase(id)
 	_off_msg.text = "Tolto: %s" % cat[id]["nome"]
 	_off_aggiorna()
@@ -817,13 +853,16 @@ func battaglia(a: Dictionary, b: Dictionary, scenario: Dictionary, ia_: Array) -
 	arena.visible = true
 	arena.costruisci(m)
 	_centra()
-	mostra = 0
+	mostra = 1 if (ia[0] and not ia[1]) else 0
 	mostra_avversario = false
 	_costruisci_hud()
 	m.prendi_eventi()
 	_aggiorna()
 
 func _costruisci_hud() -> void:
+	var vw := get_viewport().get_visible_rect().size
+	_verticale = vw.y > vw.x * 1.1
+	_ll = vw.x * 0.5 - 12 if _verticale else clampf(vw.x * 0.25, 360.0, 600.0)
 	# barra in alto
 	var top := _pannello(pagina)
 	top.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -854,14 +893,68 @@ func _costruisci_hud() -> void:
 	_msg.custom_minimum_size = Vector2(380, 50)
 	mid.add_child(_msg)
 	ht.add_child(_stati[1])
-	# diario a destra
+	# schede dei due combattenti ai lati: dadi (in mano, mucchio, scartati) e tutti i token
+	_lati.clear()
+	for p in 2:
+		var lato := _pannello(pagina)
+		if _verticale:
+			lato.anchor_left = 0.5 * p
+			lato.anchor_right = 0.5 * (p + 1)
+			lato.anchor_top = ALTO_MAPPA
+			lato.anchor_bottom = 1.0
+			lato.offset_left = 8 if p == 0 else 4
+			lato.offset_right = -4 if p == 0 else -8
+			lato.offset_top = 4
+			lato.offset_bottom = -8
+		else:
+			lato.set_anchors_preset(Control.PRESET_LEFT_WIDE if p == 0 else Control.PRESET_RIGHT_WIDE)
+			if p == 0:
+				lato.offset_left = 8
+				lato.offset_right = 8 + _ll
+			else:
+				lato.offset_left = -8 - _ll
+				lato.offset_right = -8
+			lato.offset_top = 112
+			lato.offset_bottom = -8
+		lato.add_theme_stylebox_override("panel", Disegno.stile(Color(0.07, 0.055, 0.04, 0.9), Disegno.GIOCATORI[p].darkened(0.3), 10, 2))
+		var vl := VBoxContainer.new()
+		vl.add_theme_constant_override("separation", 6)
+		lato.add_child(vl)
+		var titolo := _label("Scheda di %s" % m.s["g"][p]["nome"], 18, Disegno.GIOCATORI[p].lightened(0.25), Disegno.font_titolo())
+		titolo.custom_minimum_size = Vector2(_ll - 24, 0)
+		titolo.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		vl.add_child(titolo)
+		var va := Vassoio.new()
+		va.D = clampf(44.0 * _ll / 360.0, 44.0, 56.0)
+		va.motore = m
+		va.giocatore = p
+		var pp := p
+		va.dado_premuto.connect(func(id): if _umano_decide() == pp: _dado(id))
+		vl.add_child(va)
+		# tutte le carte in vista, su due colonne, senza scorrere
+		var colonne := HBoxContainer.new()
+		colonne.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		colonne.add_theme_constant_override("separation", 8)
+		colonne.clip_contents = true
+		vl.add_child(colonne)
+		var c0 := VBoxContainer.new()
+		var c1 := VBoxContainer.new()
+		for cx in [c0, c1]:
+			cx.add_theme_constant_override("separation", 6)
+			colonne.add_child(cx)
+		_lati.append({"vassoio": va, "colonne": colonne, "col": [c0, c1], "carte": [], "vh": -1.0})
+		colonne.resized.connect(func(): _adatta_lato.call_deferred(pp))
+	_vassoio = _lati[0]["vassoio"]
+	if not get_viewport().size_changed.is_connected(_rifai_lati):
+		get_viewport().size_changed.connect(_rifai_lati)
+	# diario in alto a destra, fra la mappa e la scheda di destra
 	var dr := _pannello(pagina)
-	dr.set_anchors_preset(Control.PRESET_RIGHT_WIDE)
-	dr.offset_left = -320
-	dr.offset_right = -8
-	dr.offset_top = 118
-	dr.offset_bottom = -392
-	dr.custom_minimum_size = Vector2(312, 120)
+	dr.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	var mar := 8.0 if _verticale else 16 + _ll
+	dr.offset_left = -mar - 250
+	dr.offset_right = -mar
+	dr.offset_top = 112
+	dr.offset_bottom = 112 + 170
 	var vd := VBoxContainer.new()
 	dr.add_child(vd)
 	var hv := HBoxContainer.new()
@@ -876,13 +969,13 @@ func _costruisci_hud() -> void:
 	vd.add_child(_diario_scroll)
 	_diario = _label("", 15)
 	_diario.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_diario.custom_minimum_size = Vector2(280, 0)
+	_diario.custom_minimum_size = Vector2(220, 0)
 	_diario_scroll.add_child(_diario)
-	# comandi di vista (grandi, per il tocco)
+	# comandi di vista (grandi, per il tocco), in alto a sinistra della mappa
 	var vista := _pannello(pagina)
 	vista.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	vista.offset_left = 8
-	vista.offset_top = 118
+	vista.offset_left = 8 if _verticale else 16 + _ll
+	vista.offset_top = 112
 	var gv := VBoxContainer.new()
 	gv.add_theme_constant_override("separation", 6)
 	vista.add_child(gv)
@@ -892,61 +985,45 @@ func _costruisci_hud() -> void:
 		voci_vista += [["Pausa", func(): passo_ia = -1.0], ["Lento", func(): passo_ia = 1.2], ["Normale", func(): passo_ia = PASSO_IA],
 			["Veloce", func(): passo_ia = 0.12], ["Nuovo scontro", _scontro_casuale]]
 	for k in voci_vista:
-		var b := _bottone(k[0], k[1], 170)
-		b.custom_minimum_size.y = 40
-		b.add_theme_font_size_override("font_size", 14)
+		var b := _bottone(k[0], k[1], 136)
+		b.custom_minimum_size.y = 34
+		b.add_theme_font_size_override("font_size", 12)
 		gv.add_child(b)
-	# pannello in basso
+	# comandi di gioco in basso, sotto la mappa
 	var bot := _pannello(pagina)
 	bot.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	bot.offset_left = 8
-	bot.offset_right = -8
-	bot.offset_top = -384
+	bot.offset_left = 8 if _verticale else 16 + _ll
+	bot.offset_right = -8 if _verticale else -16 - _ll
+	if _verticale:
+		bot.anchor_top = ALTO_MAPPA
+		bot.anchor_bottom = ALTO_MAPPA
+	bot.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	bot.offset_top = -8
 	bot.offset_bottom = -8
-	var vb := VBoxContainer.new()
-	vb.add_theme_constant_override("separation", 6)
-	bot.add_child(vb)
-	var riga := HBoxContainer.new()
-	riga.add_theme_constant_override("separation", 8)
-	vb.add_child(riga)
-	var vs := ScrollContainer.new()
-	vs.custom_minimum_size = Vector2(560, 90)
-	vs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vs.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	riga.add_child(vs)
-	_vassoio = Vassoio.new()
-	_vassoio.motore = m
-	_vassoio.dado_premuto.connect(_dado)
-	vs.add_child(_vassoio)
-	var gb := GridContainer.new()
-	gb.columns = 4
-	gb.add_theme_constant_override("h_separation", 6)
-	gb.add_theme_constant_override("v_separation", 6)
-	riga.add_child(gb)
+	if _verticale:
+		bot.offset_top = -4
+		bot.offset_bottom = -4
+	var flusso := HFlowContainer.new()
+	flusso.add_theme_constant_override("h_separation", 6)
+	flusso.add_theme_constant_override("v_separation", 6)
+	bot.add_child(flusso)
 	_btn.clear()
 	var comandi := [["consigliata", "Scelta consigliata", _cmd_consigliata], ["passo", "Passo (2)", _cmd_passo],
 		["spinta", "Spingi la fortuna", _cmd_spinta], ["conserva", "Conserva", _cmd_conserva],
 		["passa", "Passa", _cmd_passa], ["sferra", "Sferra il colpo", _cmd_sferra], ["risolvi", "Subisci il colpo", _cmd_risolvi],
 		["rilancia", "Rilancia", _cmd_rilancia], ["ferma", "Fermati", _cmd_ferma], ["conferma", "Conferma", _cmd_conferma],
-		["annulla", "Annulla", _cmd_annulla], ["scheda", "Scheda avversario", _cmd_scheda]]
+		["annulla", "Annulla", _cmd_annulla]]
 	for c in comandi:
-		var b := _bottone(c[1], c[2], 186)
+		var b := _bottone(c[1], c[2], 176)
 		b.custom_minimum_size.y = 42
 		b.add_theme_font_size_override("font_size", 14)
-		gb.add_child(b)
+		flusso.add_child(b)
 		_btn[c[0]] = b
 	_scelte = GridContainer.new()
 	_scelte.columns = 2
 	_scelte.add_theme_constant_override("h_separation", 6)
 	_scelte.add_theme_constant_override("v_separation", 6)
-	riga.add_child(_scelte)
-	var cs := ScrollContainer.new()
-	cs.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	cs.custom_minimum_size = Vector2(0, 240)
-	vb.add_child(cs)
-	_carte_box = HBoxContainer.new()
-	_carte_box.add_theme_constant_override("separation", 10)
-	cs.add_child(_carte_box)
+	flusso.add_child(_scelte)
 	_ricostruisci_carte()
 	# strato sopra tutto per i dadi che volano dal vassoio ai token
 	_volo = Control.new()
@@ -960,32 +1037,163 @@ func _centra() -> void:
 	var v := Arena3D.mondo(m.s["g"][1]["pos"]) - Arena3D.mondo(m.s["g"][0]["pos"])
 	arena.yaw = -atan2(v.z, v.x) if v.length() > 0.1 else 0.0
 	arena.pitch = deg_to_rad(58)
-	arena.distanza = 9.0 + m.s["raggio"] * 1.6
-	arena.spostamento_v = 0.1
-	arena.spostamento_h = 0.045
+	var vw := get_viewport().get_visible_rect().size
+	if vw.y > vw.x * 1.1:
+		# in verticale la mappa sta nella parte alta, sopra le schede
+		arena.distanza = 7.0 + m.s["raggio"] * 1.3
+		arena.spostamento_v = 0.42
+	else:
+		arena.distanza = 9.0 + m.s["raggio"] * 1.6
+		arena.spostamento_v = 0.1
+	arena.spostamento_h = 0.0
 	arena.pivot.position = Vector3.ZERO
 	arena.ruota_vista(0)
 
+## Le carte di entrambi i combattenti: prima le azioni di base, poi le quattro caratteristiche, poi il resto.
 func _ricostruisci_carte() -> void:
-	for c in _carte_box.get_children():
-		c.queue_free()
-	_carte.clear()
-	var p := _giocatore_mostrato()
 	var ordine := ["base", "attributo", "arma", "mossa", "armatura", "oggetto", "talento", "magia", "segreto"]
-	var ids: Array = m.s["g"][p]["pg"]["token"].keys()
-	ids.sort_custom(func(a, b): return ordine.find(cat[a]["categoria"]) * 100 + dati["token"].find(cat[a]) < ordine.find(cat[b]["categoria"]) * 100 + dati["token"].find(cat[b]))
-	if cat.has("base"):
-		ids.push_front("base")
-	for id in ids:
-		var carta := CartaToken.new()
-		carta.motore = m
-		carta.giocatore = p
-		var proprio := _giocatore_proprio()
-		carta.coperta = cat[id]["categoria"] == "segreto" and not m.s["g"][p]["rivelati"].has(id) and proprio >= 0 and p != proprio
-		carta.imposta(cat[id], int(m.s["g"][p]["pg"]["token"].get(id, 1)), "gioco")
-		carta.slot_premuto.connect(_slot)
-		_carte_box.add_child(carta)
-		_carte.append(carta)
+	var proprio := _giocatore_proprio()
+	for p in _lati.size():
+		var lato: Dictionary = _lati[p]
+		for cx in lato["col"]:
+			for c in cx.get_children():
+				c.queue_free()
+		lato["carte"] = []
+		var ids: Array = m.s["g"][p]["pg"]["token"].keys()
+		ids.sort_custom(func(a, b): return _ordine_carta(a, ordine) < _ordine_carta(b, ordine))
+		if cat.has("base"):
+			ids.push_front("base")
+		for id in ids:
+			var carta := CartaToken.new()
+			carta.motore = m
+			carta.giocatore = p
+			carta.coperta = cat[id]["categoria"] == "segreto" and not m.s["g"][p]["rivelati"].has(id) and proprio >= 0 and p != proprio
+			carta.compatta = true
+			carta.imposta(cat[id], int(m.s["g"][p]["pg"]["token"].get(id, 1)), "gioco")
+			var pp := p
+			carta.slot_premuto.connect(func(t, sid): if _umano_decide() == pp: _slot(t, sid))
+			carta.dettaglio.connect(func(t): _mostra_dettaglio(pp, t))
+			lato["col"][0].add_child(carta)
+			lato["carte"].append(carta)
+		_adatta_lato.call_deferred(p)
+	_carte = _lati[mostra]["carte"] if not _lati.is_empty() else []
+	_vassoio = _lati[mostra]["vassoio"] if not _lati.is_empty() else _vassoio
+
+## Sceglie corpo del testo e righe in modo che tutte le carte del lato stiano nelle due colonne.
+func _adatta_lato(p: int) -> void:
+	if p >= _lati.size():
+		return
+	var lato: Dictionary = _lati[p]
+	var colonne: HBoxContainer = lato["colonne"]
+	if not is_instance_valid(colonne):
+		return
+	await get_tree().process_frame
+	if not is_instance_valid(colonne):
+		return
+	var disp: float = maxf(colonne.size.y, 300.0)
+	var colw := floorf((colonne.size.x - 8) / 2.0) if colonne.size.x > 100 else (_ll - 32) / 2.0
+	var carte: Array = lato["carte"]
+	var scelta := []
+	for cfg in [[18, 0], [16, 0], [15, 0], [14, 0], [13, 0], [12, 0], [11, 0], [10, 0], [10, 4], [10, 3], [10, 2], [9, 2], [9, 1]]:
+		var alt := []
+		var tot := 0.0
+		for carta in carte:
+			carta.larg = colw
+			carta.fs = cfg[0]
+			carta.righe = cfg[1]
+			carta._ricalcola()
+			alt.append(carta._h + 6)
+			tot += carta._h + 6
+		# l'ordine resta quello della scheda: la prima colonna si riempie fino a metà circa
+		scelta = []
+		var h0 := 0.0
+		for i in carte.size():
+			if h0 + alt[i] * 0.5 <= tot / 2.0 or i == 0:
+				scelta.append(0)
+				h0 += alt[i]
+			else:
+				scelta.append(1)
+		if maxf(h0, tot - h0) <= disp:
+			break
+	for i in carte.size():
+		var carta: CartaToken = carte[i]
+		var dest: VBoxContainer = lato["col"][scelta[i]]
+		if carta.get_parent() != dest:
+			if carta.get_parent() != null:
+				carta.get_parent().remove_child(carta)
+			dest.add_child(carta)
+		else:
+			dest.move_child(carta, -1)
+		carta.queue_redraw()
+	lato["vh"] = lato["vassoio"].custom_minimum_size.y
+
+## La carta a grandezza piena, per leggerla con calma (si gioca anche da qui).
+func _mostra_dettaglio(p: int, id: String) -> void:
+	if is_instance_valid(_dettaglio):
+		_dettaglio.queue_free()
+	_dettaglio = Control.new()
+	_dettaglio.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_dettaglio.z_index = 40
+	pagina.add_child(_dettaglio)
+	var fondo := ColorRect.new()
+	fondo.color = Color(0, 0, 0, 0.55)
+	fondo.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fondo.gui_input.connect(func(e): if e is InputEventMouseButton and e.pressed: _chiudi_dettaglio())
+	_dettaglio.add_child(fondo)
+	var cc := CenterContainer.new()
+	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dettaglio.add_child(cc)
+	var pan := _pannello(cc)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+	pan.add_child(v)
+	var carta := CartaToken.new()
+	carta.motore = m
+	carta.giocatore = p
+	for c in _lati[p]["carte"]:
+		if c.tok["id"] == id:
+			carta.coperta = c.coperta
+			carta.evidenzia = c.evidenzia
+	carta.imposta(cat[id], int(m.s["g"][p]["pg"]["token"].get(id, 1)), "gioco")
+	carta.scale = Vector2(1.25, 1.25)
+	var spazio := Control.new()
+	spazio.custom_minimum_size = carta.size * 1.25
+	spazio.add_child(carta)
+	v.add_child(spazio)
+	carta.slot_premuto.connect(func(t, sid):
+		_chiudi_dettaglio()
+		if _umano_decide() == p:
+			_slot(t, sid))
+	var b := _bottone("Chiudi", _chiudi_dettaglio, 160)
+	b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(b)
+
+func _rifai_lati() -> void:
+	for q in _lati.size():
+		_adatta_lato.call_deferred(q)
+
+func _chiudi_dettaglio() -> void:
+	if is_instance_valid(_dettaglio):
+		_dettaglio.queue_free()
+	_dettaglio = null
+
+func _ordine_carta(id: String, ordine: Array) -> int:
+	var t: Dictionary = cat[id]
+	var o: int = ordine.find(t["categoria"]) * 1000 + dati["token"].find(t)
+	if t.has("caratteristica"):
+		o = ordine.find("attributo") * 1000 + Motore.CARATTERISTICHE.find(t["caratteristica"])
+	return o
+
+## Coperte o scoperte: i segreti si girano quando scattano o quando cambia chi guarda (partita a due).
+func _aggiorna_coperte() -> void:
+	var proprio := _giocatore_proprio()
+	for p in _lati.size():
+		for carta in _lati[p]["carte"]:
+			var cop: bool = carta.tok["categoria"] == "segreto" and not m.s["g"][p]["rivelati"].has(carta.tok["id"]) and proprio >= 0 and p != proprio
+			if cop != carta.coperta:
+				carta.coperta = cop
+				carta.imposta(carta.tok, carta.lv, "gioco")
 
 ## Chi sta davanti allo schermo: i suoi segreti si vedono, quelli dell'altro no (-1 = spettatore, si vede tutto).
 func _giocatore_proprio() -> int:
@@ -996,17 +1204,16 @@ func _giocatore_proprio() -> int:
 		return chi if chi >= 0 else int(m.s["attivo"])
 	return 0 if not ia[0] else 1
 
-## Di chi sono la scheda e i dadi in basso.
+## Quale delle due schede si comanda: chi deve decidere, se è un umano.
 func _giocatore_mostrato() -> int:
-	if _tieni_vista >= 0 and Time.get_ticks_msec() < _tieni_fino:
-		return _tieni_vista
-	var base := 0
-	if (not ia[0] and not ia[1]) or (ia[0] and ia[1]):
-		var chi := m.chi_decide()
-		base = chi if chi >= 0 else int(m.s["attivo"])
-	elif ia[0] and not ia[1]:
-		base = 1
-	return 1 - base if mostra_avversario else base
+	var chi := m.chi_decide()
+	if chi >= 0 and not ia[chi]:
+		return chi
+	if not ia[0] and ia[1]:
+		return 0
+	if ia[0] and not ia[1]:
+		return 1
+	return mostra
 
 func _umano_decide() -> int:
 	if m == null or arena.occupato():
@@ -1023,18 +1230,27 @@ func _aggiorna() -> void:
 	if chi0 >= 0 and m.s["fase"] == "pesca" and attesa.is_empty():
 		attesa = {"passo": "mucchio", "inizio": true, "n": m.da_prendere(chi0), "scelti": []}
 	var p := _giocatore_mostrato()
-	if p != mostra or _carte.is_empty() or _carte[0].giocatore != p:
+	if p != mostra:
 		mostra = p
 		sel.clear()
-		_ricostruisci_carte()
-	_vassoio.giocatore = p
-	_vassoio.scegli_mucchio = attesa.get("passo", "") == "mucchio"
-	_vassoio.selezionati = attesa["scelti"] if attesa.get("passo", "") in ["mucchio", "dadi"] else sel
+	_carte = _lati[mostra]["carte"]
+	_vassoio = _lati[mostra]["vassoio"]
+	_aggiorna_coperte()
 	var chi := _umano_decide()
-	_vassoio.interattivo = chi == p
+	for q in _lati.size():
+		if absf(float(_lati[q]["vh"]) - _lati[q]["vassoio"].custom_minimum_size.y) > 20.0:
+			_lati[q]["vh"] = _lati[q]["vassoio"].custom_minimum_size.y
+			_adatta_lato.call_deferred(q)
+		var va: Vassoio = _lati[q]["vassoio"]
+		var attivo: bool = q == mostra
+		va.scegli_mucchio = attivo and attesa.get("passo", "") == "mucchio"
+		va.selezionati = (attesa["scelti"] if attesa.get("passo", "") in ["mucchio", "dadi"] else sel) if attivo else []
+		va.interattivo = chi == q
+		va.queue_redraw()
+		for carta in _lati[q]["carte"]:
+			carta.queue_redraw()
 	for sg in _stati:
 		sg.queue_redraw()
-	_vassoio.queue_redraw()
 	_scambio.text = "Scambio %d" % m.s["round"]
 	_diario.text = "\n".join(m.s["log"].slice(maxi(0, m.s["log"].size() - 60)))
 	_diario_scroll.set_deferred("scroll_vertical", 100000)
@@ -1091,6 +1307,11 @@ func _messaggio() -> String:
 func _aggiorna_evidenze() -> void:
 	var p := mostra
 	var chi := _umano_decide()
+	for lato in _lati:
+		for carta in lato["carte"]:
+			carta.evidenzia = {}
+			carta.scelta_spazi = {}
+			carta.queue_redraw()
 	for carta in _carte:
 		carta.evidenzia = {}
 		carta.scelta_spazi = {}
@@ -1131,8 +1352,6 @@ func _aggiorna_comandi() -> void:
 	for k in _btn:
 		_btn[k].visible = false
 		_btn[k].disabled = false
-	_btn["scheda"].visible = true
-	_btn["scheda"].text = "La mia scheda" if mostra_avversario else "Scheda avversario"
 	if attesa.get("passo", "") == "mucchio":
 		_btn["conferma"].visible = true
 		_btn["conferma"].disabled = attesa["scelti"].size() != attesa["n"]
@@ -1542,14 +1761,12 @@ func _esegui(p: int, op: Dictionary) -> void:
 ## Dove si trovano ora sullo schermo i dadi di p: id -> [rettangolo, "vassoio" o "token"].
 func _istantanea(p: int) -> Dictionary:
 	var out := {}
-	if _vassoio == null or _vassoio.giocatore != p or _carte.is_empty() or _carte[0].giocatore != p:
+	if p < 0 or p >= _lati.size():
 		return out
-	_tieni_vista = p
-	_tieni_fino = Time.get_ticks_msec() + 4000
-	var rv := _vassoio.rect_globali()
+	var rv: Dictionary = _lati[p]["vassoio"].rect_globali()
 	for id in rv:
 		out[id] = [rv[id], "vassoio"]
-	for carta in _carte:
+	for carta in _lati[p]["carte"]:
 		for sl in carta.tok.get("slot", []):
 			var k := Motore.chiave(carta.tok["id"], sl["id"])
 			var occ: Array = m.s["g"][p]["occupati"].get(k, [])
@@ -1563,11 +1780,10 @@ func _anima_dadi(p: int, prima: Dictionary) -> void:
 		return
 	await get_tree().process_frame
 	await get_tree().process_frame
-	if m == null or mostra != p or not is_instance_valid(_volo):
-		_tieni_fino = 0
+	if m == null or not is_instance_valid(_volo) or p >= _lati.size():
 		return
 	var dopo := _istantanea(p)
-	_tieni_fino = 0
+	var va: Vassoio = _lati[p]["vassoio"]
 	var ritardo := 0.0
 	for id in prima:
 		if not dopo.has(id) or prima[id][1] == dopo[id][1]:
@@ -1580,7 +1796,7 @@ func _anima_dadi(p: int, prima: Dictionary) -> void:
 		var verso_token: bool = dopo[id][1] == "token"
 		var carta_dest: CartaToken = null
 		if verso_token:
-			for carta in _carte:
+			for carta in _lati[p]["carte"]:
 				for sl in carta.tok.get("slot", []):
 					if m.s["g"][p]["occupati"].get(Motore.chiave(carta.tok["id"], sl["id"]), []).has(id):
 						carta_dest = carta
@@ -1588,8 +1804,8 @@ func _anima_dadi(p: int, prima: Dictionary) -> void:
 				carta_dest.in_volo[id] = true
 				carta_dest.queue_redraw()
 		else:
-			_vassoio.in_volo[id] = true
-			_vassoio.queue_redraw()
+			va.in_volo[id] = true
+			va.queue_redraw()
 		_voli += 1
 		var dv := DadoVolante.new()
 		dv.col = d["col"]
@@ -1605,16 +1821,16 @@ func _anima_dadi(p: int, prima: Dictionary) -> void:
 			dv.size = da.size.lerp(a.size, t)
 			dv.queue_redraw(), 0.0, 1.0, 0.42).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 		var id_carta := carta_dest.get_instance_id() if carta_dest != null else 0
-		var id_vassoio := _vassoio.get_instance_id()
+		var id_vassoio := va.get_instance_id()
 		tw.tween_callback(func():
 			var cd = instance_from_id(id_carta) if id_carta != 0 else null
 			if cd != null and is_instance_valid(cd):
 				cd.in_volo.erase(id)
 				cd.queue_redraw()
-			var va = instance_from_id(id_vassoio)
-			if va != null and is_instance_valid(va):
-				va.in_volo.erase(id)
-				va.queue_redraw()
+			var vv = instance_from_id(id_vassoio)
+			if vv != null and is_instance_valid(vv):
+				vv.in_volo.erase(id)
+				vv.queue_redraw()
 			_voli -= 1
 			dv.queue_free())
 		ritardo += 0.08

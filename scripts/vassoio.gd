@@ -6,7 +6,7 @@ extends Control
 
 signal dado_premuto(id: int)
 
-const D := 50.0
+var D := 44.0
 const GAP := 10.0
 
 var motore: Motore
@@ -22,39 +22,46 @@ var _premuto := Vector2.ZERO
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	custom_minimum_size = Vector2(560, 84)
+	custom_minimum_size = Vector2(240, 120)
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
+## In colonna: in mano, conservati, mucchio, scartati (storditi ed eliminati). I dadi vanno a capo.
 func _draw() -> void:
 	_rect.clear()
 	_tutti.clear()
 	if motore == null:
 		return
-	var x := 4.0
+	var w := maxf(size.x, 200.0)
+	var scartati: Array = motore.dadi_di(giocatore, "stordito") + motore.dadi_di(giocatore, "eliminato")
 	var gruppi := [["In mano", motore.dadi_di(giocatore, "mano"), not scegli_mucchio],
 		["Conservati", motore.dadi_di(giocatore, "conservato"), not scegli_mucchio],
 		["Mucchio", motore.dadi_di(giocatore, "mucchio"), scegli_mucchio],
-		["Storditi", motore.dadi_di(giocatore, "stordito"), false]]
+		["Scartati", scartati, false]]
+	var y := 0.0
 	for k in gruppi.size():
 		var nome: String = gruppi[k][0]
 		var lista: Array = gruppi[k][1]
 		var tocc: bool = gruppi[k][2]
-		if lista.is_empty() and k in [1, 3]:
+		if lista.is_empty() and k == 1:
 			continue
-		var titolo := "%s (%d)" % [nome, lista.size()] if k == 2 else nome
+		var titolo := "%s (%d)" % [nome, lista.size()] if k >= 2 else nome
 		if k == 2 and scegli_mucchio:
 			titolo = "Mucchio: tocca i dadi da prendere"
-		Disegno.testo(self, Vector2(x, 16), titolo, 14, Disegno.ORO if (k == 2 and scegli_mucchio) else Disegno.PERGAMENA.darkened(0.15), Disegno.font_titolo())
-		var inizio := x
-		var larg_titolo := Disegno.font_titolo().get_string_size(titolo, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
-		var dim := D if tocc else D * 0.62
-		var y := 24.0 + (D - dim) * 0.5
+		Disegno.testo(self, Vector2(4, y + 16), titolo, 14, Disegno.ORO if (k == 2 and scegli_mucchio) else Disegno.PERGAMENA.darkened(0.15), Disegno.font_titolo(), w - 8)
+		y += 22
+		var dim := D if (tocc or k == 0) else D * 0.62
 		if lista.is_empty():
-			Disegno.testo(self, Vector2(x, 56), "vuoto", 15, Color(1, 1, 1, 0.45))
-			x += 90
+			Disegno.testo(self, Vector2(6, y + 16), "vuoto", 14, Color(1, 1, 1, 0.45))
+			y += 26
+			continue
 		var ordinati := lista.duplicate()
-		if k == 2:
+		if k >= 2:
 			ordinati.sort_custom(func(a, b): return Motore.COLORI.find(a["col"]) < Motore.COLORI.find(b["col"]))
+		var x := 4.0
 		for d in ordinati:
+			if x + dim > w - 2:
+				x = 4.0
+				y += dim + 6
 			var r := Rect2(x, y, dim, dim)
 			if evidenziati.has(d["id"]):
 				draw_rect(r.grow(6), Color(0.6, 0.85, 0.5, 0.45))
@@ -65,14 +72,9 @@ func _draw() -> void:
 			if tocc:
 				_rect[d["id"]] = r
 			x += dim + GAP * (1.0 if tocc else 0.5)
-		x = maxf(x, inizio + larg_titolo)
-		x += 26
-	var elim := motore.dadi_di(giocatore, "eliminato").size()
-	if elim > 0:
-		Disegno.testo(self, Vector2(x, 16), "Eliminati", 14, Disegno.PERGAMENA.darkened(0.15), Disegno.font_titolo())
-		Disegno.testo(self, Vector2(x, 56), str(elim), 20, Color(1, 1, 1, 0.6))
-		x += 100
-	custom_minimum_size.x = maxf(560.0, x)
+		y += dim + 10
+	if absf(custom_minimum_size.y - y) > 1.0:
+		custom_minimum_size.y = y
 
 ## Rettangoli in coordinate dello schermo di tutti i dadi disegnati.
 func rect_globali() -> Dictionary:

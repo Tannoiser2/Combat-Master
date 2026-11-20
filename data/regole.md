@@ -10,7 +10,7 @@ Lo scenario stabilisce il budget di punti (30, 45 o 60). Nell'Officina scegli i 
 - Equipaggiamento, oggetti, talenti e magie: 1 azione ciascuno. Alcuni danno anche un dado in più o un vantaggio fisso (armatura, ferite, ritmo), ma sempre insieme a un'azione.
 - Segreti: restano coperti per l'avversario finché non scattano.
 Il mucchio è la somma dei dadi indicati sui token. Ogni spazio accetta solo certi colori (le strisce colorate sotto l'alloggio) e spesso chiede un valore (dado 4 o più, dado 1-2, due dadi uguali…); il dado bianco vale come qualsiasi colore.
-In battaglia, quando tocchi un dado in mano, gli spazi dove può andare si illuminano d'oro e quelli inutilizzabili si sbiadiscono; in alto compare dove puoi usarlo, oppure il motivo per cui non va (colore, valore, fase o bersaglio).
+In battaglia le schede dei due combattenti stanno ai lati dello schermo (in verticale, affiancate sotto la mappa), con i dadi in mano, il mucchio e gli scartati, e tutte le carte in vista senza scorrere: toccando il nome di una carta la vedi a grandezza piena. Quando tocchi un dado in mano, gli spazi dove può andare si illuminano d'oro e quelli inutilizzabili si sbiadiscono; in alto compare dove puoi usarlo, oppure il motivo per cui non va (colore, valore, fase o bersaglio).
 Si parte con 14 ferite, Ritmo 3, Recupero 1 e la possibilità di conservare 1 dado.
 
 ## Il ciclo dei dadi
