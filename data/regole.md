@@ -1,43 +1,59 @@
 # Combat Master — Regole
 
 ## L'idea
-Due combattenti si affrontano in un'arena di esagoni. Ognuno ha una scheda composta da token: caratteristiche, armi, armature, mosse e talenti. Ogni token ha degli spazi: per fare un'azione ci metti sopra i dadi giusti. Non ci sono turni fissi: l'iniziativa salta da un combattente all'altro secondo le azioni, le combo e le reazioni.
+Due combattenti si affrontano in un'arena di esagoni. Ognuno ha una scheda fatta di token: caratteristiche, oggetti, armi, armature, mosse, talenti e segreti. I token mettono dadi colorati nel mucchio e offrono spazi su cui piazzarli. Il giocatore costruisce un motore: chi produce dadi di un colore, chi li consuma, chi li sblocca, chi li trasforma. Non ci sono turni fissi: l'iniziativa salta da un combattente all'altro secondo le azioni, le combo e le reazioni.
 
 ## Creare il personaggio
-Lo scenario stabilisce il budget di punti (30, 45 o 60). Nell'Officina scegli i token e paghi il loro costo.
-- Caratteristiche (Forza, Agilità, Tempra, Mente): hanno tre livelli e danno i dadi della riserva, uno per livello, del loro colore. La Tempra dà anche ferite in più.
-- Armi, armature e mosse: aggiungono spazi azione e reazione.
-- Talenti: regole speciali sempre attive.
-Ogni spazio accetta solo dadi di certi colori (le strisce colorate sotto l'alloggiamento). Il dado bianco del Prodigio vale come qualsiasi colore.
-Ogni combattente parte con 10 ferite, Ritmo 3 e può conservare 1 dado.
+Lo scenario stabilisce il budget di punti (30, 45 o 60). Nell'Officina scegli i token e paghi il loro costo, oppure premi Casuale.
+- Caratteristiche: danno dadi del loro colore, di più ai livelli alti. Alcune danno molti dadi ma poche azioni: vanno accoppiate a talenti e mosse che consumano quel colore senza produrlo.
+- Oggetti: dadi in più o piccoli vantaggi, quasi sempre senza azioni.
+- Armi, armature e mosse: spazi d'azione, di reazione e di supporto.
+- Talenti: regole speciali, spesso consumatori di un colore.
+- Segreti: restano coperti per l'avversario finché non scattano.
+Il mucchio è la somma dei dadi indicati su tutti i token. Ogni spazio accetta solo certi colori (le strisce colorate sotto l'alloggiamento); il dado bianco vale come qualsiasi colore.
+Si parte con 14 ferite, Ritmo 3, Recupero 1 e la possibilità di conservare 1 dado.
 
-## Lo scambio
-1. Tiro: ognuno tira tutti i dadi della sua riserva. I dadi conservati tornano pronti col loro valore.
-2. Iniziativa: comincia chi ha la somma più alta dei dadi blu (più i bonus). In parità comincia chi non ha cominciato lo scambio prima.
-3. Azioni: chi ha l'iniziativa fa UNA azione mettendo uno o più dadi pronti in uno spazio azione. Poi l'iniziativa passa all'avversario, a meno che lo spazio non dica "Mantieni l'iniziativa" (combo a catena).
-4. Ritmo: in uno scambio puoi usare al massimo tanti dadi quanto il tuo Ritmo, contando anche le reazioni. Si tirano tutti, ma si usano solo i migliori.
-5. Fine: quando entrambi passano o non possono più agire, lo scambio finisce. I dadi usati e i pronti non conservati tornano nella riserva. Dei dadi bloccati se ne libera uno solo.
+## Il ciclo dei dadi
+Ogni dado che entra nel mucchio viene tirato subito: il mucchio è sempre visibile. All'inizio si tirano tutti.
+1. Scelta: a ogni scambio prendi dal mucchio tanti dadi quanto il tuo Ritmo, scegliendoli fra quelli visibili. Con metà delle ferite o meno ne prendi uno in meno.
+2. Iniziativa: comincia chi ha la somma più alta dei dadi blu in mano (più i bonus).
+3. Azioni: chi ha l'iniziativa fa UNA azione, piazzando dadi della mano su uno spazio. Poi l'iniziativa passa, salvo gli spazi "Mantieni l'iniziativa" e le azioni LIBERE, che non la cedono.
+4. I dadi piazzati restano sul token e lo spazio resta occupato: non si può riusare finché non lo liberi. Liberare uno spazio rimanda i suoi dadi nel mucchio, dove vengono ritirati.
+5. Passare: quando passi liberi tanti spazi quanto il tuo Recupero. Chi passa per primo lascia all'avversario la possibilità di agire da solo.
+6. Fine dello scambio: i dadi rimasti in mano e quelli storditi tornano nel mucchio (ritirati), salvo quelli conservati.
 
-## Reazioni
-Quando vieni attaccato puoi usare uno o più spazi reazione (Schivata, Parata, Incassare, contrattacchi), finché hai ritmo e dadi adatti, oppure subire il colpo. Un contrattacco riuscito ti fa prendere l'iniziativa.
-- La Schivata e alcune reazioni chiedono un dado pari o superiore al dado d'attacco.
-- Le parate non funzionano alle spalle, salvo dove è scritto.
+## Azioni base
+- Passo: una volta per scambio, senza dadi, ti muovi con 2 punti movimento.
+- Spingere la fortuna: una volta per scambio ritiri i dadi in mano che vuoi; ogni 1 che esce resta stordito.
+- Conservare: metti da parte un dado in mano per lo scambio seguente.
 
-## Spingere la fortuna
-Quando tocca a te decidere puoi ritirare i dadi pronti che scegli. Ogni 1 che esce blocca quel dado. La prima spinta di ogni scambio è gratis, le altre costano 1 di ritmo.
-Gli spazi AZZARDO (Furia cieca) dopo il primo dado ti fanno ritirare altri dadi rossi uno alla volta e sommarli: se esce un 1 il colpo fallisce e tutti quei dadi si bloccano.
+## Tipi di spazio
+- AZIONE: si usa quando hai l'iniziativa e la cede.
+- LIBERA: si usa quando tocca a te decidere, anche durante un colpo, e non cede l'iniziativa.
+- REAZIONE: si usa quando vieni attaccato (schivate, parate, contrattacchi).
+- SUPPORTO: si aggiunge a un tuo colpo appena dichiarato o alla tua difesa; al massimo 2 supporti per colpo da ogni parte.
+- CONTATORE: ci metti un dado alla volta; quando la somma arriva alla soglia è carico e puoi scaricarlo come azione.
+- SEGRETO: lo carichi con un dado come azione; scatta da solo quando succede qualcosa (un attacco, un nemico che ti arriva accanto, una ferita, la fine dello scambio) e si rivela.
+- AZZARDO: dopo il primo dado puoi aggiungere altri dadi rossi ritirandoli uno alla volta; con un 1 il colpo fallisce e quei dadi restano storditi.
+Alcuni spazi tengono più dadi (fino a 2 o 3): ogni dado sopra dà un bonus continuo, per esempio +1 a tutti i colpi.
 
-## Dadi bloccati, sbloccati, riciclati, conservati
-- Bloccati: non si usano finché non vengono sbloccati (Riprendere fiato) o liberati a fine scambio, uno alla volta. Intimidire, Colpo di scudo e Spezzaguardia bloccano i dadi dell'avversario.
-- Conservati: puoi mettere da parte un dado pronto per lo scambio seguente; quel dado non si usa ora.
-- Riciclati: con Secondo respiro un 6 usato torna pronto e si ritira.
+## Condizioni
+Gli spazi possono chiedere: un valore minimo o massimo, un valore pari o dispari, due dadi uguali, una scala, valori precisi (1, 2 e 3), una somma minima, massima o esatta, un dado pari o superiore a quello d'attacco. Molti spazi preferiscono i dadi bassi: un 1 può essere prezioso quanto un 6.
 
-## Movimento e orientamento
-Ogni combattente guarda verso uno dei sei lati. Muoversi in avanti costa 1, di lato o indietro 2, girarsi di un lato 1. Non si passa attraverso colonne o avversari.
-- Gli attacchi colpiscono solo verso il fronte (i tre lati davanti), salvo gli attacchi ad area.
+## Manipolare i dadi
+Ritocco (±1), Rovescio (l'1 diventa 6), Cambio di peso (scambia due valori), Eco e Specchio (copiano un valore), Concentrazione (ritiri i dadi bassi), pesca dal mucchio, sblocco degli spazi, eliminazione per sempre di un dado dal mucchio, sacrificio di un dado per un effetto forte.
+
+## Colpire e difendersi
+- Ogni combattente guarda verso uno dei sei lati. Muoversi in avanti costa 1, di lato o indietro 2, girarsi di un lato 1.
+- Gli attacchi colpiscono verso il fronte (i tre lati davanti), salvo quelli ad area.
 - Colpire sul fianco dà +1 danno, alle spalle +2.
 - Le armature riducono ogni colpo del loro valore, salvo gli attacchi che ignorano l'armatura.
+- Stordire un dado del nemico gli toglie un dado in mano; Disarmare blocca il suo attacco migliore fino a fine scambio; il Gelo fa diventare 1 il suo dado più alto.
 - Chi viene spinto contro una colonna, il bordo o un altro combattente subisce 2 danni. Chi finisce su un braciere subisce 2 danni.
+- Esecuzione: con due dadi uguali da 5 o 6, colpendo sul fianco o alle spalle un nemico con un quarto delle ferite o meno, lo metti a terra.
 
 ## Vittoria
 Vince chi porta l'avversario a 0 ferite. Dopo 30 scambi vince chi ha più ferite in proporzione.
+
+## Guardare l'IA
+Dal menu, Guarda l'IA combattere: scegli lo scenario e due combattenti (anche casuali) e regola la velocità. Con Scontri a ripetizione partono sempre nuovi duelli fra avventurieri casuali.

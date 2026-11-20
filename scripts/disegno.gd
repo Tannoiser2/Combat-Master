@@ -10,9 +10,9 @@ const COLORI := {
 const NOMI_COLORE := {"rosso": "rossi", "blu": "blu", "verde": "verdi", "viola": "viola", "giallo": "gialli", "bianco": "bianchi"}
 const CATEGORIE := {
 	"attributo": Color("#b08d57"), "arma": Color("#9a5b3c"), "armatura": Color("#6f7b86"),
-	"mossa": Color("#a8433a"), "talento": Color("#5d7f4a")
+	"mossa": Color("#a8433a"), "talento": Color("#5d7f4a"), "oggetto": Color("#7a6a3a"), "segreto": Color("#3d3550")
 }
-const NOME_CATEGORIA := {"attributo": "Caratteristica", "arma": "Arma", "armatura": "Armatura", "mossa": "Mossa", "talento": "Talento"}
+const NOME_CATEGORIA := {"attributo": "Caratteristica", "arma": "Arma", "armatura": "Armatura", "mossa": "Mossa", "talento": "Talento", "oggetto": "Oggetto", "segreto": "Segreto"}
 const ORO := Color("#e0b964")
 const PERGAMENA := Color("#efe3c8")
 const INCHIOSTRO := Color("#2a1f17")

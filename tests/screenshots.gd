@@ -1,6 +1,6 @@
 extends SceneTree
 ## Cattura le schermate principali per controllarle a occhio.
-## uso: xvfb-run godot --path . --resolution 1366x1024 --script tests/screenshots.gd -- out=/tmp/shots/ipad
+## uso: xvfb-run godot --path . --resolution 1180x820 --script tests/screenshots.gd -- out=/tmp/shots/ipad
 
 var out := "/tmp/shots/x"
 var main: Node
@@ -30,49 +30,45 @@ func _giro() -> void:
 	main.officina()
 	main._off_carica_in_editor(main.dati["personaggi"][7])
 	await _foto("officina")
-	main.preparazione("ia")
+	main._off_categoria("segreto")
+	await _foto("officina_segreti")
+	main.preparazione("spettatore")
 	await _foto("preparazione")
 	var d: Dictionary = main.dati
-	main.battaglia(d["personaggi"][0].duplicate(true), d["personaggi"][1].duplicate(true), d["scenari"][1], [false, true])
-	await _attendi(30)
-	await _foto("battaglia")
-	# fai giocare l'IA per entrambi un po'
-	main.ia = [true, true]
-	for i in 400:
+	# partita contro l'IA: si comincia scegliendo i dadi dal mucchio
+	main.battaglia(d["personaggi"][0].duplicate(true), d["personaggi"][2].duplicate(true), d["scenari"][0], [false, true])
+	for i in 200:
 		await process_frame
-		if main.m.s["round"] >= 2 and main.m.chi_decide() == 0 and not main.arena.occupato():
+		if main.m.chi_decide() == 0:
+			break
+	main._aggiorna()
+	await _foto("pesca")
+	main._cmd_consigliata()
+	await _foto("pesca_scelta")
+	main._cmd_conferma()
+	# lascia giocare l'IA per entrambi fino al secondo scambio
+	main.ia = [true, true]
+	for i in 600:
+		await process_frame
+		if main.m.s["round"] >= 2 and main.m.s["fase"] == "azione" and main.m.chi_decide() == 0 and not main.arena.occupato():
 			break
 	main.ia = [false, true]
 	main._aggiorna()
-	await _foto("battaglia2")
-	# selezione di un movimento: forza l'iniziativa al giocatore 1
-	main.battaglia(d["personaggi"][0].duplicate(true), d["personaggi"][2].duplicate(true), d["scenari"][0], [false, false])
-	await _attendi(20)
-	main.m.s["attivo"] = 0
-	main.m.s["fase"] = "azione"
-	for dd in main.m.s["g"][0]["dadi"]:
-		if dd["col"] == "blu":
-			dd["v"] = 4
-	main._aggiorna()
-	main._slot("agilita", "muovi")
-	await _foto("movimento")
-	var g: Dictionary = main.m.s["g"][0]
-	var dest: Vector2i = g["pos"] + Motore.DIRS[0] + Motore.DIRS[0]
-	main._esagono(dest, Arena3D.mondo(dest))
-	await _foto("direzioni")
-	main._cmd_annulla()
-	# spazi occupati e scelta di quelli da liberare passando
-	var m: Motore = main.m
-	var g0: Dictionary = m.s["g"][0]
-	var occ := 0
-	for dd in g0["dadi"]:
-		if dd["st"] == "mano" and occ < 3:
-			var k: String = ["spada/fendente", "agilita/muovi", "forza/pugno"][occ]
-			dd["st"] = "token"
-			g0["occupati"][k] = [dd["id"]]
-			occ += 1
-	main._aggiorna()
-	main._cmd_passa()
-	main._slot("spada", "fendente")
-	await _foto("libera")
+	await _foto("battaglia")
+	main._cmd_scheda()
+	await _foto("scheda_avversario")
+	main._cmd_scheda()
+	if main.m.chi_decide() == 0 and main.m.s["fase"] == "azione" and not main.m.bersagli_passo(0).is_empty():
+		main._cmd_passo()
+		await _foto("passo")
+		main._cmd_annulla()
+	# modalità spettatore veloce
+	main.battaglia(Generatore.casuale(d, 45, main.rng), Generatore.casuale(d, 45, main.rng), d["scenari"][1], [true, true])
+	main.passo_ia = 0.05
+	for i in 900:
+		await process_frame
+		if main.m.s["vinc"] >= 0 and not main.arena.occupato():
+			break
+	await _attendi(30)
+	await _foto("spettatore")
 	quit()

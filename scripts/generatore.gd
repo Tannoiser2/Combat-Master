@@ -48,7 +48,7 @@ static func valido(cat: Dictionary, pg: Dictionary) -> bool:
 					distanza = true
 			if sl["effetto"] in ["movimento", "assalto", "passo_ombra"]:
 				moto = true
-	return attacco and (moto or distanza)
+	return attacco  # il passo base permette sempre di avvicinarsi
 
 static func casuale(dati: Dictionary, budget: int, rng: RandomNumberGenerator) -> Dictionary:
 	var cat: Dictionary = dati["per_id"]

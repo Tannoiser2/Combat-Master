@@ -370,7 +370,7 @@ func _crea_figura(i: int) -> void:
 	nome.modulate = colp.lightened(0.35)
 	nome.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	nome.no_depth_test = true
-	nome.position = Vector3(0, 1.85, 0)
+	nome.position = Vector3(0, 1.85 + 0.32 * i, 0)
 	nome.name = "Nome"
 	radice.add_child(nome)
 	figure.append(radice)
@@ -561,6 +561,11 @@ func _anima(e: Dictionary) -> Tween:
 			_testo(f.position + Vector3(0, 1.6, 0), "+%d" % e["n"], Color("#7fe08a"))
 			var tw := create_tween()
 			tw.tween_interval(0.4)
+			return tw
+		"segreto":
+			_testo(f.position + Vector3(0, 2.2, 0), "Segreto: %s!" % e.get("nome", ""), Color("#c7b0ff"))
+			var tw := create_tween()
+			tw.tween_interval(0.9)
 			return tw
 		"fallito":
 			_testo(f.position + Vector3(0, 1.6, 0), "Fallito!", Color("#ff8a40"))

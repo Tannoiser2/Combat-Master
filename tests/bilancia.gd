@@ -27,7 +27,7 @@ func _init() -> void:
 		if arg["applica"] == "1":
 			var n := aggiusta(ultimo)
 			print("Iterazione %d: costi cambiati su %d token" % [it + 1, n])
-	if arg["applica"] == "1":
+	if arg["applica"] == "1" or arg.get("solo_pronti", "0") == "1":
 		salva_catalogo()
 	if arg["rapporto"] != "":
 		scrivi_rapporto(ultimo, arg["rapporto"])
@@ -130,7 +130,39 @@ func aggiusta(st: Dictionary) -> int:
 		cambiati += 1
 	return cambiati
 
+## Dopo i ritocchi ai costi, i combattenti pronti devono restare nel loro budget:
+## si abbassano i livelli o si tolgono i token passivi più costosi finché non rientrano.
+func sistema_pronti() -> void:
+	for pg in dati["personaggi"]:
+		var guard := 0
+		while Motore.costo_personaggio(cat, pg) > int(pg["budget"]) and guard < 20:
+			guard += 1
+			var tolto := false
+			for id in pg["token"].keys():
+				var t: Dictionary = cat[id]
+				if t.has("livelli") and int(pg["token"][id]) > 1:
+					pg["token"][id] = int(pg["token"][id]) - 1
+					if Generatore.valido(cat, pg):
+						tolto = true
+						break
+					pg["token"][id] = int(pg["token"][id]) + 1
+			if tolto:
+				continue
+			var candidati: Array = pg["token"].keys()
+			candidati.sort_custom(func(x, y): return Motore.costo_token(cat[x], 1) > Motore.costo_token(cat[y], 1))
+			for id in candidati:
+				var lv: int = pg["token"][id]
+				pg["token"].erase(id)
+				if Generatore.valido(cat, pg):
+					tolto = true
+					break
+				pg["token"][id] = lv
+			if not tolto:
+				break
+		print("%s: %d su %d" % [pg["nome"], Motore.costo_personaggio(cat, pg), pg["budget"]])
+
 func salva_catalogo() -> void:
+	sistema_pronti()
 	var out: Dictionary = dati.duplicate()
 	out.erase("per_id")
 	var f := FileAccess.open("res://data/tokens.json", FileAccess.WRITE)

@@ -3,6 +3,7 @@ extends Node
 
 const FILE_PG := "user://personaggi.json"
 const PASSO_IA := 0.6
+const CASUALE := "Avventuriero casuale"
 
 var dati: Dictionary
 var cat: Dictionary
@@ -58,6 +59,10 @@ var _pannelli: Array[Control] = []
 var _timer_ia := 0.0
 var _fine: Control
 var _demo := false
+var passo_ia := PASSO_IA
+var spettatore := false
+var a_ripetizione := false
+var _attesa_ripeti := 0.0
 
 func _ready() -> void:
 	dati = Motore.carica_dati()
@@ -146,6 +151,7 @@ func menu() -> void:
 	v.add_child(HSeparator.new())
 	v.add_child(_bottone("Gioca contro l'IA", func(): preparazione("ia"), 420))
 	v.add_child(_bottone("Due giocatori sullo stesso schermo", func(): preparazione("due"), 420))
+	v.add_child(_bottone("Guarda l'IA combattere", func(): preparazione("spettatore"), 420))
 	v.add_child(_bottone("Officina dei personaggi", officina, 420))
 	v.add_child(_bottone("Regole del gioco", regole, 420))
 	var nota := _label("Prova di gioco: si combatte uno contro uno. Il multigiocatore online arriverà in seguito.", 15, Color(1, 1, 1, 0.6))
@@ -175,12 +181,18 @@ func _demo_arena() -> void:
 func _process(dt: float) -> void:
 	if _demo and arena != null:
 		arena.ruota_vista(dt * 0.08)
-	if m == null or m.s["vinc"] >= 0 or arena.occupato():
+	if m != null and m.s["vinc"] >= 0 and a_ripetizione and not arena.occupato():
+		_attesa_ripeti += dt
+		if _attesa_ripeti > 3.0:
+			_attesa_ripeti = 0.0
+			_scontro_casuale()
+		return
+	if m == null or m.s["vinc"] >= 0 or arena.occupato() or passo_ia < 0:
 		return
 	var chi := m.chi_decide()
 	if chi >= 0 and ia[chi]:
 		_timer_ia += dt
-		if _timer_ia >= PASSO_IA:
+		if _timer_ia >= passo_ia:
 			_timer_ia = 0.0
 			var op := IA.scegli(m, chi, rng)
 			if op.is_empty():
@@ -381,6 +393,7 @@ func officina() -> void:
 	gb.add_child(_bottone("Nuovo", _off_nuovo, 132))
 	gb.add_child(_bottone("Salva", _off_salva, 132))
 	gb.add_child(_bottone("Elimina", _off_elimina, 132))
+	gb.add_child(_bottone("Casuale", _off_casuale, 132))
 	gb.add_child(_bottone("Menu", menu, 132))
 	var ls := ScrollContainer.new()
 	ls.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -457,7 +470,9 @@ func _off_aggiorna() -> void:
 		if st["dadi"].has(c):
 			dadi.append("%d %s" % [st["dadi"][c], Disegno.NOMI_COLORE[c]])
 	_off_info.text = "Punti %d su %d   |   Dadi nel mucchio: %s   |   Ferite %d   |   Ritmo %d (dadi pescati)   |   Recupero %d   |   Armatura %d" % [costo, budget, ", ".join(dadi) if not dadi.is_empty() else "nessuno", st["vita"], st["ritmo"], st["recupero"], st["armatura"]]
-	_off_info.add_theme_color_override("font_color", Color("#ff8a70") if costo > budget else Disegno.PERGAMENA)
+	if not ids.is_empty() and not Generatore.valido(cat, pg_corrente):
+		_off_info.text += "\nAttenzione: servono almeno 4 dadi, un attacco semplice che i tuoi dadi possano pagare e un modo per avvicinarsi (o un attacco a distanza)."
+	_off_info.add_theme_color_override("font_color", Color("#ff8a70") if costo > budget or (not ids.is_empty() and not Generatore.valido(cat, pg_corrente)) else Disegno.PERGAMENA)
 	for pg in tutti_personaggi():
 		var b := Button.new()
 		b.text = "%s  (%d)" % [pg["nome"], Motore.costo_personaggio(cat, pg)]
@@ -485,6 +500,11 @@ func _off_livello(id: String, d: int) -> void:
 	var nv := clampi(int(pg_corrente["token"][id]) + d, 1, t["livelli"].size())
 	pg_corrente["token"][id] = nv
 	_off_aggiorna()
+
+func _off_casuale() -> void:
+	var pg := Generatore.casuale(dati, int(pg_corrente.get("budget", 30)), rng)
+	_off_carica_in_editor(pg)
+	_off_msg.text = "Ecco %s: premi Salva per tenerlo." % pg["nome"]
 
 func _off_nuovo() -> void:
 	_off_carica_in_editor({"nome": "Nuovo combattente", "budget": pg_corrente.get("budget", 30), "token": {}})
@@ -582,6 +602,8 @@ func preparazione(modo: String) -> void:
 		var tit := "Giocatore %d" % (p + 1)
 		if modo == "ia" and p == 1:
 			tit = "Avversario (IA)"
+		if modo == "spettatore":
+			tit = "IA %d" % (p + 1)
 		col.add_child(_label(tit, 20, Disegno.GIOCATORI[p], Disegno.font_titolo()))
 		var ob := OptionButton.new()
 		ob.custom_minimum_size = Vector2(500, 46)
@@ -601,42 +623,56 @@ func preparazione(modo: String) -> void:
 	var spazio := Control.new()
 	spazio.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hb.add_child(spazio)
-	hb.add_child(_bottone("Combatti!", _prep_via, 260))
+	if modo == "spettatore":
+		var rip := CheckButton.new()
+		rip.text = "Scontri a ripetizione"
+		rip.button_pressed = a_ripetizione
+		rip.toggled.connect(func(on): a_ripetizione = on)
+		rip.add_theme_color_override("font_color", Disegno.PERGAMENA)
+		hb.add_child(rip)
+	hb.add_child(_bottone("Guarda!" if modo == "spettatore" else "Combatti!", _prep_via, 220))
 	_prep_set_scenario(_prep_scenario)
 
 func _prep_validi() -> Array:
 	var budget: int = int(dati["scenari"][_prep_scenario]["budget"])
-	var out := []
+	var out := [{"nome": CASUALE, "token": {}, "casuale": true}]
 	for pg in tutti_personaggi():
 		var c := Motore.costo_personaggio(cat, pg)
 		if c <= budget and not Motore.statistiche(cat, pg)["dadi"].is_empty():
 			out.append(pg)
 	return out
 
+func _ordina_validi(validi: Array) -> Array:
+	var primo: Dictionary = validi.pop_front()
+	validi.sort_custom(func(a, b): return Motore.costo_personaggio(cat, a) > Motore.costo_personaggio(cat, b))
+	validi.push_front(primo)
+	return validi
+
 func _prep_set_scenario(i: int) -> void:
 	_prep_scenario = i
 	for k in _prep_sc_btn.size():
 		_prep_sc_btn[k].button_pressed = (k == i)
-	var validi := _prep_validi()
-	validi.sort_custom(func(a, b): return Motore.costo_personaggio(cat, a) > Motore.costo_personaggio(cat, b))
+	var validi := _ordina_validi(_prep_validi())
 	for p in 2:
 		var ob: OptionButton = _prep_opt[p]
 		ob.clear()
 		for pg in validi:
-			ob.add_item("%s  (%d punti)" % [pg["nome"], Motore.costo_personaggio(cat, pg)])
+			ob.add_item(pg["nome"] if pg.get("casuale", false) else "%s  (%d punti)" % [pg["nome"], Motore.costo_personaggio(cat, pg)])
 		if validi.size() > 0:
-			ob.select(clampi(p if validi.size() > 1 else 0, 0, validi.size() - 1))
+			ob.select(0 if _prep_modo == "spettatore" else clampi(p + 1, 0, validi.size() - 1))
 	_prep_desc_aggiorna()
 
 func _prep_desc_aggiorna() -> void:
-	var validi := _prep_validi()
-	validi.sort_custom(func(a, b): return Motore.costo_personaggio(cat, a) > Motore.costo_personaggio(cat, b))
+	var validi := _ordina_validi(_prep_validi())
 	for p in 2:
 		var ob: OptionButton = _prep_opt[p]
 		if ob.selected < 0 or ob.selected >= validi.size():
 			_prep_desc[p].text = "Nessun combattente entro il budget."
 			continue
 		var pg: Dictionary = validi[ob.selected]
+		if pg.get("casuale", false):
+			_prep_desc[p].text = "Un combattente generato a caso entro il budget dello scenario, diverso a ogni scontro."
+			continue
 		var st := Motore.statistiche(cat, pg)
 		var nomi := []
 		for id in pg["token"]:
@@ -649,20 +685,37 @@ func _prep_desc_aggiorna() -> void:
 		_prep_desc[p].text = "Dadi: %s. Ferite %d, ritmo %d, recupero %d, armatura %d.\n%s" % [", ".join(dadi), st["vita"], st["ritmo"], st["recupero"], st["armatura"], ", ".join(nomi)]
 
 func _prep_via() -> void:
-	var validi := _prep_validi()
-	validi.sort_custom(func(a, b): return Motore.costo_personaggio(cat, a) > Motore.costo_personaggio(cat, b))
+	var validi := _ordina_validi(_prep_validi())
 	if validi.is_empty():
 		return
+	var budget: int = int(dati["scenari"][_prep_scenario]["budget"])
 	var a: Dictionary = validi[maxi(0, _prep_opt[0].selected)].duplicate(true)
 	var b: Dictionary = validi[maxi(0, _prep_opt[1].selected)].duplicate(true)
+	if a.get("casuale", false):
+		a = Generatore.casuale(dati, budget, rng)
+	if b.get("casuale", false):
+		b = Generatore.casuale(dati, budget, rng)
 	if a["nome"] == b["nome"]:
 		b["nome"] = b["nome"] + " (ombra)"
-	battaglia(a, b, dati["scenari"][_prep_scenario], [false, _prep_modo == "ia"])
+	spettatore = _prep_modo == "spettatore"
+	battaglia(a, b, dati["scenari"][_prep_scenario], [spettatore, _prep_modo != "due"])
+
+## Modalità spettatore a ripetizione: nuovo scenario e nuovi avventurieri casuali.
+func _scontro_casuale() -> void:
+	var sc: Dictionary = dati["scenari"][rng.randi() % dati["scenari"].size()]
+	var a := Generatore.casuale(dati, int(sc["budget"]), rng)
+	var b := Generatore.casuale(dati, int(sc["budget"]), rng)
+	spettatore = true
+	battaglia(a, b, sc, [true, true])
 
 # ================================================================= battaglia
 
 func battaglia(a: Dictionary, b: Dictionary, scenario: Dictionary, ia_: Array) -> void:
 	_pulisci()
+	spettatore = ia_[0] and ia_[1]
+	if not spettatore:
+		passo_ia = PASSO_IA
+	_attesa_ripeti = 0.0
 	_demo = false
 	ia = ia_
 	_scenario = scenario
@@ -741,8 +794,12 @@ func _costruisci_hud() -> void:
 	var gv := VBoxContainer.new()
 	gv.add_theme_constant_override("separation", 6)
 	vista.add_child(gv)
-	for k in [["Ruota a sinistra", func(): arena.ruota_vista(-0.4)], ["Ruota a destra", func(): arena.ruota_vista(0.4)],
-			["Avvicina", func(): arena.zoom(0.85)], ["Allontana", func(): arena.zoom(1.18)], ["Centra", _centra]]:
+	var voci_vista := [["Ruota a sinistra", func(): arena.ruota_vista(-0.4)], ["Ruota a destra", func(): arena.ruota_vista(0.4)],
+			["Avvicina", func(): arena.zoom(0.85)], ["Allontana", func(): arena.zoom(1.18)], ["Centra", _centra]]
+	if spettatore:
+		voci_vista += [["Pausa", func(): passo_ia = -1.0], ["Lento", func(): passo_ia = 1.2], ["Normale", func(): passo_ia = PASSO_IA],
+			["Veloce", func(): passo_ia = 0.12], ["Nuovo scontro", _scontro_casuale]]
+	for k in voci_vista:
 		var b := _bottone(k[0], k[1], 170)
 		b.custom_minimum_size.y = 40
 		b.add_theme_font_size_override("font_size", 14)
@@ -775,7 +832,8 @@ func _costruisci_hud() -> void:
 	gb.add_theme_constant_override("v_separation", 6)
 	riga.add_child(gb)
 	_btn.clear()
-	var comandi := [["spinta", "Spingi la fortuna", _cmd_spinta], ["conserva", "Conserva", _cmd_conserva],
+	var comandi := [["consigliata", "Scelta consigliata", _cmd_consigliata], ["passo", "Passo (2)", _cmd_passo],
+		["spinta", "Spingi la fortuna", _cmd_spinta], ["conserva", "Conserva", _cmd_conserva],
 		["passa", "Passa", _cmd_passa], ["sferra", "Sferra il colpo", _cmd_sferra], ["risolvi", "Subisci il colpo", _cmd_risolvi],
 		["rilancia", "Rilancia", _cmd_rilancia], ["ferma", "Fermati", _cmd_ferma], ["conferma", "Conferma", _cmd_conferma],
 		["annulla", "Annulla", _cmd_annulla], ["scheda", "Scheda avversario", _cmd_scheda]]
@@ -820,15 +878,26 @@ func _ricostruisci_carte() -> void:
 		var carta := CartaToken.new()
 		carta.motore = m
 		carta.giocatore = p
+		var proprio := _giocatore_proprio()
+		carta.coperta = cat[id]["categoria"] == "segreto" and not m.s["g"][p]["rivelati"].has(id) and proprio >= 0 and p != proprio
 		carta.imposta(cat[id], int(m.s["g"][p]["pg"]["token"][id]), "gioco")
 		carta.slot_premuto.connect(_slot)
 		_carte_box.add_child(carta)
 		_carte.append(carta)
 
+## Chi sta davanti allo schermo: i suoi segreti si vedono, quelli dell'altro no (-1 = spettatore, si vede tutto).
+func _giocatore_proprio() -> int:
+	if ia[0] and ia[1]:
+		return -2
+	if not ia[0] and not ia[1]:
+		var chi := m.chi_decide()
+		return chi if chi >= 0 else int(m.s["attivo"])
+	return 0 if not ia[0] else 1
+
 ## Di chi sono la scheda e i dadi in basso.
 func _giocatore_mostrato() -> int:
 	var base := 0
-	if not ia[0] and not ia[1]:
+	if (not ia[0] and not ia[1]) or (ia[0] and ia[1]):
 		var chi := m.chi_decide()
 		base = chi if chi >= 0 else int(m.s["attivo"])
 	elif ia[0] and not ia[1]:
@@ -846,13 +915,17 @@ func _umano_decide() -> int:
 func _aggiorna() -> void:
 	if m == null or _stati.is_empty():
 		return
+	var chi0 := _umano_decide()
+	if chi0 >= 0 and m.s["fase"] == "pesca" and attesa.is_empty():
+		attesa = {"passo": "mucchio", "inizio": true, "n": m.da_prendere(chi0), "scelti": []}
 	var p := _giocatore_mostrato()
 	if p != mostra or _carte.is_empty() or _carte[0].giocatore != p:
 		mostra = p
 		sel.clear()
 		_ricostruisci_carte()
 	_vassoio.giocatore = p
-	_vassoio.selezionati = sel
+	_vassoio.scegli_mucchio = attesa.get("passo", "") == "mucchio"
+	_vassoio.selezionati = attesa["scelti"] if attesa.get("passo", "") in ["mucchio", "dadi"] else sel
 	var chi := _umano_decide()
 	_vassoio.interattivo = chi == p
 	for sg in _stati:
@@ -874,8 +947,12 @@ func _messaggio() -> String:
 	var nome: String = m.s["g"][chi]["nome"]
 	if ia[chi]:
 		return "%s sta decidendo..." % nome
+	if m.s["fase"] == "pesca" and ia[chi]:
+		return "%s sceglie i dadi dal mucchio..." % nome
 	if not attesa.is_empty():
 		match attesa["passo"]:
+			"mucchio":
+				return "%s: scegli %s dal mucchio (%d scelti), poi Conferma." % [nome, Motore.plurale(attesa["n"], "dado", "dadi"), attesa["scelti"].size()]
 			"esagono":
 				return "Tocca un esagono evidenziato."
 			"direzione":
@@ -948,6 +1025,14 @@ func _aggiorna_comandi() -> void:
 		_btn[k].disabled = false
 	_btn["scheda"].visible = true
 	_btn["scheda"].text = "La mia scheda" if mostra_avversario else "Scheda avversario"
+	if attesa.get("passo", "") == "mucchio":
+		_btn["conferma"].visible = true
+		_btn["conferma"].disabled = attesa["scelti"].size() != attesa["n"]
+		if attesa.get("inizio", false):
+			_btn["consigliata"].visible = true
+		else:
+			_btn["annulla"].visible = true
+		return
 	if not attesa.is_empty():
 		_btn["annulla"].visible = true
 		if attesa["passo"] == "spazi":
@@ -976,6 +1061,7 @@ func _aggiorna_comandi() -> void:
 	match fase:
 		"azione":
 			_btn["passa"].visible = true
+			_btn["passo"].visible = not m.bersagli_passo(chi).is_empty()
 		"rinforzo":
 			_btn["sferra"].visible = true
 		"reazione":
@@ -1002,6 +1088,15 @@ func _mostra_scelte(voci: Array) -> void:
 
 func _dado(id: int) -> void:
 	if _umano_decide() != mostra:
+		return
+	if attesa.get("passo", "") == "mucchio":
+		if m.dado(mostra, id).get("st", "") != "mucchio":
+			return
+		if attesa["scelti"].has(id):
+			attesa["scelti"].erase(id)
+		elif attesa["scelti"].size() < attesa["n"]:
+			attesa["scelti"].append(id)
+		_aggiorna()
 		return
 	if attesa.get("passo", "") == "dadi":
 		if not attesa["selezionabili"].has(id):
@@ -1050,6 +1145,8 @@ func _dadi_scelti() -> void:
 			_aggiorna()
 
 func _op_attesa(b: Dictionary) -> Dictionary:
+	if attesa.get("passo_base", false):
+		return {"t": "passo", "b": b}
 	return {"t": "slot", "tok": attesa["tok"], "slot": attesa["slot"], "dadi": attesa["dadi"], "b": b}
 
 func _slot(tok: String, sid: String) -> void:
@@ -1068,6 +1165,13 @@ func _slot(tok: String, sid: String) -> void:
 	if not attesa.is_empty():
 		_cmd_annulla()
 	var sl := m.slot_def(tok, sid)
+	var chiave := Motore.chiave(tok, sid)
+	if m.s["g"][p]["carichi"].has(chiave):
+		if m.opzioni_scarica(p).has(chiave):
+			_esegui(p, {"t": "scarica", "key": chiave})
+		else:
+			_msg.text = "%s è carico, ma il nemico è fuori portata." % sl["nome"]
+		return
 	if m.occupato(p, tok, sid):
 		_msg.text = "%s è occupato: per riusarlo devi liberarlo." % sl["nome"]
 		return
@@ -1172,6 +1276,11 @@ func _slot(tok: String, sid: String) -> void:
 			attesa["selezionabili"] = cand
 			sel.clear()
 			_aggiorna()
+		"pesca":
+			attesa = base
+			attesa["passo"] = "mucchio"
+			attesa["n"] = bs[0]["dadi"].size()
+			_aggiorna()
 		"elimina":
 			attesa = base
 			attesa["passo"] = "colore"
@@ -1266,8 +1375,35 @@ func _cmd_passa() -> void:
 	attesa = {"passa": true, "passo": "spazi", "n": n, "scelti": [], "selezionabili": occ}
 	_aggiorna()
 
+func _cmd_consigliata() -> void:
+	var p := _umano_decide()
+	if p >= 0 and attesa.get("passo", "") == "mucchio":
+		attesa["scelti"] = IA.scelta_mucchio(m, p, attesa["n"])
+		_aggiorna()
+
+func _cmd_passo() -> void:
+	var p := _umano_decide()
+	if p < 0:
+		return
+	var bs := m.bersagli_passo(p)
+	if bs.is_empty():
+		return
+	attesa = {"passo": "esagono", "passo_base": true, "bersagli": bs, "scelti": []}
+	var hex := {}
+	for b in bs:
+		hex[b["pos"]] = true
+	arena.pulisci_evidenza()
+	arena.evidenzia(hex.keys(), Color("#5aa0d8"))
+	_aggiorna()
+
 func _cmd_conferma() -> void:
 	var p := _umano_decide()
+	if attesa.get("passo", "") == "mucchio":
+		if attesa.get("inizio", false):
+			_esegui(p, {"t": "prendi", "dadi": attesa["scelti"].duplicate()})
+		else:
+			_esegui(p, _op_attesa({"dadi": attesa["scelti"].duplicate()}))
+		return
 	if attesa.get("passo", "") != "spazi":
 		return
 	if attesa.get("passa", false):
@@ -1340,4 +1476,10 @@ func _mostra_fine() -> void:
 	h.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_child(h)
 	h.add_child(_bottone("Rivincita", func(): battaglia(_pg[0], _pg[1], _scenario, ia), 220))
+	if spettatore:
+		h.add_child(_bottone("Nuovo scontro", _scontro_casuale, 220))
+		if a_ripetizione:
+			var nota := _label("Il prossimo scontro casuale parte da solo.", 16)
+			nota.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			v.add_child(nota)
 	h.add_child(_bottone("Menu", menu, 220))
