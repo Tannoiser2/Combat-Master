@@ -29,30 +29,102 @@
     ]
    },
    "punti": 0.63
+  },
+  {
+   "cambi": {
+    "iniziativa": [
+     0.8,
+     0.65
+    ],
+    "mucchio_val": [
+     0.04,
+     0.07
+    ]
+   },
+   "punti": 0.57
+  },
+  {
+   "cambi": {
+    "fianco": [
+     0.8,
+     0.72
+    ],
+    "iniziativa": [
+     0.65,
+     0.3
+    ],
+    "mucchio_val": [
+     0.07,
+     0.06
+    ],
+    "retro": [
+     1.6,
+     2.4
+    ]
+   },
+   "punti": 0.57
+  },
+  {
+   "cambi": {
+    "armato": [
+     1.5,
+     1.58
+    ],
+    "cede": [
+     0.6,
+     0.66
+    ],
+    "fronte": [
+     2.13,
+     1.47
+    ],
+    "mucchio_val": [
+     0.06,
+     0.07
+    ],
+    "pericolo_subito": [
+     1.0,
+     0.94
+    ]
+   },
+   "punti": 0.57
+  },
+  {
+   "cambi": {
+    "eliminato": [
+     0.9,
+     0.62
+    ],
+    "retro": [
+     2.4,
+     2.16
+    ]
+   },
+   "punti": 0.6
   }
  ],
- "generazioni": 40,
+ "generazioni": 60,
  "pesi": {
-  "armato": 1.5,
+  "armato": 1.585,
   "azzardo": 7.112,
-  "cede": 0.6,
+  "cede": 0.658,
   "conservato": 1.419,
   "distanza": 0.7,
-  "eliminato": 0.9,
-  "fianco": 0.8,
-  "fronte": 2.133,
-  "iniziativa": 0.8,
+  "eliminato": 0.622,
+  "fianco": 0.719,
+  "fronte": 1.469,
+  "iniziativa": 0.301,
   "mano_base": 0.55,
   "mano_val": 0.1,
   "minaccia": 1.2,
   "mucchio_base": 0.742,
-  "mucchio_val": 0.04,
+  "mucchio_val": 0.071,
   "occupato": 0.651,
   "pericolo": 3.0,
-  "pericolo_subito": 1.0,
+  "pericolo_subito": 0.942,
   "pesca_spazio": 0.5,
   "pesca_val": 0.1,
-  "retro": 1.6,
+  "retro": 2.161,
   "stordito": 0.4,
   "vita": 4.0,
   "vita_bassa": 3.0

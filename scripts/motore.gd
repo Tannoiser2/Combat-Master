@@ -1272,7 +1272,9 @@ func _risolvi_attacco() -> void:
 		s["pend"] = {}
 		pe["riduz"] += _accumulo(dif, "accumulo_difesa")
 		var arm: int = 0 if pe["ignora"] else int(gd["armatura"])
-		var tot: int = maxi(0, int(pe["danno"]) + int(pe["bonus"]) - int(pe["riduz"]) - arm)
+		var tot: int = maxi(0, int(pe["danno"]) + int(pe["bonus"]) - int(pe["riduz"]))
+		# l'armatura da sola non annulla un colpo andato a segno: almeno 1 danno passa
+		tot = maxi(mini(tot, 1), tot - arm)
 		_ferisci(dif, tot)
 		if s["vinc"] < 0 and pe["blocca"] > 0:
 			var mano := dadi_di(dif, "mano")

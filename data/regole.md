@@ -23,6 +23,7 @@ Ogni dado che entra nel mucchio viene tirato subito: il mucchio è sempre visibi
 6. Fine dello scambio: i dadi rimasti in mano e quelli storditi tornano nel mucchio (ritirati), salvo quelli conservati.
 
 ## Azioni base
+- Colpo improvvisato: ogni scheda ha questo spazio; con un dado qualsiasi colpisci a portata 1 per un terzo del dado.
 - Passo: una volta per scambio, senza dadi, ti muovi con 2 punti movimento.
 - Spingere la fortuna: una volta per scambio ritiri i dadi in mano che vuoi; ogni 1 che esce resta stordito.
 - Conservare: metti da parte un dado in mano per lo scambio seguente.
@@ -47,7 +48,8 @@ Ritocco (±1), Rovescio (l'1 diventa 6), Cambio di peso (scambia due valori), Ec
 - Ogni combattente guarda verso uno dei sei lati. Muoversi in avanti costa 1, di lato o indietro 2, girarsi di un lato 1.
 - Gli attacchi colpiscono verso il fronte (i tre lati davanti), salvo quelli ad area.
 - Colpire sul fianco dà +1 danno, alle spalle +2.
-- Le armature riducono ogni colpo del loro valore, salvo gli attacchi che ignorano l'armatura.
+- Le armature riducono ogni colpo del loro valore, salvo gli attacchi che ignorano l'armatura; da sola però l'armatura non scende sotto 1 danno: un colpo andato a segno fa sempre almeno 1 ferita, a meno di parate e schivate.
+- Più lo scontro dura, più l'arena si scalda: dal decimo scambio ogni colpo fa +1, dal ventesimo +2.
 - Stordire un dado del nemico gli toglie un dado in mano; Disarmare blocca il suo attacco migliore fino a fine scambio; il Gelo fa diventare 1 il suo dado più alto.
 - Chi viene spinto contro una colonna, il bordo o un altro combattente subisce 2 danni. Chi finisce su un braciere subisce 2 danni.
 - Esecuzione: con due dadi uguali da 5 o 6, colpendo sul fianco o alle spalle un nemico con un quarto delle ferite o meno, lo metti a terra.
