@@ -89,6 +89,10 @@ func _draw() -> void:
 	var a4 := centro + Vector2.from_angle(deg_to_rad(48)) * (raggio + 4)
 	_freccia(a4, Vector2(box_fuori.position.x - 2, box_fuori.get_center().y), Color("#a0483a"), "stordito")
 	var y := maxf(centro.y + raggio + 14.0, box_fuori.end.y + 10.0)
+	# la sfera: vantaggi costruiti sull'avversario, svantaggi propri
+	Disegno.testo(self, Vector2(8, y + 14), "Vantaggi %d" % int(g.get("vantaggi", 0)), 14, Disegno.ORO, Disegno.font_titolo(), 120)
+	Disegno.testo(self, Vector2(130, y + 14), "Svantaggi %d" % int(g.get("svantaggi", 0)), 14, Color("#d96a5f"), Disegno.font_titolo(), 140)
+	y += 22
 	# sotto il cerchio: dadi preparati e conservati (si toccano)
 	var gruppi := [["Preparati", motore.dadi_di(giocatore, "mano"), true], ["Conservati", motore.dadi_di(giocatore, "conservato"), not scegli_mucchio]]
 	for k in gruppi.size():

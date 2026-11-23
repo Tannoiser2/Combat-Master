@@ -52,10 +52,7 @@ func _draw() -> void:
 	var cap := motore.limite_colore(giocatore, col_att if col_att != "" else "rosso")
 	var cap_txt := "max %d %s" % [cap, plurali.get(col_att, "per colore")]
 	Disegno.testo(self, Vector2(w - 200, 77), "%s · %s" % [String(g.get("attitudine", "neutrale")).capitalize(), cap_txt], 12, nomi_col.get(col_att, Disegno.PERGAMENA.darkened(0.1)), Disegno.font_titolo(), 188, HORIZONTAL_ALIGNMENT_RIGHT)
-	# la sfera: vantaggi costruiti sull'avversario e svantaggi propri
-	var vx := x0 + 112
-	Disegno.testo(self, Vector2(vx, 77), "Vantaggi %d" % int(g.get("vantaggi", 0)), 12, Disegno.ORO, Disegno.font_titolo(), 80)
-	Disegno.testo(self, Vector2(vx + 82, 77), "Svantaggi %d" % int(g.get("svantaggi", 0)), 12, Color("#d96a5f"), Disegno.font_titolo(), 90)
+
 	# dadi preparati o conservati in piccolo; il mucchio resta nel vassoio centrale
 	var dx := x0
 	for st in ["mano", "conservato", "stordito"]:
