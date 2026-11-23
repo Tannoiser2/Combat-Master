@@ -2267,9 +2267,11 @@ func _nuovo_round() -> void:
 		# scambio. I token di recupero restano necessari quando l'Attesa si
 		# riempie, ma un attacco semplice non resta spento per diversi turni.
 		var in_attesa := dadi_di(p, "attesa")
-		if not in_attesa.is_empty():
-			_al_mucchio(in_attesa[0])
-			_scrivi("%s recupera naturalmente 1 dado dall'Attesa." % g["nome"])
+		var respiro := mini(int(regole.get("respiro", 1)), in_attesa.size())
+		if respiro > 0:
+			for i in respiro:
+				_al_mucchio(in_attesa[i])
+			_scrivi("%s recupera naturalmente %s dall'Attesa." % [g["nome"], plurale(respiro, "dado", "dadi")])
 			_evento({"t": "dadi", "p": p})
 		# Affanno: chi resta senza dadi per il proprio Ritmo riprende fiato,
 		# tutta l'Attesa torna nel mucchio, ma il combattente si scopre (1 svantaggio).
