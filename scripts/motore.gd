@@ -581,9 +581,14 @@ func slot_attivabile(p: int, tok: String, sl: Dictionary) -> bool:
 			return f == "azione" and not s["g"][p]["carichi"].has(chiave(tok, sl["id"]))
 	return false
 
+## Come nel vecchio regolamento, la risposta difensiva usa il potenziale e non il tattico:
+## reazioni e supporti in difesa non consumano il Ritmo dello scambio.
+func fuori_ritmo(sl: Dictionary) -> bool:
+	return bool(regole.get("difesa_fuori_ritmo", false)) and sl.get("tipo", "") in ["reazione", "supporto_difesa"]
+
 func ordina_dadi(p: int, sl: Dictionary, ids: Array) -> Array:
 	var req: Array = sl["dadi"]
-	if ids.size() != req.size() or not selezione_attitudine_ok(p, ids):
+	if ids.size() != req.size() or (not fuori_ritmo(sl) and not selezione_attitudine_ok(p, ids)):
 		return []
 	for perm in _permutazioni(ids):
 		var ok := true
@@ -665,7 +670,7 @@ func spiega_dadi(p: int, sl: Dictionary, ids: Array) -> String:
 	for id in ids:
 		if not (dado(p, id).get("st", "") in ["mucchio", "mano"]):
 			return "Si usano solo dadi disponibili nel mucchio."
-	if not selezione_attitudine_ok(p, ids):
+	if not fuori_ritmo(sl) and not selezione_attitudine_ok(p, ids):
 		return "La selezione supera il Ritmo o il limite cromatico dell'Attitudine %s." % s["g"][p].get("attitudine", "neutrale")
 	var colori_ok := false
 	for perm in _permutazioni(ids):
@@ -1003,7 +1008,8 @@ func _attacco_possibile(p: int, sl: Dictionary, pos: Vector2i, dir: int) -> bool
 		return d == 1
 	if d < int(sl.get("gittata_min", 1)) or d > int(sl.get("portata", 1)):
 		return false
-	if not in_fronte(pos, dir, tp):
+	# chi colpisce può girarsi verso un nemico sul fianco (non alle spalle) mentre sferra il colpo
+	if not in_fronte(pos, dir, tp) and not (bool(regole.get("girarsi_per_colpire", false)) and d <= 2 and lato(pos, dir, tp) == "fianco"):
 		return false
 	if sl.get("los", false) and not linea_di_vista(pos, tp):
 		return false
@@ -1467,7 +1473,8 @@ func _slot(p: int, op: Dictionary) -> String:
 	var fase: String = s["fase"]
 	var q := quantita(p, sl, ids)
 	var vals := _valori(p, ids)
-	_spendi_ritmo(p, ids)
+	if not fuori_ritmo(sl):
+		_spendi_ritmo(p, ids)
 	_piazza(p, tok, sl["id"], ids, sl)
 	s["g"][p]["bonus_ritmo"] = 0
 	var colore_azione := _colore_attitudine(tok, sl)
@@ -1849,6 +1856,10 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionar
 	var go: Dictionary = s["g"][o]
 	g["usi"]["attacchi"] = int(g["usi"].get("attacchi", 0)) + 1
 	var d := dist(g["pos"], go["pos"])
+	if not in_fronte(g["pos"], g["dir"], go["pos"]):
+		g["dir"] = dir_verso(g["pos"], go["pos"])
+		_scrivi("%s si gira e colpisce." % g["nome"])
+		_evento({"t": "muovi", "p": p, "percorso": [Vector3i(g["pos"].x, g["pos"].y, g["dir"])]})
 	var l := lato(go["pos"], go["dir"], g["pos"])
 	# La selezione differita dal mucchio trova più facilmente il dado ideale.
 	# Un punto di attrito compensa questa flessibilità sui danni base, senza
@@ -2259,6 +2270,16 @@ func _nuovo_round() -> void:
 		if not in_attesa.is_empty():
 			_al_mucchio(in_attesa[0])
 			_scrivi("%s recupera naturalmente 1 dado dall'Attesa." % g["nome"])
+			_evento({"t": "dadi", "p": p})
+		# Affanno: chi resta senza dadi per il proprio Ritmo riprende fiato,
+		# tutta l'Attesa torna nel mucchio, ma il combattente si scopre (1 svantaggio).
+		var rimasti := dadi_di(p, "mucchio")
+		in_attesa = dadi_di(p, "attesa")
+		if bool(regole.get("affanno", false)) and rimasti.size() < ritmo_azione(p) and not in_attesa.is_empty():
+			for d in in_attesa:
+				_al_mucchio(d)
+			_scrivi("%s riprende fiato: %s dall'Attesa tornano nel mucchio." % [g["nome"], plurale(in_attesa.size(), "dado", "dadi")])
+			prendi_svantaggi(p, 1, "affanno")
 			_evento({"t": "dadi", "p": p})
 	s["fase"] = "azione"
 	_scrivi("--- Scambio %d: i dadi si scelgono direttamente dal mucchio per ogni azione." % s["round"])
