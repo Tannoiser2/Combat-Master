@@ -3,7 +3,7 @@ extends RefCounted
 ## Motore delle regole di Combat Master.
 ## I dadi girano in cerchio: dal mucchio se ne pescano e tirano tanti quanto il Ritmo,
 ## si piazzano sugli spazi dei token, dove restano (e lo spazio resta occupato)
-## finché un'azione di sblocco o il recupero li rimanda nel mucchio.
+## finché uno sblocco li trasferisce in Attesa. Solo il recupero li riporta nel mucchio.
 ## Nessuna dipendenza grafica: serve all'interfaccia, all'IA e ai test headless.
 
 const DIRS: Array[Vector2i] = [Vector2i(1, 0), Vector2i(1, -1), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(-1, 1), Vector2i(0, 1)]
@@ -646,7 +646,7 @@ func _piazza(p: int, tok: String, sid: String, ids: Array, sl: Dictionary) -> vo
 		var k := chiave(tok, sid)
 		g["occupati"][k] = g["occupati"].get(k, []) + restano
 
-## Libera uno spazio: i suoi dadi tornano nel mucchio (o in mano, ritirati).
+## Sblocca uno spazio: i dadi vanno in Attesa, salvo esplicita restituzione in mano.
 func _libera(p: int, key: String, in_mano := false) -> void:
 	var g: Dictionary = s["g"][p]
 	if not g["occupati"].has(key):
@@ -657,7 +657,7 @@ func _libera(p: int, key: String, in_mano := false) -> void:
 			d["st"] = "mano"
 			d["v"] = _tira()
 		else:
-			_al_mucchio(d)
+			d["st"] = "attesa"
 	g["occupati"].erase(key)
 	g["armati"].erase(key)
 	g["carichi"].erase(key)
@@ -929,6 +929,8 @@ func opzioni(p: int) -> Array:
 				out.append({"t": "scarica", "key": k})
 			for c in opzioni_recupero(p):
 				out.append({"t": "passa", "slots": c})
+			if not dadi_di(p, "attesa").is_empty() and int(s["g"][p]["usi"].get("riposo", 0)) == 0:
+				out.append({"t": "riposo"})
 		"rinforzo":
 			out.append({"t": "sferra"})
 		"reazione":
@@ -1033,6 +1035,23 @@ func applica(p: int, op: Dictionary) -> String:
 	match op["t"]:
 		"prendi":
 			return _prendi(p, op["dadi"])
+		"riposo":
+			if s["fase"] != "azione":
+				return "Puoi riposare solo nella fase azione."
+			var g_r: Dictionary = s["g"][p]
+			if int(g_r["usi"].get("riposo", 0)) > 0:
+				return "Hai gia riposato in questo scambio."
+			var in_attesa := dadi_di(p, "attesa")
+			if in_attesa.is_empty():
+				return "Non ci sono dadi in Attesa da recuperare."
+			var n_r := mini(2, in_attesa.size())
+			for i in n_r:
+				_al_mucchio(in_attesa[i])
+			g_r["usi"]["riposo"] = 1
+			_scrivi("%s riposa: recupera %s dall Attesa." % [g_r["nome"], plurale(n_r, "dado", "dadi")])
+			_evento({"t": "dadi", "p": p})
+			_dopo_azione(p, false)
+			return ""
 		"passa":
 			if s["fase"] != "azione":
 				return "Ora non puoi passare."
