@@ -1011,6 +1011,7 @@ func _costruisci_hud() -> void:
 	var comandi := [["consigliata", "Scelta consigliata", _cmd_consigliata], ["passo", "Passo (2)", _cmd_passo],
 		["spinta", "Spingi la fortuna", _cmd_spinta], ["conserva", "Conserva", _cmd_conserva],
 		["passa", "Passa", _cmd_passa], ["riposo", "Riposo (+1)", _cmd_riposo],
+		["flusso", "Flusso (2 vantaggi)", _cmd_flusso], ["rovescio", "Rovescio (3 vantaggi)", _cmd_rovescio],
 		["emergenza", "Sblocca (dado)", _cmd_emergenza], ["sferra", "Sferra il colpo", _cmd_sferra], ["risolvi", "Subisci il colpo", _cmd_risolvi],
 		["rilancia", "Rilancia", _cmd_rilancia], ["ferma", "Fermati", _cmd_ferma], ["conferma", "Conferma", _cmd_conferma],
 		["annulla", "Annulla", _cmd_annulla]]
@@ -1280,6 +1281,8 @@ func _messaggio() -> String:
 			"spazi":
 				if attesa.get("emergenza", false):
 					return "Sblocca di emergenza: scegli uno spazio da liberare. Il dado speso e quelli sbloccati vanno in Attesa."
+				if attesa.get("flusso", false):
+					return "Flusso: spendi 2 vantaggi e scegli lo spazio da liberare; i suoi dadi vanno in Attesa."
 				if attesa.get("passa", false):
 					return "Passi: tocca fino a %s da liberare, poi Conferma." % Motore.plurale(attesa["n"], "spazio occupato", "spazi occupati")
 				return "Tocca %s da liberare, poi Conferma." % Motore.plurale(attesa["n"], "spazio occupato", "spazi occupati")
@@ -1388,10 +1391,14 @@ func _aggiorna_comandi() -> void:
 			_btn["riposo"].visible = not m.dadi_di(chi, "attesa").is_empty() and int(m.s["g"][chi]["usi"].get("riposo", 0)) == 0
 			_btn["emergenza"].visible = in_mano.size() == 1 and not m.s["g"][chi]["occupati"].is_empty() and int(m.s["g"][chi]["usi"].get("emergenza", 0)) == 0
 			_btn["passo"].visible = not m.bersagli_passo(chi).is_empty()
+			_btn["flusso"].visible = int(m.s["g"][chi].get("vantaggi", 0)) >= 2 and not m.s["g"][chi]["occupati"].is_empty() and int(m.s["g"][chi]["usi"].get("flusso", 0)) == 0
 		"rinforzo":
 			_btn["sferra"].visible = true
 		"reazione":
 			_btn["risolvi"].visible = true
+			for op in m.opzioni(chi):
+				if op["t"] == "rovescio_fluido":
+					_btn["rovescio"].visible = true
 		"azzardo":
 			_btn["rilancia"].visible = true
 			_btn["ferma"].visible = true
@@ -1909,6 +1916,23 @@ func _cmd_emergenza() -> void:
 	attesa = {"passo": "spazi", "emergenza": true, "dado": sel[0], "n": 1, "scelti": [], "selezionabili": occ}
 	_aggiorna()
 
+## Flusso: due vantaggi liberano uno spazio occupato (i suoi dadi vanno in Attesa).
+func _cmd_flusso() -> void:
+	var p := _umano_decide()
+	if p < 0:
+		return
+	var occ: Array = m.s["g"][p]["occupati"].keys()
+	if occ.size() == 1:
+		_esegui(p, {"t": "flusso", "key": occ[0]})
+		return
+	attesa = {"passo": "spazi", "flusso": true, "n": 1, "scelti": [], "selezionabili": occ}
+	_aggiorna()
+
+func _cmd_rovescio() -> void:
+	var p := _umano_decide()
+	if p >= 0:
+		_esegui(p, {"t": "rovescio_fluido"})
+
 func _cmd_riposo() -> void:
 	var p := _umano_decide()
 	if p >= 0:
@@ -1959,6 +1983,9 @@ func _cmd_conferma() -> void:
 		return
 	if attesa.get("emergenza", false):
 		_esegui(p, {"t": "emergenza", "key": attesa["scelti"][0], "dado": attesa["dado"]})
+		return
+	if attesa.get("flusso", false):
+		_esegui(p, {"t": "flusso", "key": attesa["scelti"][0]})
 		return
 	if attesa.get("passa", false):
 		_esegui(p, {"t": "passa", "slots": attesa["scelti"].duplicate()})

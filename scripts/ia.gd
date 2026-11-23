@@ -13,7 +13,7 @@ const PESI_BASE := {
 	"minaccia": 1.2, "pericolo_subito": 1.0, "cede": 0.6, "guardia": 1.0,
 	"presenza_attacco": 10.0,
 	"inerzia_offensiva": 6.0,
-	"assetto": 1.2,
+	"vantaggi": 0.55,
 }
 
 static var _pesi_salvati: Dictionary = {}
@@ -155,7 +155,7 @@ static func _valuta_con_risposta(m: Motore, p: int, op: Dictionary, w: Dictionar
 		return valuta(c, p, w) + _urgenza_offensiva(m, p, op, w)
 	var peggiore := INF
 	var meglio_per_o := -INF
-	for op2 in _sfoltisci(c, o, c.opzioni(o), w):
+	for op2 in _sfoltisci_interne(c, o, c.opzioni(o), w):
 		var c2 := c.clona()
 		if c2.applica(o, op2) != "":
 			continue
@@ -203,7 +203,7 @@ static func _completa(c: Motore, p: int, w: Dictionary) -> void:
 		if f == "reazione" and chi != p:
 			var best := {"t": "risolvi"}
 			var bv := -INF
-			for op in c.opzioni(chi):
+			for op in _sfoltisci_interne(c, chi, c.opzioni(chi), w):
 				var c2 := c.clona()
 				if c2.applica(chi, op) != "":
 					continue
@@ -217,7 +217,7 @@ static func _completa(c: Motore, p: int, w: Dictionary) -> void:
 		elif f == "rinforzo" and chi == p:
 			var best := {"t": "sferra"}
 			var bv := -INF
-			for op in c.opzioni(p):
+			for op in _sfoltisci_interne(c, p, c.opzioni(p), w):
 				if op["t"] == "slot" and c.slot_def(op["tok"], op["slot"])["tipo"] != "supporto_attacco":
 					continue
 				var c2 := c.clona()
@@ -264,7 +264,8 @@ static func valuta(m: Motore, p: int, w: Dictionary) -> float:
 	var v := _risorse(m, p, w) - _risorse(m, o, w)
 	var g: Dictionary = m.s["g"][p]
 	var go: Dictionary = m.s["g"][o]
-	v += w["assetto"] * (int(g.get("assetto", 0)) - int(go.get("assetto", 0)))
+	# la sfera: i miei vantaggi e gli svantaggi del nemico valgono danni futuri
+	v += w["vantaggi"] * (int(g.get("vantaggi", 0)) + int(go.get("svantaggi", 0)) - int(go.get("vantaggi", 0)) - int(g.get("svantaggi", 0)))
 	v += w["vita"] * (g["vita"] - go["vita"])
 	if g["vita"] <= 3:
 		v -= w["vita_bassa"]
@@ -339,9 +340,65 @@ static func _posizione(m: Motore, p: int, pos: Vector2i, dir: int, w: Dictionary
 		v -= w["pericolo"]
 	return v
 
+## Nelle simulazioni interne (risposte, reazioni, supporti) basta una combinazione per spazio:
+## quella con la somma più alta, e non più di MAX_INTERNE opzioni in tutto.
+const MAX_INTERNE := 14
+
+static func _sfoltisci_interne(m: Motore, p: int, opz: Array, w: Dictionary) -> Array:
+	var migliori := {}
+	var altre := []
+	for op in _sfoltisci(m, p, opz, w):
+		if op["t"] != "slot":
+			altre.append(op)
+			continue
+		var kg := "%s/%s/%s" % [op["tok"], op["slot"], str(op["b"])]
+		var somma := 0
+		for id in op["dadi"]:
+			somma += int(m.dado(p, id)["v"])
+		if not migliori.has(kg) or somma > migliori[kg][0]:
+			migliori[kg] = [somma, op]
+	var out := altre
+	for kg in migliori:
+		out.append(migliori[kg][1])
+	if out.size() > MAX_INTERNE:
+		out = out.slice(0, MAX_INTERNE)
+	return out
+
 static func _sfoltisci(m: Motore, p: int, opz: Array, w: Dictionary) -> Array:
 	var out := []
 	var mov := {}
+	# dadi uguali (stesso colore e valore) danno lo stesso risultato: se ne tiene una sola combinazione;
+	# per ogni spazio e bersaglio restano al massimo le combinazioni con somma minima, media e massima
+	var gruppi := {}
+	var resto := []
+	for op in opz:
+		if op["t"] == "slot" and not (op["b"].has("pos") and m.slot_def(op["tok"], op["slot"])["effetto"] == "movimento"):
+			var firma := []
+			var somma := 0
+			for id in op["dadi"]:
+				var d := m.dado(p, id)
+				firma.append("%s%d" % [d["col"], d["v"]])
+				somma += int(d["v"])
+			firma.sort()
+			var kg := "%s/%s/%s" % [op["tok"], op["slot"], str(op["b"])]
+			if not gruppi.has(kg):
+				gruppi[kg] = {}
+			var kf := ",".join(firma)
+			if not gruppi[kg].has(kf):
+				gruppi[kg][kf] = [somma, op]
+		else:
+			resto.append(op)
+	for kg in gruppi:
+		var vals: Array = gruppi[kg].values()
+		vals.sort_custom(func(a, b): return a[0] < b[0])
+		if vals.size() <= 3:
+			for x in vals:
+				out.append(x[1])
+		else:
+			out.append(vals[0][1])
+			out.append(vals[vals.size() / 2][1])
+			out.append(vals[-1][1])
+	opz = resto
 	for op in opz:
 		if op["t"] == "passo":
 			var kp := Vector3i(op["b"]["pos"].x, op["b"]["pos"].y, op["b"]["dir"])

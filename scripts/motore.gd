@@ -138,7 +138,7 @@ func nuova_partita(pg0: Dictionary, pg1: Dictionary, arena_id: String, seme: int
 				n += 1
 		s["g"].append({"nome": pg.get("nome", "Combattente"), "pg": pg.duplicate(true),
 			"vita": st["vita"], "vita_max": st["vita"], "ritmo": st["ritmo"], "recupero": st["recupero"],
-			"assetto": 0, "scambi_senza_attacco": 0, "attitudine": "neutrale", "attitudine_colore": "", "attitudine_punti": {}, "ultimo_colore_azione": "", "ritmo_speso": 0, "colori_spesi": {},
+			"vantaggi": 0, "svantaggi": 0, "scambi_senza_attacco": 0, "attitudine": "neutrale", "attitudine_colore": "", "attitudine_punti": {}, "ultimo_colore_azione": "", "ritmo_speso": 0, "colori_spesi": {},
 			"armatura": st["armatura"], "mov": st["movimento"], "conserva_max": st["conserva"],
 			"ini": st["iniziativa"], "flag": st["flag"], "pos": partenze[i], "dir": dirs[i],
 			"dadi": dadi, "occupati": {}, "passato": false, "spinte": 0, "usi": {}, "armati": {}, "rivelati": {}, "bonus_ritmo": 0,
@@ -419,8 +419,9 @@ func aggiorna_attitudine(p: int) -> void:
 		if col != "":
 			punti[col] += g["occupati"][key].size()
 	var ultimo: String = g.get("ultimo_colore_azione", "")
-	if ultimo != "" and int(g.get("assetto", 0)) != 0:
-		punti[ultimo] = maxi(0, int(punti[ultimo]) + int(g["assetto"]))
+	var equilibrio := clampi(int(g.get("vantaggi", 0)) - int(g.get("svantaggi", 0)), -3, 3)
+	if ultimo != "" and equilibrio != 0:
+		punti[ultimo] = maxi(0, int(punti[ultimo]) + equilibrio)
 	var migliore := ""
 	var massimo := 1
 	var pari := false
@@ -458,17 +459,62 @@ func chi_decide() -> int:
 func puo_agire(p: int) -> bool:
 	return not s["g"][p]["passato"]
 
-## Assetto misura equilibrio fisico e mentale. Resta volutamente piccolo:
-## deve aprire linee tattiche, non sostituire dadi, token e posizionamento.
-func cambia_assetto(p: int, delta: int, motivo: String = "") -> void:
+## La sfera: vantaggi e svantaggi (dal vecchio regolamento di Stefano).
+## I vantaggi sono l'occasione che p si costruisce sull'avversario: posizione, attenzione,
+## lettura dei suoi gesti. Si guadagnano solo se l'avversario è nel campo visivo (non alle spalle).
+## Gli svantaggi sono la propria esposizione: si sommano ai vantaggi di chi attacca,
+## e raddoppiano se si è di spalle all'avversario. Un attacco consuma entrambi.
+const MAX_VANTAGGI := 10
+
+## p vede l'avversario? (campo visivo: davanti e sui fianchi, non alle spalle)
+func vede(p: int) -> bool:
 	var g: Dictionary = s["g"][p]
-	var prima := int(g.get("assetto", 0))
-	g["assetto"] = clampi(prima + delta, -3, 3)
-	var reale := int(g["assetto"]) - prima
+	return lato(g["pos"], g["dir"], s["g"][1 - p]["pos"]) != "retro"
+
+func prendi_vantaggi(p: int, n: int, motivo: String = "") -> void:
+	var g: Dictionary = s["g"][p]
+	if n <= 0 or not vede(p):
+		return
+	var prima := int(g.get("vantaggi", 0))
+	g["vantaggi"] = mini(MAX_VANTAGGI, prima + n)
+	var reale := int(g["vantaggi"]) - prima
 	if reale == 0:
 		return
-	_scrivi("%s: Assetto %s%d%s (ora %+d)." % [g["nome"], "+" if reale > 0 else "", reale, (" per " + motivo) if motivo != "" else "", g["assetto"]])
-	_evento({"t": "assetto", "p": p, "delta": reale, "valore": g["assetto"], "motivo": motivo})
+	_scrivi("%s guadagna %s%s (ora %d)." % [g["nome"], plurale(reale, "vantaggio", "vantaggi"), (" per " + motivo) if motivo != "" else "", g["vantaggi"]])
+	_evento({"t": "vantaggi", "p": p, "delta": reale, "valore": g["vantaggi"], "motivo": motivo})
+
+func perdi_vantaggi(p: int, n: int, motivo: String = "") -> void:
+	var g: Dictionary = s["g"][p]
+	var prima := int(g.get("vantaggi", 0))
+	g["vantaggi"] = maxi(0, prima - n)
+	var reale := prima - int(g["vantaggi"])
+	if reale == 0:
+		return
+	_scrivi("%s perde %s%s (ora %d)." % [g["nome"], plurale(reale, "vantaggio", "vantaggi"), (" per " + motivo) if motivo != "" else "", g["vantaggi"]])
+	_evento({"t": "vantaggi", "p": p, "delta": -reale, "valore": g["vantaggi"], "motivo": motivo})
+
+func prendi_svantaggi(p: int, n: int, motivo: String = "") -> void:
+	var g: Dictionary = s["g"][p]
+	if n <= 0:
+		return
+	if not vede(p):
+		n *= 2
+	var prima := int(g.get("svantaggi", 0))
+	g["svantaggi"] = mini(MAX_VANTAGGI, prima + n)
+	var reale := int(g["svantaggi"]) - prima
+	if reale == 0:
+		return
+	_scrivi("%s prende %s%s (ora %d)." % [g["nome"], plurale(reale, "svantaggio", "svantaggi"), (" per " + motivo) if motivo != "" else "", g["svantaggi"]])
+	_evento({"t": "svantaggi", "p": p, "delta": reale, "valore": g["svantaggi"], "motivo": motivo})
+
+func togli_svantaggi(p: int, n: int, motivo: String = "") -> void:
+	var g: Dictionary = s["g"][p]
+	var prima := int(g.get("svantaggi", 0))
+	g["svantaggi"] = maxi(0, prima - n)
+	var reale := prima - int(g["svantaggi"])
+	if reale > 0:
+		_scrivi("%s si ricompone: -%s." % [g["nome"], plurale(reale, "svantaggio", "svantaggi")])
+		_evento({"t": "svantaggi", "p": p, "delta": -reale, "valore": g["svantaggi"], "motivo": motivo})
 
 # ================================================================ spazi
 
@@ -794,6 +840,14 @@ func bersagli(p: int, tok: String, sl: Dictionary, ids: Array) -> Array:
 		"guardia":
 			for l in 6:
 				out.append({"lato": l})
+		"varco":
+			# cercare il varco: l'avversario dev'essere nel campo visivo e non troppo lontano
+			if vede(p) and dist(g["pos"], go["pos"]) <= 4:
+				out.append({})
+		"leggi":
+			# leggere il colpo: impossibile se l'attaccante è alle spalle
+			if s["fase"] == "reazione" and not s["pend"].is_empty() and vede(p):
+				out.append({})
 		"gira_guardia":
 			for k in g["guardie"]:
 				for dd in [1, 5]:
@@ -986,8 +1040,28 @@ func reazione_possibile(dif: int, sl: Dictionary) -> bool:
 # ================================================================ opzioni
 
 func combinazioni(p: int, sl: Dictionary, limite: int = 0) -> Array:
-	var mano := dadi_di(p, "mucchio") + dadi_di(p, "mano")
+	var tutti := dadi_di(p, "mucchio") + dadi_di(p, "mano")
 	var k: int = sl["dadi"].size()
+	# solo i dadi che possono entrare in almeno un alloggio, e al massimo k copie
+	# di ogni dado uguale (stesso colore e valore): danno le stesse combinazioni
+	var c: Dictionary = sl.get("cond", {})
+	var mano := []
+	var copie := {}
+	for d in tutti:
+		if k == 1 and ((c.has("min") and d["v"] < int(c["min"])) or (c.has("max") and d["v"] > int(c["max"]))):
+			continue
+		var entra := false
+		for req in sl["dadi"]:
+			if colore_ok(d["col"], req):
+				entra = true
+				break
+		if not entra:
+			continue
+		var firma := "%s%d" % [d["col"], d["v"]]
+		if int(copie.get(firma, 0)) >= k:
+			continue
+		copie[firma] = int(copie.get(firma, 0)) + 1
+		mano.append(d)
 	if mano.size() < k:
 		return []
 	# Con il mucchio intero, materializzare tutte le combinazioni per ogni clone
@@ -1066,6 +1140,7 @@ static func _scelte(a: Array, k: int) -> Array:
 	return out
 
 func opzioni(p: int) -> Array:
+	conta_opzioni += 1
 	var out := []
 	if chi_decide() != p:
 		return out
@@ -1101,21 +1176,24 @@ func opzioni(p: int) -> Array:
 			if not dadi_di(p, "attesa").is_empty() and int(s["g"][p]["usi"].get("riposo", 0)) == 0 and int(s["g"][p]["usi"].get("attacchi", 0)) > 0:
 				out.append({"t": "riposo"})
 			if int(s["g"][p]["usi"].get("emergenza", 0)) == 0:
+				# per lo sblocco di emergenza basta il dado più basso di ogni colore
+				var bassi := {}
+				for d in dadi_di(p, "mucchio") + dadi_di(p, "mano"):
+					if not bassi.has(d["col"]) or d["v"] < bassi[d["col"]]["v"]:
+						bassi[d["col"]] = d
 				for k in s["g"][p]["occupati"]:
-					for d in dadi_di(p, "mucchio") + dadi_di(p, "mano"):
-						out.append({"t": "emergenza", "key": k, "dado": d["id"]})
-			# Il vantaggio può trasformarsi in fluidità: libera un gesto già
+					for col in bassi:
+						out.append({"t": "emergenza", "key": k, "dado": bassi[col]["id"]})
+			# Due vantaggi possono trasformarsi in fluidità: liberano un gesto già
 			# eseguito, ma i dadi devono comunque attraversare l'Attesa.
-			if int(s["g"][p].get("assetto", 0)) >= 1 and int(s["g"][p]["usi"].get("flusso", 0)) == 0:
+			if int(s["g"][p].get("vantaggi", 0)) >= 2 and int(s["g"][p]["usi"].get("flusso", 0)) == 0:
 				for k in s["g"][p]["occupati"]:
 					out.append({"t": "flusso", "key": k})
 		"rinforzo":
 			out.append({"t": "sferra"})
 		"reazione":
 			out.append({"t": "risolvi"})
-			if int(s["g"][p].get("assetto", 0)) >= 1 and not s["pend"].get("annullato", false):
-				out.append({"t": "adatta"})
-			if int(s["g"][p].get("assetto", 0)) >= 2 and not s["pend"].get("annullato", false) and s["pend"].get("contro", 0) == 0 and s["pend"].get("lato", "fronte") != "retro":
+			if int(s["g"][p].get("vantaggi", 0)) >= 3 and not s["pend"].get("annullato", false) and s["pend"].get("contro", 0) == 0 and s["pend"].get("lato", "fronte") != "retro":
 				out.append({"t": "rovescio_fluido"})
 	return out
 
@@ -1184,7 +1262,7 @@ func opzioni_recupero(p: int) -> Array:
 
 ## Ci sono spazi di supporto o di reazione utilizzabili adesso? (le libere non fermano il gioco)
 func _ha_risposte(p: int) -> bool:
-	if s["fase"] == "reazione" and int(s["g"][p].get("assetto", 0)) >= 1 and not s["pend"].get("annullato", false):
+	if s["fase"] == "reazione" and int(s["g"][p].get("vantaggi", 0)) >= 3 and not s["pend"].get("annullato", false):
 		return true
 	var libere := false
 	var chiuse := false
@@ -1218,30 +1296,21 @@ func applica(p: int, op: Dictionary) -> String:
 		return "Non tocca a te."
 	match op["t"]:
 		"flusso":
-			if s["fase"] != "azione" or int(s["g"][p].get("assetto", 0)) < 1 or int(s["g"][p]["usi"].get("flusso", 0)) > 0:
-				return "Serve Assetto positivo; il flusso si usa una volta per scambio."
+			if s["fase"] != "azione" or int(s["g"][p].get("vantaggi", 0)) < 2 or int(s["g"][p]["usi"].get("flusso", 0)) > 0:
+				return "Servono 2 vantaggi; il flusso si usa una volta per scambio."
 			var key_f := String(op.get("key", ""))
 			if not s["g"][p]["occupati"].has(key_f):
 				return "Lo spazio da sbloccare non è occupato."
-			cambia_assetto(p, -1, "entrare nel flusso")
+			perdi_vantaggi(p, 2, "entrare nel flusso")
 			s["g"][p]["usi"]["flusso"] = 1
 			_libera(p, key_f)
 			_scrivi("%s collega i gesti e libera %s: i dadi vanno in Attesa." % [s["g"][p]["nome"], key_f])
 			_evento({"t": "dadi", "p": p})
 			return ""
-		"adatta":
-			if s["fase"] != "reazione" or int(s["g"][p].get("assetto", 0)) < 1:
-				return "Serve Assetto positivo per adattarsi al colpo."
-			cambia_assetto(p, -1, "difesa fluida")
-			s["pend"]["riduz"] += 2
-			_scrivi("%s si adatta: -2 danni." % s["g"][p]["nome"])
-			_evento({"t": "para", "p": p})
-			_dopo_risposta()
-			return ""
 		"rovescio_fluido":
-			if s["fase"] != "reazione" or int(s["g"][p].get("assetto", 0)) < 2 or s["pend"].get("contro", 0) > 0 or s["pend"].get("lato", "fronte") == "retro":
-				return "Serve Assetto +2 e il nemico deve essere visibile."
-			cambia_assetto(p, -2, "rovescio fluido")
+			if s["fase"] != "reazione" or int(s["g"][p].get("vantaggi", 0)) < 3 or s["pend"].get("contro", 0) > 0 or s["pend"].get("lato", "fronte") == "retro":
+				return "Servono 3 vantaggi e il nemico deve essere visibile."
+			perdi_vantaggi(p, 3, "rovescio fluido")
 			s["pend"]["riduz"] += 1
 			s["pend"]["contro"] = 2
 			s["pend"]["ruba"] = true
@@ -1299,7 +1368,7 @@ func applica(p: int, op: Dictionary) -> String:
 				_libera(p, k)
 			s["g"][p]["passato"] = true
 			if not sl.is_empty():
-				cambia_assetto(p, 1, "cedere l'iniziativa con controllo")
+				prendi_vantaggi(p, 1, "cedere l'iniziativa con calma")
 			_scrivi("%s passa%s." % [s["g"][p]["nome"], "" if sl.is_empty() else " e libera " + plurale(sl.size(), "spazio", "spazi")])
 			_evento({"t": "dadi", "p": p})
 			_dopo_azione(p, false)
@@ -1413,14 +1482,36 @@ func _slot(p: int, op: Dictionary) -> String:
 	match sl["effetto"]:
 		# ---------------- reazioni e supporti durante un colpo
 		"schiva":
-			cambia_assetto(p, 1, "schivata")
+			prendi_vantaggi(p, 1, "schivata")
+			prendi_svantaggi(1 - p, 1, "colpo a vuoto")
 			s["pend"]["annullato"] = true
 			_scrivi("%s: %s!" % [g["nome"], sl["nome"]])
 			_evento({"t": "schiva", "p": p})
 			_risolvi_attacco()
 			return ""
+		"leggi":
+			var v0: int = vals[0]
+			var pe0: Dictionary = s["pend"]
+			match v0:
+				1:
+					prendi_svantaggi(p, 1, "lettura sbagliata")
+				2, 3:
+					pe0["vant"] = maxi(0, int(pe0.get("vant", 0)) - 1)
+					_scrivi("%s legge il colpo: l'attaccante perde 1 vantaggio." % g["nome"])
+				5:
+					pe0["vant"] = maxi(0, int(pe0.get("vant", 0)) - 2)
+					_scrivi("%s legge il colpo: l'attaccante perde 2 vantaggi." % g["nome"])
+				6:
+					pe0["vant"] = maxi(0, int(pe0.get("vant", 0)) - 3)
+					_scrivi("%s legge il colpo: l'attaccante perde 3 vantaggi." % g["nome"])
+					prendi_vantaggi(p, 1, "lettura perfetta")
+				_:
+					_scrivi("%s cerca di leggere il colpo, senza effetto." % g["nome"])
+			_evento({"t": "dadi", "p": p})
+			_dopo_risposta()
+			return ""
 		"para", "supp_difesa":
-			cambia_assetto(p, 1, "parata")
+			prendi_vantaggi(p, 1, "parata")
 			if sl["tipo"] == "supporto_difesa":
 				s["pend"]["supp_dif"] = int(s["pend"].get("supp_dif", 0)) + 1
 			s["pend"]["riduz"] += q
@@ -1432,7 +1523,7 @@ func _slot(p: int, op: Dictionary) -> String:
 			_dopo_risposta()
 			return ""
 		"contrattacco":
-			cambia_assetto(p, 1, "contrattacco")
+			prendi_vantaggi(p, 1, "contrattacco")
 			var pe: Dictionary = s["pend"]
 			pe["contro"] = maxi(1, q)
 			pe["ruba"] = true
@@ -1501,6 +1592,19 @@ func _slot(p: int, op: Dictionary) -> String:
 			dg["v"] = mini(6, int(dg["v"]) + q)
 			_scrivi("%s rafforza la guardia: ora vale %d." % [g["nome"], valore_guardia(p, String(b["key"]))])
 			_evento({"t": "guardia", "p": p})
+		"varco":
+			match int(vals[0]):
+				1:
+					prendi_svantaggi(p, 1, "distrazione")
+				2, 3:
+					prendi_vantaggi(p, 1, "un varco nella guardia")
+				5:
+					prendi_vantaggi(p, 1, "un varco nella guardia")
+					togli_svantaggi(p, 1, "ritrovare la calma")
+				6:
+					prendi_vantaggi(p, 3, "il punto debole")
+				_:
+					_scrivi("%s studia l'avversario, senza trovare il varco." % g["nome"])
 		"gira_guardia":
 			g["guardie"][String(b["key"])]["lato"] = int(b["lato"])
 			_scrivi("%s sposta la guardia %s." % [g["nome"], NOMI_LATO[int(b["lato"])]])
@@ -1535,8 +1639,10 @@ func _slot(p: int, op: Dictionary) -> String:
 			g["pos"] = b["pos"]
 			g["dir"] = b["dir"]
 			var nuovo_lato := lato(s["g"][o]["pos"], s["g"][o]["dir"], g["pos"])
-			if dist(g["pos"], s["g"][o]["pos"]) < dist(prima_pos, s["g"][o]["pos"]) or (prima_lato == "fronte" and nuovo_lato != "fronte"):
-				cambia_assetto(p, 1, "movimento fluido")
+			if nuovo_lato == "retro" and prima_lato != "retro":
+				prendi_vantaggi(p, 2, "alle sue spalle")
+			elif dist(g["pos"], s["g"][o]["pos"]) < dist(prima_pos, s["g"][o]["pos"]) or (prima_lato == "fronte" and nuovo_lato != "fronte"):
+				prendi_vantaggi(p, 1, "movimento fluido")
 			_scrivi("%s si muove." % g["nome"])
 			_evento({"t": "muovi", "p": p, "percorso": per})
 			_pericolo(p)
@@ -1749,11 +1855,12 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionar
 	# aumentare vita o armatura e senza toccare bonus, fianchi ed effetti.
 	var impatto := maxi(0, q - int(regole.get("attrito_mucchio", 0)))
 	var bonus := 0
-	# L'Assetto positivo può essere convertito in precisione. Si spende al
-	# massimo un punto per colpo, evitando esplosioni di danno.
-	if int(g.get("assetto", 0)) > 0:
-		bonus += 1
-		cambia_assetto(p, -1, "precisione dell'attacco")
+	# La sfera: l'attacco mette in gioco i vantaggi di chi colpisce e gli svantaggi
+	# di chi è colpito. Si risolvono quando il colpo arriva (il difensore può leggerlo prima).
+	var vant := int(g.get("vantaggi", 0))
+	var svant := int(s["g"][o].get("svantaggi", 0))
+	g["vantaggi"] = 0
+	s["g"][o]["svantaggi"] = 0
 	if l == "fianco":
 		bonus += 1
 	elif l == "retro":
@@ -1773,7 +1880,7 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionar
 	bonus += _accumulo(p, "accumulo_attacco")
 	# l'arena si scalda: più si combatte, più i colpi fanno male
 	bonus += int(s["round"]) / 10
-	s["pend"] = {"att": p, "dif": o, "danno": impatto, "bonus": bonus, "vd": vd, "mischia": d <= 2 and int(sl.get("portata", 1)) <= 2,
+	s["pend"] = {"att": p, "dif": o, "danno": impatto, "bonus": bonus, "vd": vd, "vant": vant, "svant": svant, "mischia": d <= 2 and int(sl.get("portata", 1)) <= 2,
 		"lato": l, "ignora": sl.get("ignora_armatura", false), "non_schivabile": sl.get("non_schivabile", false),
 		"riduz": 0, "annullato": false, "contro": 0, "spingi": int(sl.get("spingi", 0)), "attira": int(sl.get("attira", 0)),
 		"blocca": int(sl.get("blocca", 0)), "catena": sl.get("catena", false), "nome": sl["nome"], "ruba": false, "no_spinta": false,
@@ -1839,12 +1946,16 @@ func _risolvi_attacco() -> void:
 			_evento({"t": "para", "p": dif})
 			_erodi_guardia(dif, String(cop[1]), 1)
 		var arm: int = 0 if pe["ignora"] else int(gd["armatura"])
-		var tot: int = maxi(0, int(pe["danno"]) + int(pe["bonus"]) - int(pe["riduz"]))
+		# ogni tre punti fra vantaggi dell'attaccante e svantaggi del difensore: +1 danno
+		var sfera: int = (int(pe.get("vant", 0)) + int(pe.get("svant", 0))) / int(regole.get("punti_sfera", 3))
+		if sfera > 0:
+			_scrivi("La sfera è di %s: +%d danni (vantaggi %d, svantaggi %d)." % [ga["nome"], sfera, int(pe.get("vant", 0)), int(pe.get("svant", 0))])
+			_evento({"t": "sfera", "p": att, "n": sfera})
+		var tot: int = maxi(0, int(pe["danno"]) + int(pe["bonus"]) + sfera - int(pe["riduz"]))
 		# l'armatura da sola non annulla un colpo andato a segno: almeno 1 danno passa
 		tot = maxi(mini(tot, 1), tot - arm)
 		_ferisci(dif, tot)
-		if tot > 0:
-			cambia_assetto(dif, -1, "colpo subito")
+		# niente svantaggi per il colpo subito: creerebbero una valanga a favore di chi colpisce per primo
 		# colpo pesante: chi incassa molti danni arretra di un esagono
 		var soglia := int(regole.get("colpo_pesante", 4))
 		if s["vinc"] < 0 and soglia > 0 and tot >= soglia and pe["spingi"] == 0 and int(pe.get("spingi_lato", 0)) == 0 and pe["attira"] == 0 and not pe["no_spinta"]:
@@ -2334,13 +2445,22 @@ func prendi_eventi() -> Array:
 	s["eventi"] = []
 	return e
 
+static var conta_cloni := 0
+static var conta_opzioni := 0
+
 func clona() -> Motore:
+	conta_cloni += 1
 	var m := Motore.new()
 	m.dati = dati
 	m.cat = cat
+	# il diario e gli eventi crescono durante la partita: non si copiano nei cloni dell'IA
+	var log_ = s["log"]
+	var ev_ = s["eventi"]
+	s["log"] = []
+	s["eventi"] = []
 	m.s = s.duplicate(true)
-	m.s["log"] = []
-	m.s["eventi"] = []
+	s["log"] = log_
+	s["eventi"] = ev_
 	m.simulazione = true
 	m.rng.seed = rng.randi()
 	return m

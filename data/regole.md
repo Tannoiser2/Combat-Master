@@ -18,13 +18,29 @@ Ogni dado che entra nel mucchio viene tirato subito: il mucchio è sempre visibi
 1. Ritmo: a ogni scambio disponi di un budget di dadi pari al Ritmo; con metà delle ferite o meno diminuisce di uno. Non devi sceglierli tutti in anticipo.
 2. Iniziativa: comincia chi ha la somma più alta dei migliori dadi blu disponibili, fino al proprio Ritmo, più i bonus.
 3. Azioni: chi ha l'iniziativa fa UNA azione scegliendo direttamente dal mucchio i dadi richiesti. Ogni dado impegnato consuma un punto Ritmo dello scambio. Poi l'iniziativa passa, salvo combo e azioni LIBERE.
-4. Attitudine: i dadi rimasti sui token e l'Assetto formano Aggressiva (rosso), Fluida (blu), Guardinga (verde) o Concentrata (viola). L'Attitudine consente di concentrare il Ritmo sul colore favorito; in Neutrale occorre una selezione più mista.
+4. Attitudine: i dadi rimasti sui token e l'equilibrio fra vantaggi e svantaggi formano Aggressiva (rosso), Fluida (blu), Guardinga (verde) o Concentrata (viola). L'Attitudine consente di concentrare il Ritmo sul colore favorito; in Neutrale occorre una selezione più mista.
 5. I dadi piazzati restano sul token e occupano lo spazio. **Sbloccare** libera lo spazio ma manda i dadi in **Attesa**.
 6. Passare: quando passi sblocchi tanti spazi quanto il Recupero. Chi passa per primo lascia all'avversario la possibilità di agire da solo.
 7. Fine dello scambio: i dadi storditi e quelli preparati ma non utilizzati tornano nel mucchio; i dadi in Attesa vi restano. Il budget di Ritmo si rinnova.
 8. **Riposo**: una volta per scambio, dopo aver attaccato, recupera 1 dado dall'Attesa al mucchio e cede l'iniziativa.
 
+## La sfera: vantaggi e svantaggi
+Dal vecchio regolamento "Combattimento" e dall'idea della sfera dinamica dell'aikido: prima si costruisce l'occasione, poi si colpisce.
+- **Vantaggi**: l'occasione che ti costruisci sull'avversario (posizione, attenzione, lettura dei suoi gesti). Sulla mappa sono perle d'oro sopra la sua figura. Massimo 10.
+- **Svantaggi**: la tua esposizione. Perle rosso scuro sopra la tua figura. Massimo 10.
+- **Campo visivo**: vedi l'avversario se non ti è alle spalle. Non guadagni vantaggi su chi non vedi; se l'avversario ti sta alle spalle, gli svantaggi che prendi raddoppiano e non puoi leggere i suoi colpi.
+- Si guadagnano vantaggi con: Cercare il varco (azione di base), movimento che avvicina o aggira (+1; +2 se arrivi alle sue spalle), parate, schivate e contrattacchi riusciti, cedere l'iniziativa liberando spazi.
+- Si prendono svantaggi: quando il proprio colpo va a vuoto, con un 1 su Cercare il varco o Leggere il colpo.
+- **Attacco**: ogni colpo mette in gioco tutti i vantaggi di chi attacca e tutti gli svantaggi di chi è colpito: ogni 3 punti, +1 danno. Poi si azzerano entrambi.
+- **Leggere il colpo** (reazione di base): prima che il colpo arrivi, un dado toglie vantaggi all'attaccante (2-3: uno, 5: due, 6: tre e tu ne guadagni uno; 1: prendi uno svantaggio).
+- **Flusso**: due vantaggi liberano uno spazio occupato; i suoi dadi vanno in Attesa. **Rovescio**: tre vantaggi, quando ti attaccano di fronte o di fianco: -1 danno e contrattacco 2.
+
+## L'orbita dei dadi
+Nella scheda il mucchio è il cerchio al centro; intorno ci sono le zone dove i dadi passano: Sui token, In attesa, Fuori gioco. Le frecce mostrano il ciclo: dal mucchio un dado va su un token con un'azione, uno sblocco lo manda in Attesa, un recupero lo riporta nel mucchio. I dadi storditi escono dal gioco e tornano nel mucchio a fine scambio.
+
 ## Azioni base
+- Cercare il varco: libera, una volta per scambio, con l'avversario in vista entro 4 esagoni. 1: prendi 1 svantaggio; 2-3: 1 vantaggio; 4: niente; 5: 1 vantaggio e togli 1 svantaggio; 6: 3 vantaggi.
+- Leggere il colpo: reazione, una volta per scambio, non se ti attaccano alle spalle.
 - Riposo: recupera fino a 1 dado dalla zona di Attesa al Mucchio, ritirandoli; una volta per scambio, cede l'iniziativa.
 - Sblocco di emergenza: una volta per scambio puoi spendere un dado disponibile e un punto Ritmo per liberare uno spazio occupato. Il dado speso e quelli liberati finiscono in Attesa.
 - Colpo improvvisato: ogni scheda ha questo spazio; con un dado qualsiasi colpisci a portata 1 per un terzo del dado.

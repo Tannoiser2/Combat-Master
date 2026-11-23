@@ -394,9 +394,35 @@ func sincronizza() -> void:
 	aggiorna_guardie()
 
 ## Le guardie si vedono come muretti dorati sul lato protetto, alti quanto il loro valore.
+## Sopra ogni figura: perle d'oro per i vantaggi che l'avversario ha costruito su di lei,
+## perle rosso scuro per i suoi svantaggi (come i segnalini del vecchio regolamento).
 func aggiorna_guardie() -> void:
 	if m == null:
 		return
+	for i in figure.size():
+		var f2 := figure[i]
+		var vecchie := f2.get_node_or_null("Sfera")
+		if vecchie != null:
+			f2.remove_child(vecchie)
+			vecchie.queue_free()
+		var sf := Node3D.new()
+		sf.name = "Sfera"
+		f2.add_child(sf)
+		var nv := int(m.s["g"][1 - i].get("vantaggi", 0))
+		var ns := int(m.s["g"][i].get("svantaggi", 0))
+		var tot := nv + ns
+		for k in tot:
+			var perla := SphereMesh.new()
+			perla.radius = 0.07
+			perla.height = 0.14
+			var col := Disegno.ORO if k < nv else Color("#7a1f1a")
+			var mt := _mat(col, 0.3, 0.5)
+			if k < nv:
+				mt.emission_enabled = true
+				mt.emission = Disegno.ORO
+				mt.emission_energy_multiplier = 0.3
+			var ang := TAU * k / maxf(tot, 1.0)
+			_mesh(perla, mt, Vector3(cos(ang) * 0.32, 2.05, sin(ang) * 0.32), sf)
 	for i in figure.size():
 		var f := figure[i]
 		var vecchio := f.get_node_or_null("Guardie")
@@ -522,7 +548,7 @@ func _anima(e: Dictionary) -> Tween:
 	var f := figure[p]
 	var corpo: Node3D = f.get_node("Corpo")
 	match e["t"]:
-		"guardia":
+		"guardia", "vantaggi", "svantaggi":
 			aggiorna_guardie()
 			return null
 		"muovi", "spinto":
