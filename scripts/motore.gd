@@ -1526,6 +1526,7 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionar
 	var o := 1 - p
 	var g: Dictionary = s["g"][p]
 	var go: Dictionary = s["g"][o]
+	g["usi"]["attacchi"] = int(g["usi"].get("attacchi", 0)) + 1
 	var d := dist(g["pos"], go["pos"])
 	var l := lato(go["pos"], go["dir"], g["pos"])
 	var bonus := 0

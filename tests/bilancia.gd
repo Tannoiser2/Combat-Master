@@ -9,7 +9,8 @@ var cat: Dictionary
 var rng := RandomNumberGenerator.new()
 
 func _init() -> void:
-	var arg := {"partite": "300", "iterazioni": "1", "applica": "0", "budget": "0", "seme": "1", "rapporto": ""}
+	var arg := {"partite": "300", "iterazioni": "1", "applica": "0", "budget": "0", "seme": "1", "rapporto": "",
+		"valida": "0", "min_scambi": "10", "quota_doppi": "0.5"}
 	for a in OS.get_cmdline_user_args():
 		var kv := a.split("=")
 		if kv.size() == 2:
@@ -21,9 +22,11 @@ func _init() -> void:
 			Motore.regole[k] = int(arg[k])
 	rng.seed = int(arg["seme"])
 	var ultimo := {}
+	var fallimenti := 0
 	for it in int(arg["iterazioni"]):
-		ultimo = giro(int(arg["partite"]), int(arg["budget"]))
+		ultimo = giro(int(arg["partite"]), int(arg["budget"]), int(arg["min_scambi"]), float(arg["quota_doppi"]))
 		stampa(ultimo, it)
+		fallimenti += int(ultimo["duelli_non_validi"])
 		if arg["applica"] == "1":
 			var n := aggiusta(ultimo)
 			print("Iterazione %d: costi cambiati su %d token" % [it + 1, n])
@@ -31,11 +34,16 @@ func _init() -> void:
 		salva_catalogo()
 	if arg["rapporto"] != "":
 		scrivi_rapporto(ultimo, arg["rapporto"])
-	quit()
+	if arg["valida"] == "1" and fallimenti > 0:
+		push_error("Validazione duelli fallita: %d duelli non rispettano i criteri obbligatori." % fallimenti)
+		quit(1)
+	else:
+		quit()
 
-func giro(n: int, budget_fisso: int) -> Dictionary:
+func giro(n: int, budget_fisso: int, min_scambi: int = 10, quota_doppi: float = 0.5) -> Dictionary:
 	var st := {"partite": 0, "scambi": 0, "tempo": 0, "rifiuti": 0, "token": {}, "spazi": {}, "coppie": {},
-		"budget": {}, "durate": [], "danno": 0, "senza_attacchi": 0, "esagoni": 0, "spinti": 0, "giri": 0, "riposi": 0, "emergenze": 0, "interrotte": 0, "passi": 0, "recuperi_token": 0, "sblocchi_token": 0, "preparazioni_attesa": 0, "azioni_offensive": 0, "senza_attacchi_pg": 0, "attesa_picco": 0, "somme_attesa": 0, "campioni_attesa": 0}
+		"budget": {}, "durate": [], "danno": 0, "senza_attacchi": 0, "esagoni": 0, "spinti": 0, "giri": 0, "riposi": 0, "emergenze": 0, "interrotte": 0, "passi": 0, "recuperi_token": 0, "sblocchi_token": 0, "preparazioni_attesa": 0, "azioni_offensive": 0, "attacchi_reali": 0, "senza_attacchi_pg": 0, "attesa_picco": 0, "somme_attesa": 0, "campioni_attesa": 0,
+		"min_scambi": min_scambi, "quota_doppi": quota_doppi, "scambi_doppi": 0, "duelli_brevi": 0, "duelli_senza_entrambi": 0, "duelli_quota_doppi": 0, "duelli_non_validi": 0, "violazioni": []}
 	var t0 := Time.get_ticks_msec()
 	for i in n:
 		var budget: int = budget_fisso if budget_fisso > 0 else [30, 45, 60][i % 3]
@@ -45,6 +53,7 @@ func giro(n: int, budget_fisso: int) -> Dictionary:
 		m.nuova_partita(a, b, ["cortile", "rovine", "fossa"][rng.randi() % 3], rng.randi())
 		var passi := 0
 		var attacchi := [0, 0]
+		var attacchi_per_scambio := {}
 		while m.s["vinc"] < 0 and passi < 5000:
 			var chi := m.chi_decide()
 			var op := IA.scegli(m, chi, rng)
@@ -66,11 +75,9 @@ func giro(n: int, budget_fisso: int) -> Dictionary:
 					"prepara_attesa":
 						st["preparazioni_attesa"] += 1
 				if effetto in ["attacco", "assalto"]:
-					attacchi[chi] += 1
 					st["azioni_offensive"] += 1
 			elif op["t"] == "scarica":
 				st["spazi"][op["key"]] = int(st["spazi"].get(op["key"], 0)) + 1
-				attacchi[chi] += 1
 				st["azioni_offensive"] += 1
 			var e := m.applica(chi, op)
 			if e != "":
@@ -84,6 +91,14 @@ func giro(n: int, budget_fisso: int) -> Dictionary:
 				st["somme_attesa"] += attesa_n
 				st["campioni_attesa"] += 1
 			for ev in m.prendi_eventi():
+				if ev["t"] == "attacco":
+					var round_attacco := int(m.s["round"])
+					if not attacchi_per_scambio.has(round_attacco):
+						attacchi_per_scambio[round_attacco] = [false, false]
+					var autore := int(ev["p"])
+					attacchi_per_scambio[round_attacco][autore] = true
+					attacchi[autore] += 1
+					st["attacchi_reali"] += 1
 				if ev["t"] in ["muovi", "spinto"]:
 					var per: Array = ev["percorso"]
 					for j in range(1, per.size()):
@@ -103,7 +118,28 @@ func giro(n: int, budget_fisso: int) -> Dictionary:
 		st["durate"].append(int(m.s["round"]))
 		if int(m.s["round"]) >= Motore.ROUND_MAX:
 			st["tempo"] += 1
-		if attacchi[0] == 0 or attacchi[1] == 0:
+		var scambi_duali := 0
+		for numero_scambio in attacchi_per_scambio:
+			var presenti: Array = attacchi_per_scambio[numero_scambio]
+			if presenti[0] and presenti[1]:
+				scambi_duali += 1
+		st["scambi_doppi"] += scambi_duali
+		var durata := int(m.s["round"])
+		var breve: bool = durata < min_scambi
+		var senza_entrambi: bool = int(attacchi[0]) == 0 or int(attacchi[1]) == 0
+		var doppi_richiesti := int(ceil(float(durata) * quota_doppi))
+		var quota_mancante: bool = scambi_duali < doppi_richiesti
+		if breve:
+			st["duelli_brevi"] += 1
+		if senza_entrambi:
+			st["duelli_senza_entrambi"] += 1
+		if quota_mancante:
+			st["duelli_quota_doppi"] += 1
+		if breve or senza_entrambi or quota_mancante:
+			st["duelli_non_validi"] += 1
+			if st["violazioni"].size() < 20:
+				st["violazioni"].append("duello %d: %d scambi, attacchi %d/%d, scambi con entrambi %d/%d" % [i + 1, durata, attacchi[0], attacchi[1], scambi_duali, doppi_richiesti])
+		if senza_entrambi:
 			st["senza_attacchi"] += 1
 		for q in 2:
 			if attacchi[q] == 0:
@@ -136,7 +172,11 @@ func stampa(st: Dictionary, it: int) -> void:
 		it + 1, st["partite"], st["ms"] / 1000, float(st["scambi"]) / st["partite"], d[d.size() / 2], d[-1], st["tempo"], st["senza_attacchi"], st["rifiuti"]])
 	print("    Riposi %d, sblocchi emergenza %d, simulazioni interrotte %d, decisioni %d" % [st["riposi"], st["emergenze"], st["interrotte"], st["passi"]])
 	print("    Motore: recuperi token %d, sblocchi token %d, preparazioni %d, attacchi %d, combattenti senza attacchi %d" % [
-		st["recuperi_token"], st["sblocchi_token"], st["preparazioni_attesa"], st["azioni_offensive"], st["senza_attacchi_pg"]])
+		st["recuperi_token"], st["sblocchi_token"], st["preparazioni_attesa"], st["attacchi_reali"], st["senza_attacchi_pg"]])
+	print("    Criteri rigidi: non validi %d (brevi %d, senza entrambi %d, quota doppi insufficiente %d); scambi con attacchi di entrambi %d" % [
+		st["duelli_non_validi"], st["duelli_brevi"], st["duelli_senza_entrambi"], st["duelli_quota_doppi"], st["scambi_doppi"]])
+	for v in st["violazioni"]:
+		print("      VIOLAZIONE: ", v)
 	print("    Attesa media %.2f dadi per combattente/decisione; picco %d" % [
 		float(st["somme_attesa"]) / maxi(1, int(st["campioni_attesa"])), st["attesa_picco"]])
 	print("    Movimento per partita: %.1f esagoni percorsi, di cui %.1f per spinte, %.1f rotazioni" % [float(st["esagoni"]) / st["partite"], float(st["spinti"]) / st["partite"], float(st["giri"]) / st["partite"]])
@@ -233,6 +273,9 @@ func scrivi_rapporto(st: Dictionary, percorso: String) -> void:
 	t += "- Scambi per partita: media %.1f, mediana %d, massimo %d\n" % [float(st["scambi"]) / st["partite"], d[d.size() / 2], d[-1]]
 	t += "- Movimento per partita: %.1f esagoni percorsi (%.1f per spinte e lanci), %.1f rotazioni\n" % [float(st["esagoni"]) / st["partite"], float(st["spinti"]) / st["partite"], float(st["giri"]) / st["partite"]]
 	t += "- Partite finite al limite di tempo: %d\n- Partite in cui qualcuno non ha mai attaccato: %d\n- Opzioni rifiutate dal motore (errori): %d\n- Partite interrotte prima della vittoria: %d\n- Riposi: %d\n- Sblocchi di emergenza: %d\n- Decisioni elaborate: %d\n\n" % [st["tempo"], st["senza_attacchi"], st["rifiuti"], st["interrotte"], st["riposi"], st["emergenze"], st["passi"]]
+	t += "## Criteri obbligatori per duello\n\n"
+	t += "- Durata minima: %d scambi\n- Quota minima di scambi con attacchi di entrambi: %.0f%%\n- Duelli non validi: %d\n- Duelli troppo brevi: %d\n- Duelli in cui uno dei due non attacca: %d\n- Duelli sotto la quota di attacchi reciproci: %d\n\n" % [
+		st["min_scambi"], float(st["quota_doppi"]) * 100.0, st["duelli_non_validi"], st["duelli_brevi"], st["duelli_senza_entrambi"], st["duelli_quota_doppi"]]
 	t += "## Economia dell'Attesa\\n\\n"
 	t += "- Recuperi tramite token: %d\\n- Sblocchi tramite token: %d\\n- Dadi preparati in Attesa: %d\\n- Azioni offensive: %d\\n- Combattenti che non hanno attaccato: %d\\n- Dadi medi in Attesa per combattente e decisione: %.2f\\n- Picco Attesa: %d\\n\\n" % [
 		st["recuperi_token"], st["sblocchi_token"], st["preparazioni_attesa"], st["azioni_offensive"], st["senza_attacchi_pg"],

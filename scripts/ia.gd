@@ -11,6 +11,7 @@ const PESI_BASE := {
 	"armato": 1.5, "distanza": 0.7, "fronte": 1.2, "fianco": 0.8, "retro": 1.6, "pericolo": 3.0,
 	"iniziativa": 0.8, "azzardo": 7.0, "pesca_spazio": 0.5, "pesca_val": 0.1,
 	"minaccia": 1.2, "pericolo_subito": 1.0, "cede": 0.6, "guardia": 1.0,
+	"presenza_attacco": 4.0,
 }
 
 static var _pesi_salvati: Dictionary = {}
@@ -245,6 +246,10 @@ static func valuta(m: Motore, p: int, w: Dictionary) -> float:
 	var mia := minaccia(m, p)
 	var sua := minaccia(m, o)
 	v += w["minaccia"] * mia
+	# Un primo attacco nello scambio vale più di una seconda preparazione: rende
+	# l'IA combattiva senza obbligarla a sprecare dadi in colpi impossibili.
+	v += w["presenza_attacco"] * signi(int(g["usi"].get("attacchi", 0)))
+	v -= w["presenza_attacco"] * signi(int(go["usi"].get("attacchi", 0)))
 	if not go["passato"]:
 		v -= w["pericolo_subito"] * sua
 		# chi passa per primo lascia all'avversario azioni gratuite

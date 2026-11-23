@@ -35,10 +35,10 @@ jobs:
           $G --headless --path . --script tests/regole_test.gd -- partite=60
           $G --headless --path . --script tests/esagoni_test.gd
           $G --headless --path . --script tests/attesa_test.gd
-      - name: Bilancia 200 duelli per fascia
+      - name: Valida e bilancia i duelli della fascia
         run: |
           G=/tmp/godot-bin/Godot_v4.7-stable_linux.x86_64
-          $G --headless --path . --script tests/bilancia.gd -- partite=${{ github.event.inputs.duelli_per_fascia || 200 }} budget=${{ matrix.budget }} seme=${{ matrix.budget }} iterazioni=1 applica=0 rapporto=./docs/bilanciamento-v2-${{ matrix.budget }}.md
+          $G --headless --path . --script tests/bilancia.gd -- partite=${{ github.event.inputs.duelli_per_fascia || 200 }} budget=${{ matrix.budget }} seme=${{ matrix.budget }} iterazioni=1 applica=0 valida=1 min_scambi=10 quota_doppi=0.5 rapporto=./docs/bilanciamento-v2-${{ matrix.budget }}.md
       - name: Carica rapporto di bilanciamento
         if: always()
         uses: actions/upload-artifact@v4
