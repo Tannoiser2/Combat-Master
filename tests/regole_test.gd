@@ -105,6 +105,28 @@ func _init() -> void:
 	m2.s["attivo"] = 0
 	m2.s["g"][0]["passato"] = false
 	controlla(m2.applica(0, {"t": "riposo"}) != "", "riposo solo una volta per scambio")
+	# Una mossa di emergenza consuma un dado basso e libera un token, senza duplicare dadi.
+	var libero := -1
+	var occupato_dado := -1
+	for d in m2.s["g"][0]["dadi"]:
+		if d["st"] == "mucchio" and libero < 0:
+			libero = d["id"]
+			d["st"] = "mano"
+			d["v"] = 1
+		elif d["st"] == "mucchio" and occupato_dado < 0:
+			occupato_dado = d["id"]
+			d["st"] = "token"
+	if libero >= 0 and occupato_dado >= 0:
+		m2.s["g"][0]["occupati"]["spada/fendente"] = [occupato_dado]
+		controlla(m2.applica(0, {"t": "emergenza", "key": "spada/fendente", "dado": libero}) == "", "sblocco emergenza")
+		controlla(not m2.occupato(0, "spada", "fendente"), "emergenza libera lo spazio")
+		controlla(m2.dado(0, libero)["st"] == "attesa" and m2.dado(0, occupato_dado)["st"] == "attesa", "emergenza non ricicla immediatamente")
+		m2.s["fase"] = "azione"
+		m2.s["attivo"] = 0
+		m2.s["g"][0]["passato"] = false
+		controlla(m2.applica(0, {"t": "emergenza", "key": "spada/fendente", "dado": libero}) != "", "emergenza una volta per scambio")
+	else:
+		controlla(false, "dadi sufficienti per test emergenza")
 
 	# segreto: la trappola scatta quando si viene attaccati in mischia
 	var m3 := Motore.new(dati)
