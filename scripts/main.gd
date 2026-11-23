@@ -1010,7 +1010,7 @@ func _costruisci_hud() -> void:
 	_btn.clear()
 	var comandi := [["consigliata", "Scelta consigliata", _cmd_consigliata], ["passo", "Passo (2)", _cmd_passo],
 		["spinta", "Spingi la fortuna", _cmd_spinta], ["conserva", "Conserva", _cmd_conserva],
-		["passa", "Passa", _cmd_passa], ["riposo", "Riposo (+2)", _cmd_riposo],
+		["passa", "Passa", _cmd_passa], ["riposo", "Riposo (+1)", _cmd_riposo],
 		["emergenza", "Sblocca (dado)", _cmd_emergenza], ["sferra", "Sferra il colpo", _cmd_sferra], ["risolvi", "Subisci il colpo", _cmd_risolvi],
 		["rilancia", "Rilancia", _cmd_rilancia], ["ferma", "Fermati", _cmd_ferma], ["conferma", "Conferma", _cmd_conferma],
 		["annulla", "Annulla", _cmd_annulla]]
