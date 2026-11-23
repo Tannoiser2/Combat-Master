@@ -3,7 +3,7 @@ extends RefCounted
 ## Motore delle regole di Combat Master.
 ## I dadi girano in cerchio: dal mucchio se ne pescano e tirano tanti quanto il Ritmo,
 ## si piazzano sugli spazi dei token, dove restano (e lo spazio resta occupato)
-## finché un'azione di sblocco o il recupero li rimanda nel mucchio.
+## finché uno sblocco li trasferisce in Attesa. Solo il recupero li riporta nel mucchio.
 ## Nessuna dipendenza grafica: serve all'interfaccia, all'IA e ai test headless.
 
 const DIRS: Array[Vector2i] = [Vector2i(1, 0), Vector2i(1, -1), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(-1, 1), Vector2i(0, 1)]
@@ -138,6 +138,7 @@ func nuova_partita(pg0: Dictionary, pg1: Dictionary, arena_id: String, seme: int
 				n += 1
 		s["g"].append({"nome": pg.get("nome", "Combattente"), "pg": pg.duplicate(true),
 			"vita": st["vita"], "vita_max": st["vita"], "ritmo": st["ritmo"], "recupero": st["recupero"],
+			"assetto": 0, "scambi_senza_attacco": 0,
 			"armatura": st["armatura"], "mov": st["movimento"], "conserva_max": st["conserva"],
 			"ini": st["iniziativa"], "flag": st["flag"], "pos": partenze[i], "dir": dirs[i],
 			"dadi": dadi, "occupati": {}, "passato": false, "spinte": 0, "usi": {}, "armati": {}, "rivelati": {}, "bonus_ritmo": 0,
@@ -333,7 +334,8 @@ func _tira() -> int:
 ## Ogni dado che entra nel mucchio viene tirato: il mucchio è sempre visibile.
 func _al_mucchio(d: Dictionary) -> void:
 	d["st"] = "mucchio"
-	d["v"] = _tira()
+	d["v"] = maxi(_tira(), int(d.get("min_rientro", 1)))
+	d.erase("min_rientro")
 
 ## Prende dal mucchio i dadi più alti (usato dagli effetti automatici dei segreti).
 func _pesca_migliori(p: int, n: int) -> int:
@@ -371,6 +373,18 @@ func chi_decide() -> int:
 
 func puo_agire(p: int) -> bool:
 	return not s["g"][p]["passato"]
+
+## Assetto misura equilibrio fisico e mentale. Resta volutamente piccolo:
+## deve aprire linee tattiche, non sostituire dadi, token e posizionamento.
+func cambia_assetto(p: int, delta: int, motivo: String = "") -> void:
+	var g: Dictionary = s["g"][p]
+	var prima := int(g.get("assetto", 0))
+	g["assetto"] = clampi(prima + delta, -3, 3)
+	var reale := int(g["assetto"]) - prima
+	if reale == 0:
+		return
+	_scrivi("%s: Assetto %s%d%s (ora %+d)." % [g["nome"], "+" if reale > 0 else "", reale, (" per " + motivo) if motivo != "" else "", g["assetto"]])
+	_evento({"t": "assetto", "p": p, "delta": reale, "valore": g["assetto"], "motivo": motivo})
 
 # ================================================================ spazi
 
@@ -414,6 +428,8 @@ static func colore_ok(col: String, ammessi: Array) -> bool:
 ## Lo spazio è del tipo giusto per la fase e per chi decide (senza guardare i dadi).
 func slot_attivabile(p: int, tok: String, sl: Dictionary) -> bool:
 	if chi_decide() != p or occupato(p, tok, sl["id"]):
+		return false
+	if sl.get("una_volta", false) and int(s["g"][p]["usi"].get("slot:" + chiave(tok, sl["id"]), 0)) > 0:
 		return false
 	if s["g"][p].get("disarmati", {}).has(chiave(tok, sl["id"])):
 		return false
@@ -631,14 +647,17 @@ func _piazza(p: int, tok: String, sid: String, ids: Array, sl: Dictionary) -> vo
 	var restano := []
 	for id in ids:
 		var d := dado(p, id)
+		if sl.get("in_attesa", false):
+			d["st"] = "attesa"
+			continue
 		if d["v"] == 1 and g["flag"].has("riciclo") and g["usi"].get("riciclo", 0) == 0:
 			g["usi"]["riciclo"] = 1
-			_al_mucchio(d)
-			_scrivi("%s: niente si spreca, l'1 torna subito nel mucchio." % g["nome"])
+			d["st"] = "attesa"
+			_scrivi("%s: niente si spreca, l'1 entra in Attesa anziche occupare il token." % g["nome"])
 			continue
 		if d["v"] == 1 and sl.get("uno_torna", false):
-			d["v"] = _tira()
-			_scrivi("%s: l'1 torna subito in mano (ora %d)." % [g["nome"], d["v"]])
+			d["st"] = "attesa"
+			_scrivi("%s: l'1 entra in Attesa senza occupare il token." % g["nome"])
 			continue
 		d["st"] = "token"
 		restano.append(id)
@@ -646,18 +665,14 @@ func _piazza(p: int, tok: String, sid: String, ids: Array, sl: Dictionary) -> vo
 		var k := chiave(tok, sid)
 		g["occupati"][k] = g["occupati"].get(k, []) + restano
 
-## Libera uno spazio: i suoi dadi tornano nel mucchio (o in mano, ritirati).
-func _libera(p: int, key: String, in_mano := false) -> void:
+## Tutti gli sblocchi inviano i dadi in Attesa: nessun salto diretto in mano.
+func _libera(p: int, key: String, _in_mano := false) -> void:
 	var g: Dictionary = s["g"][p]
 	if not g["occupati"].has(key):
 		return
 	for id in g["occupati"][key]:
 		var d := dado(p, id)
-		if in_mano:
-			d["st"] = "mano"
-			d["v"] = _tira()
-		else:
-			_al_mucchio(d)
+		d["st"] = "attesa"
 	g["occupati"].erase(key)
 	g["armati"].erase(key)
 	g["carichi"].erase(key)
@@ -739,6 +754,25 @@ func bersagli(p: int, tok: String, sl: Dictionary, ids: Array) -> Array:
 					if d["v"] <= V:
 						out.append({"bers": o})
 						break
+		"prepara_attesa":
+			for ris in dadi_di(p, "attesa"):
+				if not ids.has(ris["id"]) and int(ris.get("min_rientro", 1)) < int(sl.get("soglia", 4)):
+					out.append({"dado": ris["id"]})
+		"recupera":
+			var riserva := dadi_di(p, "attesa")
+			# Il giocatore sceglie quali dadi recuperare: il colore conta tanto quanto il valore.
+			var massimo := mini(quantita(p, sl, ids), riserva.size())
+			# Dare priorita al recupero pieno, ma limitare la ramificazione dell'IA.
+			for n_rec in range(massimo, 0, -1):
+				for gruppo in _scelte(riserva, n_rec):
+					if out.size() >= 16:
+						break
+					var scelti := []
+					for dado_att in gruppo:
+						scelti.append(dado_att["id"])
+					out.append({"dadi": scelti})
+				if out.size() >= 16:
+					break
 		"sblocca":
 			var chiavi: Array = g["occupati"].keys()
 			chiavi.erase(chiave(tok, sl["id"]))
@@ -929,10 +963,27 @@ func opzioni(p: int) -> Array:
 				out.append({"t": "scarica", "key": k})
 			for c in opzioni_recupero(p):
 				out.append({"t": "passa", "slots": c})
+			# Il recupero generico non deve sostituire il primo gesto offensivo:
+			# diventa disponibile solo dopo avere attaccato nello scambio.
+			if not dadi_di(p, "attesa").is_empty() and int(s["g"][p]["usi"].get("riposo", 0)) == 0 and int(s["g"][p]["usi"].get("attacchi", 0)) > 0:
+				out.append({"t": "riposo"})
+			if int(s["g"][p]["usi"].get("emergenza", 0)) == 0:
+				for k in s["g"][p]["occupati"]:
+					for d in dadi_di(p, "mano"):
+						out.append({"t": "emergenza", "key": k, "dado": d["id"]})
+			# Il vantaggio può trasformarsi in fluidità: libera un gesto già
+			# eseguito, ma i dadi devono comunque attraversare l'Attesa.
+			if int(s["g"][p].get("assetto", 0)) >= 1 and int(s["g"][p]["usi"].get("flusso", 0)) == 0:
+				for k in s["g"][p]["occupati"]:
+					out.append({"t": "flusso", "key": k})
 		"rinforzo":
 			out.append({"t": "sferra"})
 		"reazione":
 			out.append({"t": "risolvi"})
+			if int(s["g"][p].get("assetto", 0)) >= 1 and not s["pend"].get("annullato", false):
+				out.append({"t": "adatta"})
+			if int(s["g"][p].get("assetto", 0)) >= 2 and not s["pend"].get("annullato", false) and s["pend"].get("contro", 0) == 0 and s["pend"].get("lato", "fronte") != "retro":
+				out.append({"t": "rovescio_fluido"})
 	return out
 
 ## Contatori carichi che ora possono scaricarsi sul nemico.
@@ -1000,6 +1051,8 @@ func opzioni_recupero(p: int) -> Array:
 
 ## Ci sono spazi di supporto o di reazione utilizzabili adesso? (le libere non fermano il gioco)
 func _ha_risposte(p: int) -> bool:
+	if s["fase"] == "reazione" and int(s["g"][p].get("assetto", 0)) >= 1 and not s["pend"].get("annullato", false):
+		return true
 	var libere := false
 	var chiuse := false
 	var tipi := ["supporto_attacco"] if s["fase"] == "rinforzo" else ["reazione", "supporto_difesa"]
@@ -1031,8 +1084,74 @@ func applica(p: int, op: Dictionary) -> String:
 	if chi_decide() != p:
 		return "Non tocca a te."
 	match op["t"]:
+		"flusso":
+			if s["fase"] != "azione" or int(s["g"][p].get("assetto", 0)) < 1 or int(s["g"][p]["usi"].get("flusso", 0)) > 0:
+				return "Serve Assetto positivo; il flusso si usa una volta per scambio."
+			var key_f := String(op.get("key", ""))
+			if not s["g"][p]["occupati"].has(key_f):
+				return "Lo spazio da sbloccare non è occupato."
+			cambia_assetto(p, -1, "entrare nel flusso")
+			s["g"][p]["usi"]["flusso"] = 1
+			_libera(p, key_f)
+			_scrivi("%s collega i gesti e libera %s: i dadi vanno in Attesa." % [s["g"][p]["nome"], key_f])
+			_evento({"t": "dadi", "p": p})
+			return ""
+		"adatta":
+			if s["fase"] != "reazione" or int(s["g"][p].get("assetto", 0)) < 1:
+				return "Serve Assetto positivo per adattarsi al colpo."
+			cambia_assetto(p, -1, "difesa fluida")
+			s["pend"]["riduz"] += 2
+			_scrivi("%s si adatta: -2 danni." % s["g"][p]["nome"])
+			_evento({"t": "para", "p": p})
+			_dopo_risposta()
+			return ""
+		"rovescio_fluido":
+			if s["fase"] != "reazione" or int(s["g"][p].get("assetto", 0)) < 2 or s["pend"].get("contro", 0) > 0 or s["pend"].get("lato", "fronte") == "retro":
+				return "Serve Assetto +2 e il nemico deve essere visibile."
+			cambia_assetto(p, -2, "rovescio fluido")
+			s["pend"]["riduz"] += 1
+			s["pend"]["contro"] = 2
+			s["pend"]["ruba"] = true
+			_scrivi("%s accompagna il colpo: -1 danno e contrattacco 2." % s["g"][p]["nome"])
+			_evento({"t": "para", "p": p})
+			_dopo_risposta()
+			return ""
 		"prendi":
 			return _prendi(p, op["dadi"])
+		"emergenza":
+			if s["fase"] != "azione":
+				return "Lo sblocco di emergenza richiede una azione."
+			var g_e: Dictionary = s["g"][p]
+			if int(g_e["usi"].get("emergenza", 0)) > 0:
+				return "Hai gia usato lo sblocco di emergenza."
+			var key_e: String = str(op.get("key", ""))
+			var d_e := dado(p, int(op.get("dado", -1)))
+			if not g_e["occupati"].has(key_e) or d_e.is_empty() or d_e["st"] != "mano":
+				return "Scegli uno spazio occupato e un dado dalla mano."
+			d_e["st"] = "attesa"
+			_libera(p, key_e)
+			g_e["usi"]["emergenza"] = 1
+			_scrivi("%s sacrifica un dado per sbloccare %s (dadi in Attesa)." % [g_e["nome"], key_e])
+			_evento({"t": "dadi", "p": p})
+			_dopo_azione(p, false)
+			return ""
+		"riposo":
+			if s["fase"] != "azione":
+				return "Puoi riposare solo nella fase azione."
+			var g_r: Dictionary = s["g"][p]
+			if int(g_r["usi"].get("riposo", 0)) > 0:
+				return "Hai gia riposato in questo scambio."
+			var in_attesa := dadi_di(p, "attesa")
+			if in_attesa.is_empty():
+				return "Non ci sono dadi in Attesa da recuperare."
+			var n_r := mini(1, in_attesa.size())
+			for i in n_r:
+				_al_mucchio(in_attesa[i])
+			g_r["usi"]["riposo"] = 1
+			_scrivi("%s riposa: recupera %s dall Attesa." % [g_r["nome"], plurale(n_r, "dado", "dadi")])
+			_evento({"t": "dadi", "p": p})
+			_dopo_azione(p, false)
+			return ""
 		"passa":
 			if s["fase"] != "azione":
 				return "Ora non puoi passare."
@@ -1045,6 +1164,8 @@ func applica(p: int, op: Dictionary) -> String:
 			for k in sl:
 				_libera(p, k)
 			s["g"][p]["passato"] = true
+			if not sl.is_empty():
+				cambia_assetto(p, 1, "cedere l'iniziativa con controllo")
 			_scrivi("%s passa%s." % [s["g"][p]["nome"], "" if sl.is_empty() else " e libera " + plurale(sl.size(), "spazio", "spazi")])
 			_evento({"t": "dadi", "p": p})
 			_dopo_azione(p, false)
@@ -1144,18 +1265,22 @@ func _slot(p: int, op: Dictionary) -> String:
 	var q := quantita(p, sl, ids)
 	var vals := _valori(p, ids)
 	_piazza(p, tok, sl["id"], ids, sl)
+	if sl.get("una_volta", false):
+		s["g"][p]["usi"]["slot:" + chiave(tok, sl["id"])] = 1
 	_evento({"t": "dadi", "p": p})
 	var g: Dictionary = s["g"][p]
 	var o := 1 - p
 	match sl["effetto"]:
 		# ---------------- reazioni e supporti durante un colpo
 		"schiva":
+			cambia_assetto(p, 1, "schivata")
 			s["pend"]["annullato"] = true
 			_scrivi("%s: %s!" % [g["nome"], sl["nome"]])
 			_evento({"t": "schiva", "p": p})
 			_risolvi_attacco()
 			return ""
 		"para", "supp_difesa":
+			cambia_assetto(p, 1, "parata")
 			if sl["tipo"] == "supporto_difesa":
 				s["pend"]["supp_dif"] = int(s["pend"].get("supp_dif", 0)) + 1
 			s["pend"]["riduz"] += q
@@ -1167,6 +1292,7 @@ func _slot(p: int, op: Dictionary) -> String:
 			_dopo_risposta()
 			return ""
 		"contrattacco":
+			cambia_assetto(p, 1, "contrattacco")
 			var pe: Dictionary = s["pend"]
 			pe["contro"] = maxi(1, q)
 			pe["ruba"] = true
@@ -1262,10 +1388,15 @@ func _slot(p: int, op: Dictionary) -> String:
 			_scrivi("%s fa girare %s." % [g["nome"], go2["nome"]])
 			_evento({"t": "muovi", "p": o, "percorso": [Vector3i(go2["pos"].x, go2["pos"].y, go2["dir"])]})
 		"movimento":
+			var prima_pos: Vector2i = g["pos"]
+			var prima_lato := lato(s["g"][o]["pos"], s["g"][o]["dir"], prima_pos)
 			var rag := raggiungibili(p, q + int(g["mov"]))
 			var per := percorso(rag, Vector3i(b["pos"].x, b["pos"].y, b["dir"]))
 			g["pos"] = b["pos"]
 			g["dir"] = b["dir"]
+			var nuovo_lato := lato(s["g"][o]["pos"], s["g"][o]["dir"], g["pos"])
+			if dist(g["pos"], s["g"][o]["pos"]) < dist(prima_pos, s["g"][o]["pos"]) or (prima_lato == "fronte" and nuovo_lato != "fronte"):
+				cambia_assetto(p, 1, "movimento fluido")
 			_scrivi("%s si muove." % g["nome"])
 			_evento({"t": "muovi", "p": p, "percorso": per})
 			_pericolo(p)
@@ -1305,6 +1436,26 @@ func _slot(p: int, op: Dictionary) -> String:
 				_scrivi("%s: %s, stordito un %d di %s." % [g["nome"], sl["nome"], best["v"], s["g"][o]["nome"]])
 				_evento({"t": "blocco", "p": o, "n": 1})
 				_evento({"t": "dadi", "p": o})
+		"prepara_attesa":
+			var preparato := dado(p, int(b["dado"]))
+			preparato["min_rientro"] = maxi(int(preparato.get("min_rientro", 1)), int(sl.get("soglia", 4)))
+			_scrivi("%s prepara un dado %s in Attesa: al recupero uscira almeno %d." % [g["nome"], preparato["col"], preparato["min_rientro"]])
+		"recupera":
+			var quanti := 0
+			for id_att in b["dadi"]:
+				var recuperato := dado(p, int(id_att))
+				if recuperato.get("st", "") != "attesa":
+					continue
+				_al_mucchio(recuperato)
+				if int(sl.get("bonus_dado", 0)) != 0:
+					recuperato["v"] = clampi(int(recuperato["v"]) + int(sl["bonus_dado"]), 1, 6)
+				quanti += 1
+			if int(sl.get("cura", 0)) > 0 and quanti > 0:
+				var salute := mini(int(sl["cura"]), g["vita_max"] - g["vita"])
+				g["vita"] += salute
+				if salute > 0:
+					_evento({"t": "cura", "p": p, "n": salute})
+			_scrivi("%s: %s, recupera %s dall'Attesa." % [g["nome"], sl["nome"], plurale(quanti, "dado", "dadi")])
 		"sblocca":
 			for k in b["slots"]:
 				_libera(p, k, sl.get("in_mano", false))
@@ -1450,9 +1601,15 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionar
 	var o := 1 - p
 	var g: Dictionary = s["g"][p]
 	var go: Dictionary = s["g"][o]
+	g["usi"]["attacchi"] = int(g["usi"].get("attacchi", 0)) + 1
 	var d := dist(g["pos"], go["pos"])
 	var l := lato(go["pos"], go["dir"], g["pos"])
 	var bonus := 0
+	# L'Assetto positivo può essere convertito in precisione. Si spende al
+	# massimo un punto per colpo, evitando esplosioni di danno.
+	if int(g.get("assetto", 0)) > 0:
+		bonus += 1
+		cambia_assetto(p, -1, "precisione dell'attacco")
 	if l == "fianco":
 		bonus += 1
 	elif l == "retro":
@@ -1542,6 +1699,8 @@ func _risolvi_attacco() -> void:
 		# l'armatura da sola non annulla un colpo andato a segno: almeno 1 danno passa
 		tot = maxi(mini(tot, 1), tot - arm)
 		_ferisci(dif, tot)
+		if tot > 0:
+			cambia_assetto(dif, -1, "colpo subito")
 		# colpo pesante: chi incassa molti danni arretra di un esagono
 		var soglia := int(regole.get("colpo_pesante", 4))
 		if s["vinc"] < 0 and soglia > 0 and tot >= soglia and pe["spingi"] == 0 and int(pe.get("spingi_lato", 0)) == 0 and pe["attira"] == 0 and not pe["no_spinta"]:
@@ -1822,12 +1981,25 @@ func _nuovo_round() -> void:
 	s["da_pescare"] = []
 	for p in 2:
 		var g: Dictionary = s["g"][p]
+		if int(s["round"]) > 1:
+			if int(g["usi"].get("attacchi", 0)) == 0:
+				g["scambi_senza_attacco"] = mini(3, int(g.get("scambi_senza_attacco", 0)) + 1)
+			else:
+				g["scambi_senza_attacco"] = 0
 		g["passato"] = false
 		g["spinte"] = 0
 		g["usi"] = {}
 		g["disarmati"] = {}
 		for d in dadi_di(p, "conservato"):
 			d["st"] = "mano"
+		# Respiro di base: un solo dado completa il circuito a ogni nuovo
+		# scambio. I token di recupero restano necessari quando l'Attesa si
+		# riempie, ma un attacco semplice non resta spento per diversi turni.
+		var in_attesa := dadi_di(p, "attesa")
+		if not in_attesa.is_empty():
+			_al_mucchio(in_attesa[0])
+			_scrivi("%s recupera naturalmente 1 dado dall'Attesa." % g["nome"])
+			_evento({"t": "dadi", "p": p})
 		if da_prendere(p) > 0:
 			s["da_pescare"].append(p)
 	s["fase"] = "pesca"

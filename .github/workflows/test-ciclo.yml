@@ -1,0 +1,48 @@
+name: Verifica ciclo dadi v2
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      duelli_per_fascia:
+        description: "Duelli IA per budget (200 standard, 1000 approfondito)"
+        required: false
+        default: "200"
+        type: choice
+        options: ["200", "400", "1000"]
+concurrency:
+  group: test-ciclo-v2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        budget: [30, 45, 60]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installa Godot 4.7
+        run: |
+          curl -fLsS https://github.com/godotengine/godot/releases/download/4.7-stable/Godot_v4.7-stable_linux.x86_64.zip -o /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot-bin
+      - name: Importa e verifica il codice
+        run: |
+          G=/tmp/godot-bin/Godot_v4.7-stable_linux.x86_64
+          $G --headless --path . --editor --import --quit
+          $G --headless --path . --script tests/regole_test.gd -- partite=60
+          $G --headless --path . --script tests/esagoni_test.gd
+          $G --headless --path . --script tests/attesa_test.gd
+      - name: Valida e bilancia i duelli della fascia
+        run: |
+          G=/tmp/godot-bin/Godot_v4.7-stable_linux.x86_64
+          $G --headless --path . --script tests/bilancia.gd -- partite=${{ github.event.inputs.duelli_per_fascia || 200 }} budget=${{ matrix.budget }} seme=${{ matrix.budget }} iterazioni=1 applica=0 valida=1 min_scambi=10 quota_doppi=0.5 rapporto=./docs/bilanciamento-v2-${{ matrix.budget }}.md
+      - name: Carica rapporto di bilanciamento
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bilanciamento-v2-${{ matrix.budget }}
+          path: docs/bilanciamento-v2-${{ matrix.budget }}.md
+          if-no-files-found: warn

@@ -26,7 +26,9 @@ static func _usabile(sl: Dictionary, prodotti: Dictionary) -> bool:
 			return false
 	return true
 
-## Il personaggio ha almeno un attacco e un modo per raggiungere il nemico (o un attacco a distanza)?
+## Il personaggio ha almeno un attacco affidabile da un dado. Il banco di
+## bilanciamento deve confrontare motori sostenibili, non schede che possono
+## attaccare soltanto quando esce una combinazione rara.
 static func valido(cat: Dictionary, pg: Dictionary) -> bool:
 	if not Motore.problemi_caratteristiche(cat, pg).is_empty():
 		return false
@@ -43,7 +45,7 @@ static func valido(cat: Dictionary, pg: Dictionary) -> bool:
 		for sl in cat[id]["slot"]:
 			if not _usabile(sl, st["dadi"]):
 				continue
-			var semplice: bool = sl["dadi"].size() <= 2 and not sl["cond"].has("valori") and not sl["cond"].has("somma_esatta") and not sl.get("esecuzione", false) and not sl.get("elimina_dado", false)
+			var semplice: bool = sl["dadi"].size() == 1 and not sl["cond"].has("valori") and not sl["cond"].has("somma_esatta") and not sl.get("esecuzione", false) and not sl.get("elimina_dado", false)
 			if sl["effetto"] in ["attacco", "assalto"] and sl["tipo"] == "azione" and semplice:
 				attacco = true
 				if int(sl.get("portata", 1)) >= 3:

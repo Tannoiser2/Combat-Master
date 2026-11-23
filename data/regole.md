@@ -18,15 +18,21 @@ Ogni dado che entra nel mucchio viene tirato subito: il mucchio è sempre visibi
 1. Scelta: a ogni scambio prendi dal mucchio tanti dadi quanto il tuo Ritmo, scegliendoli fra quelli visibili. Con metà delle ferite o meno ne prendi uno in meno.
 2. Iniziativa: comincia chi ha la somma più alta dei dadi blu in mano (più i bonus).
 3. Azioni: chi ha l'iniziativa fa UNA azione, piazzando dadi della mano su uno spazio. Poi l'iniziativa passa, salvo gli spazi "Mantieni l'iniziativa" e le azioni LIBERE, che non la cedono.
-4. I dadi piazzati restano sul token e lo spazio resta occupato: non si può riusare finché non lo liberi. Liberare uno spazio rimanda i suoi dadi nel mucchio, dove vengono ritirati.
-5. Passare: quando passi liberi tanti spazi quanto il tuo Recupero. Chi passa per primo lascia all'avversario la possibilità di agire da solo.
-6. Fine dello scambio: i dadi rimasti in mano e quelli storditi tornano nel mucchio (ritirati), salvo quelli conservati.
+4. I dadi piazzati restano sul token e occupano lo spazio. **Sbloccare** libera lo spazio ma manda i dadi in **Attesa**, senza ritirarli; non diventano subito disponibili.
+5. Passare: quando passi sblocchi tanti spazi quanto il tuo Recupero, mandando i relativi dadi in Attesa. Chi passa per primo lascia all'avversario la possibilità di agire da solo.
+6. Fine dello scambio: i dadi rimasti in mano e quelli storditi tornano nel mucchio (ritirati), salvo quelli conservati. I dadi in Attesa vi restano.
+7. **Riposo**: una volta per scambio, durante la propria azione, si può recuperare fino a 1 dado dall'Attesa, rimettendoli nel mucchio e ritirandoli. Riposare cede l'iniziativa. I dadi recuperati non entrano direttamente in mano.
 
 ## Azioni base
+- Riposo: recupera fino a 1 dado dalla zona di Attesa al Mucchio, ritirandoli; una volta per scambio, cede l'iniziativa.
+- Sblocco di emergenza: una volta per scambio puoi spendere un dado in mano per liberare uno spazio occupato. Il dado speso e quelli liberati finiscono in Attesa; l'iniziativa passa. Anche un dado da 1 può essere utile.
 - Colpo improvvisato: ogni scheda ha questo spazio; con un dado qualsiasi colpisci a portata 1 per un terzo del dado.
 - Passo: una volta per scambio, senza dadi, ti muovi con 2 punti movimento.
 - Spingere la fortuna: una volta per scambio ritiri i dadi in mano che vuoi; ogni 1 che esce resta stordito.
 - Conservare: metti da parte un dado in mano per lo scambio seguente.
+
+## Economia dell'Attesa
+Il Riposo universale recupera solo 1 dado e cede l'iniziativa. I token specializzati possono recuperare 2 o 3 dadi, modificare i risultati o curare, ma richiedono un investimento di punti e lasciano il dado speso impegnato. Gli sblocchi trasferiscono sempre i dadi in Attesa; anche i dadi che evitano di occupare un token grazie a un talento passano per Attesa.
 
 ## Tipi di spazio
 - AZIONE: si usa quando hai l'iniziativa e la cede.
@@ -46,7 +52,7 @@ Ritocco (±1), Rovescio (l'1 diventa 6), Cambio di peso (scambia due valori), Ec
 
 ## L'esagono sui token
 Alcuni token hanno un esagono disegnato. Il dado si mette su un lato dell'esagono, che corrisponde a un lato del corpo (davanti, avanti a sinistra, dietro a sinistra, dietro, dietro a destra, avanti a destra): su quel lato vale pieno, sui due lati vicini vale 1 in meno, sui due successivi 2 in meno, sul lato opposto 3 in meno.
-- Guardia (prima del colpo): si prepara come azione. Il dado resta sul token e ferma ogni colpo che arriva da quel lato per il suo valore, ridotto secondo la distanza dal lato scelto. Ogni colpo fermato toglie 1 al dado; a zero la guardia cede e il dado torna nel mucchio. La guardia gira con il corpo: se il nemico ti aggira o ti fa girare, ti trova scoperto.
+- Guardia (prima del colpo): si prepara come azione. Il dado resta sul token e ferma ogni colpo che arriva da quel lato per il suo valore, ridotto secondo la distanza dal lato scelto. Ogni colpo fermato toglie 1 al dado; a zero la guardia cede e il dado passa in Attesa. La guardia gira con il corpo: se il nemico ti aggira o ti fa girare, ti trova scoperto.
 - Reazioni (dopo il colpo): una volta che l'attacco è partito si risponde solo con le reazioni (parate, schivate, passi laterali, spostare la guardia di un lato).
 - Colpo mirato: il dado si mette sul lato verso cui colpisci. Se prima che il colpo arrivi il nemico si sposta (passo laterale, balzo), il colpo arriva di sbieco e perde 1 per ogni lato di scarto; se il nemico esce dalla portata va a vuoto.
 - Alcuni token fanno più cose insieme: Lama e brocchiero colpisce e lascia il dado in guardia; Tenere la guardia e Spirito saldo alzano il dado di una guardia già messa; Sfondare e Rompiguardia abbassano quelli delle guardie nemiche.
