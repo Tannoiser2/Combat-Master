@@ -35,7 +35,7 @@ func _init() -> void:
 
 func giro(n: int, budget_fisso: int) -> Dictionary:
 	var st := {"partite": 0, "scambi": 0, "tempo": 0, "rifiuti": 0, "token": {}, "spazi": {}, "coppie": {},
-		"budget": {}, "durate": [], "danno": 0, "senza_attacchi": 0, "esagoni": 0, "spinti": 0, "giri": 0, "riposi": 0, "emergenze": 0, "interrotte": 0, "passi": 0}
+		"budget": {}, "durate": [], "danno": 0, "senza_attacchi": 0, "esagoni": 0, "spinti": 0, "giri": 0, "riposi": 0, "emergenze": 0, "interrotte": 0, "passi": 0, "recuperi_token": 0, "sblocchi_token": 0, "preparazioni_attesa": 0, "azioni_offensive": 0, "senza_attacchi_pg": 0, "attesa_picco": 0, "somme_attesa": 0, "campioni_attesa": 0}
 	var t0 := Time.get_ticks_msec()
 	for i in n:
 		var budget: int = budget_fisso if budget_fisso > 0 else [30, 45, 60][i % 3]
@@ -57,17 +57,32 @@ func giro(n: int, budget_fisso: int) -> Dictionary:
 			if op["t"] == "slot":
 				var k: String = op["tok"] + "/" + op["slot"]
 				st["spazi"][k] = int(st["spazi"].get(k, 0)) + 1
-				if m.slot_def(op["tok"], op["slot"])["effetto"] in ["attacco", "assalto"]:
+				var effetto: String = m.slot_def(op["tok"], op["slot"])["effetto"]
+				match effetto:
+					"recupera":
+						st["recuperi_token"] += 1
+					"sblocca":
+						st["sblocchi_token"] += 1
+					"prepara_attesa":
+						st["preparazioni_attesa"] += 1
+				if effetto in ["attacco", "assalto"]:
 					attacchi[chi] += 1
+					st["azioni_offensive"] += 1
 			elif op["t"] == "scarica":
 				st["spazi"][op["key"]] = int(st["spazi"].get(op["key"], 0)) + 1
 				attacchi[chi] += 1
+				st["azioni_offensive"] += 1
 			var e := m.applica(chi, op)
 			if e != "":
 				st["rifiuti"] += 1
 				print("RIFIUTATA: ", e, " ", op)
 				break
 			passi += 1
+			for pp in 2:
+				var attesa_n := m.dadi_di(pp, "attesa").size()
+				st["attesa_picco"] = maxi(int(st["attesa_picco"]), attesa_n)
+				st["somme_attesa"] += attesa_n
+				st["campioni_attesa"] += 1
 			for ev in m.prendi_eventi():
 				if ev["t"] in ["muovi", "spinto"]:
 					var per: Array = ev["percorso"]
@@ -90,6 +105,9 @@ func giro(n: int, budget_fisso: int) -> Dictionary:
 			st["tempo"] += 1
 		if attacchi[0] == 0 or attacchi[1] == 0:
 			st["senza_attacchi"] += 1
+		for q in 2:
+			if attacchi[q] == 0:
+				st["senza_attacchi_pg"] += 1
 		var w: int = maxi(0, m.s["vinc"])
 		for p in 2:
 			var pg: Dictionary = [a, b][p]
@@ -117,6 +135,10 @@ func stampa(st: Dictionary, it: int) -> void:
 	print("--- Giro %d: %d partite in %d s, scambi medi %.1f (mediana %d, massimo %d), a tempo %d, senza attacchi %d, rifiuti %d" % [
 		it + 1, st["partite"], st["ms"] / 1000, float(st["scambi"]) / st["partite"], d[d.size() / 2], d[-1], st["tempo"], st["senza_attacchi"], st["rifiuti"]])
 	print("    Riposi %d, sblocchi emergenza %d, simulazioni interrotte %d, decisioni %d" % [st["riposi"], st["emergenze"], st["interrotte"], st["passi"]])
+	print("    Motore: recuperi token %d, sblocchi token %d, preparazioni %d, attacchi %d, combattenti senza attacchi %d" % [
+		st["recuperi_token"], st["sblocchi_token"], st["preparazioni_attesa"], st["azioni_offensive"], st["senza_attacchi_pg"]])
+	print("    Attesa media %.2f dadi per combattente/decisione; picco %d" % [
+		float(st["somme_attesa"]) / maxi(1, int(st["campioni_attesa"])), st["attesa_picco"]])
 	print("    Movimento per partita: %.1f esagoni percorsi, di cui %.1f per spinte, %.1f rotazioni" % [float(st["esagoni"]) / st["partite"], float(st["spinti"]) / st["partite"], float(st["giri"]) / st["partite"]])
 	var righe := []
 	for id in st["token"]:
@@ -211,6 +233,10 @@ func scrivi_rapporto(st: Dictionary, percorso: String) -> void:
 	t += "- Scambi per partita: media %.1f, mediana %d, massimo %d\n" % [float(st["scambi"]) / st["partite"], d[d.size() / 2], d[-1]]
 	t += "- Movimento per partita: %.1f esagoni percorsi (%.1f per spinte e lanci), %.1f rotazioni\n" % [float(st["esagoni"]) / st["partite"], float(st["spinti"]) / st["partite"], float(st["giri"]) / st["partite"]]
 	t += "- Partite finite al limite di tempo: %d\n- Partite in cui qualcuno non ha mai attaccato: %d\n- Opzioni rifiutate dal motore (errori): %d\n- Partite interrotte prima della vittoria: %d\n- Riposi: %d\n- Sblocchi di emergenza: %d\n- Decisioni elaborate: %d\n\n" % [st["tempo"], st["senza_attacchi"], st["rifiuti"], st["interrotte"], st["riposi"], st["emergenze"], st["passi"]]
+	t += "## Economia dell'Attesa\\n\\n"
+	t += "- Recuperi tramite token: %d\\n- Sblocchi tramite token: %d\\n- Dadi preparati in Attesa: %d\\n- Azioni offensive: %d\\n- Combattenti che non hanno attaccato: %d\\n- Dadi medi in Attesa per combattente e decisione: %.2f\\n- Picco Attesa: %d\\n\\n" % [
+		st["recuperi_token"], st["sblocchi_token"], st["preparazioni_attesa"], st["azioni_offensive"], st["senza_attacchi_pg"],
+		float(st["somme_attesa"]) / maxi(1, int(st["campioni_attesa"])), st["attesa_picco"]]
 	t += "## Token: vittorie e incertezza statistica (Wilson 95%)\\n\\n"
 	t += "Un rapporto vittorie/partite non misura da solo la forza del token: archetipi, sinergie e scelte IA sono fattori confondenti.\\n"
 	t += "Servono almeno 100 presenze per considerare preliminarmente il dato; per modificare un costo non deve bastare il risultato puntuale.\\n\\n"
