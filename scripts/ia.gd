@@ -262,6 +262,8 @@ static func _risorse(m: Motore, p: int, w: Dictionary) -> float:
 		v += w["mano_base"] + w["mano_val"] * d["v"]
 	for d in m.dadi_di(p, "mucchio"):
 		v += w["mucchio_base"] + w["mucchio_val"] * d["v"]
+	# Dadi in Attesa valgono meno di quelli pronti: il recupero e una scelta tattica.
+	v += 0.15 * m.dadi_di(p, "attesa").size()
 	v += w["conservato"] * m.dadi_di(p, "conservato").size()
 	v -= w["stordito"] * m.dadi_di(p, "stordito").size()
 	v -= w["eliminato"] * m.dadi_di(p, "eliminato").size()
