@@ -8,6 +8,10 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        budget: [30, 45, 60]
     steps:
       - uses: actions/checkout@v4
       - name: Installa Godot 4.7
@@ -20,11 +24,15 @@ jobs:
           $G --headless --path . --editor --import --quit
           $G --headless --path . --script tests/regole_test.gd -- partite=60
           $G --headless --path . --script tests/esagoni_test.gd
-          $G --headless --path . --script tests/bilancia.gd -- partite=200 iterazioni=1 applica=0 rapporto=./docs/bilanciamento-v2-ci.md
+          $G --headless --path . --script tests/attesa_test.gd
+      - name: Bilancia 200 duelli per fascia
+        run: |
+          G=/tmp/godot-bin/Godot_v4.7-stable_linux.x86_64
+          $G --headless --path . --script tests/bilancia.gd -- partite=200 budget=${{ matrix.budget }} seme=${{ matrix.budget }} iterazioni=1 applica=0 rapporto=./docs/bilanciamento-v2-${{ matrix.budget }}.md
       - name: Carica rapporto di bilanciamento
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bilanciamento-v2
-          path: docs/bilanciamento-v2-ci.md
+          name: bilanciamento-v2-${{ matrix.budget }}
+          path: docs/bilanciamento-v2-${{ matrix.budget }}.md
           if-no-files-found: warn
