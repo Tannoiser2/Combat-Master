@@ -931,6 +931,10 @@ func opzioni(p: int) -> Array:
 				out.append({"t": "passa", "slots": c})
 			if not dadi_di(p, "attesa").is_empty() and int(s["g"][p]["usi"].get("riposo", 0)) == 0:
 				out.append({"t": "riposo"})
+			if int(s["g"][p]["usi"].get("emergenza", 0)) == 0:
+				for k in s["g"][p]["occupati"]:
+					for d in dadi_di(p, "mano"):
+						out.append({"t": "emergenza", "key": k, "dado": d["id"]})
 		"rinforzo":
 			out.append({"t": "sferra"})
 		"reazione":
@@ -1035,6 +1039,23 @@ func applica(p: int, op: Dictionary) -> String:
 	match op["t"]:
 		"prendi":
 			return _prendi(p, op["dadi"])
+		"emergenza":
+			if s["fase"] != "azione":
+				return "Lo sblocco di emergenza richiede una azione."
+			var g_e: Dictionary = s["g"][p]
+			if int(g_e["usi"].get("emergenza", 0)) > 0:
+				return "Hai gia usato lo sblocco di emergenza."
+			var key_e: String = str(op.get("key", ""))
+			var d_e := dado(p, int(op.get("dado", -1)))
+			if not g_e["occupati"].has(key_e) or d_e.is_empty() or d_e["st"] != "mano":
+				return "Scegli uno spazio occupato e un dado dalla mano."
+			d_e["st"] = "attesa"
+			_libera(p, key_e)
+			g_e["usi"]["emergenza"] = 1
+			_scrivi("%s sacrifica un dado per sbloccare %s (dadi in Attesa)." % [g_e["nome"], key_e])
+			_evento({"t": "dadi", "p": p})
+			_dopo_azione(p, false)
+			return ""
 		"riposo":
 			if s["fase"] != "azione":
 				return "Puoi riposare solo nella fase azione."
