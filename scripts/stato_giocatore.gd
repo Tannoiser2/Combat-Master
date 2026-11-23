@@ -57,4 +57,4 @@ func _draw() -> void:
 	var occ := 0
 	for k in g["occupati"]:
 		occ += g["occupati"][k].size()
-	Disegno.testo(self, Vector2(maxf(dx + 6, x0 + 150), 77), "mucchio %d   sui token %d" % [motore.dadi_di(giocatore, "mucchio").size(), occ], 14, Disegno.PERGAMENA.darkened(0.2))
+	Disegno.testo(self, Vector2(maxf(dx + 6, x0 + 150), 77), "mucchio %d   attesa %d   sui token %d" % [motore.dadi_di(giocatore, "mucchio").size(), motore.dadi_di(giocatore, "attesa").size(), occ], 14, Disegno.PERGAMENA.darkened(0.2))
