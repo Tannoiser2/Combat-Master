@@ -34,13 +34,19 @@ func _draw() -> void:
 	var w := maxf(size.x, 240.0)
 	var fuori: Array = motore.dadi_di(giocatore, "stordito") + motore.dadi_di(giocatore, "eliminato")
 	var mucchio: Array = motore.dadi_di(giocatore, "mucchio")
+	var g: Dictionary = motore.s["g"][giocatore]
+	var col_att: String = g.get("attitudine_colore", "")
+	var nomi_col := {"rosso": "rossi", "blu": "blu", "verde": "verdi", "viola": "viola"}
+	var max_col := motore.limite_colore(giocatore, col_att if col_att != "" else "rosso")
+	var limite_txt := "max %d %s" % [max_col, nomi_col.get(col_att, "per colore")]
 	var centro := Vector2(w * 0.5, 132)
 	var raggio := clampf(w * 0.36, 92.0, 122.0)
 	draw_circle(centro, raggio + 7, Color(0.73, 0.55, 0.24, 0.16))
 	draw_circle(centro, raggio, Color(0.10, 0.085, 0.065, 0.92))
 	draw_arc(centro, raggio, 0, TAU, 64, Disegno.ORO if scegli_mucchio else Color("#6f5b3e"), 2.5 if scegli_mucchio else 1.2, true)
-	var titolo := "MUCCHIO · scegli fino al Ritmo" if scegli_mucchio else "MUCCHIO"
+	var titolo := "MUCCHIO · Ritmo %d/%d" % [motore.ritmo_disponibile(giocatore), motore.ritmo_azione(giocatore)]
 	Disegno.testo(self, Vector2(centro.x - raggio + 8, centro.y - raggio + 22), titolo, 14, Disegno.ORO if scegli_mucchio else Disegno.PERGAMENA.darkened(0.1), Disegno.font_titolo(), raggio * 2.0 - 16, HORIZONTAL_ALIGNMENT_CENTER)
+	Disegno.testo(self, Vector2(centro.x - raggio + 8, centro.y + raggio - 18), "%s · %s" % [String(g.get("attitudine", "neutrale")).capitalize(), limite_txt], 12, Disegno.ORO if col_att != "" else Disegno.PERGAMENA, Disegno.font_titolo(), raggio * 2.0 - 16, HORIZONTAL_ALIGNMENT_CENTER)
 	var dim := 38.0 if scegli_mucchio else 32.0
 	var colonne := maxi(3, int((raggio * 2.0 - 28.0) / (dim + 5.0)))
 	var righe := int(ceil(float(maxi(1, mucchio.size())) / colonne))

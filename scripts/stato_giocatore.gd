@@ -47,8 +47,11 @@ func _draw() -> void:
 	var rx := ax + 56
 	Disegno.testo(self, Vector2(rx, 53), "Ritmo %d/%d  Recupero %d" % [motore.ritmo_disponibile(giocatore), motore.ritmo_azione(giocatore), g["recupero"]], 14, Disegno.PERGAMENA.darkened(0.1), Disegno.font_titolo())
 	var nomi_col := {"rosso": Color("#d96a5f"), "blu": Color("#5f9fd0"), "verde": Color("#65ad79"), "viola": Color("#9b79c9")}
+	var plurali := {"rosso": "rossi", "blu": "blu", "verde": "verdi", "viola": "viola"}
 	var col_att: String = g.get("attitudine_colore", "")
-	Disegno.testo(self, Vector2(w - 190, 77), "Attitudine %s" % String(g.get("attitudine", "neutrale")).capitalize(), 14, nomi_col.get(col_att, Disegno.PERGAMENA.darkened(0.1)), Disegno.font_titolo(), 178, HORIZONTAL_ALIGNMENT_RIGHT)
+	var cap := motore.limite_colore(giocatore, col_att if col_att != "" else "rosso")
+	var cap_txt := "max %d %s" % [cap, plurali.get(col_att, "per colore")]
+	Disegno.testo(self, Vector2(w - 250, 77), "%s · %s" % [String(g.get("attitudine", "neutrale")).capitalize(), cap_txt], 13, nomi_col.get(col_att, Disegno.PERGAMENA.darkened(0.1)), Disegno.font_titolo(), 238, HORIZONTAL_ALIGNMENT_RIGHT)
 	# dadi preparati o conservati in piccolo; il mucchio resta nel vassoio centrale
 	var dx := x0
 	for st in ["mano", "conservato", "stordito"]:
@@ -57,7 +60,3 @@ func _draw() -> void:
 			dx += 21
 		if not motore.dadi_di(giocatore, st).is_empty():
 			dx += 8
-	var occ := 0
-	for k in g["occupati"]:
-		occ += g["occupati"][k].size()
-	Disegno.testo(self, Vector2(maxf(dx + 6, x0 + 115), 77), "mucchio %d   attesa %d   token %d" % [motore.dadi_di(giocatore, "mucchio").size(), motore.dadi_di(giocatore, "attesa").size(), occ], 13, Disegno.PERGAMENA.darkened(0.2))

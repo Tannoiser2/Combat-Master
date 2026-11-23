@@ -37,17 +37,19 @@ func _giro() -> void:
 	main.preparazione("spettatore")
 	await _foto("preparazione")
 	var d: Dictionary = main.dati
-	# partita contro l'IA: si comincia scegliendo i dadi dal mucchio
+	# partita contro l'IA: il mucchio è direttamente selezionabile per l'azione
 	main.battaglia(d["personaggi"][0].duplicate(true), d["personaggi"][2].duplicate(true), d["scenari"][0], [false, true])
 	for i in 200:
 		await process_frame
 		if main.m.chi_decide() == 0:
 			break
 	main._aggiorna()
-	await _foto("pesca")
-	main._cmd_consigliata()
-	await _foto("pesca_scelta")
-	main._cmd_conferma()
+	await _foto("mucchio_circolare")
+	var disponibili: Array = main.m.dadi_di(0, "mucchio")
+	if not disponibili.is_empty():
+		main._dado(disponibili[0]["id"])
+		await _foto("mucchio_selezione")
+		main._dado(disponibili[0]["id"])
 	# lascia giocare l'IA per entrambi fino al secondo scambio
 	main.ia = [true, true]
 	for i in 600:
@@ -60,7 +62,7 @@ func _giro() -> void:
 	main._mostra_dettaglio(0, main.m.s["g"][0]["pg"]["token"].keys()[1])
 	await _foto("dettaglio")
 	main._chiudi_dettaglio()
-	var mano: Array = main.m.dadi_di(0, "mano")
+	var mano: Array = main.m.dadi_di(0, "mucchio")
 	if not mano.is_empty():
 		main._dado(mano[0]["id"])
 		await _foto("suggerimento")
