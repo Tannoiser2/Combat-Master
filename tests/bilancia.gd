@@ -127,18 +127,31 @@ func stampa(st: Dictionary, it: int) -> void:
 	print("Più forti: ", righe.slice(0, 6).map(func(x): return "%s %.0f%% (%d)" % [x[1], x[0] * 100, x[2]]))
 	print("Più deboli: ", righe.slice(maxi(0, righe.size() - 6)).map(func(x): return "%s %.0f%% (%d)" % [x[1], x[0] * 100, x[2]]))
 
+## Intervallo Wilson al 95%: per singoli token, un campione esiguo non prova sbilanciamento.
+static func intervallo_95(vinte: int, giocate: int) -> Array:
+	if giocate <= 0:
+		return [0.0, 1.0]
+	var n := float(giocate)
+	var p := float(vinte) / n
+	var z := 1.96
+	var z2 := z * z
+	var centro := (p + z2 / (2.0 * n)) / (1.0 + z2 / n)
+	var margine := z * sqrt((p * (1.0 - p) + z2 / (4.0 * n)) / n) / (1.0 + z2 / n)
+	return [maxf(0.0, centro - margine), minf(1.0, centro + margine)]
+
 ## Alza il costo dei token che vincono troppo, abbassa quello dei token che perdono troppo.
 func aggiusta(st: Dictionary) -> int:
 	var cambiati := 0
 	for id in st["token"]:
 		var r: Dictionary = st["token"][id]
-		if r["n"] < 25:
+		if r["n"] < 100:
 			continue
-		var wr: float = float(r["v"]) / r["n"]
+		var limiti := intervallo_95(int(r["v"]), int(r["n"]))
 		var delta := 0
-		if wr > 0.57:
+		# Solo se l'intero intervallo supera il corridoio neutro.
+		if float(limiti[0]) > 0.57:
 			delta = 1
-		elif wr < 0.43:
+		elif float(limiti[1]) < 0.43:
 			delta = -1
 		if delta == 0:
 			continue
@@ -198,7 +211,10 @@ func scrivi_rapporto(st: Dictionary, percorso: String) -> void:
 	t += "- Scambi per partita: media %.1f, mediana %d, massimo %d\n" % [float(st["scambi"]) / st["partite"], d[d.size() / 2], d[-1]]
 	t += "- Movimento per partita: %.1f esagoni percorsi (%.1f per spinte e lanci), %.1f rotazioni\n" % [float(st["esagoni"]) / st["partite"], float(st["spinti"]) / st["partite"], float(st["giri"]) / st["partite"]]
 	t += "- Partite finite al limite di tempo: %d\n- Partite in cui qualcuno non ha mai attaccato: %d\n- Opzioni rifiutate dal motore (errori): %d\n- Partite interrotte prima della vittoria: %d\n- Riposi: %d\n- Sblocchi di emergenza: %d\n- Decisioni elaborate: %d\n\n" % [st["tempo"], st["senza_attacchi"], st["rifiuti"], st["interrotte"], st["riposi"], st["emergenze"], st["passi"]]
-	t += "## Token: percentuale di vittorie di chi li ha\n\n| Token | Categoria | Costo | Partite | Vittorie |\n| --- | --- | --- | --- | --- |\n"
+	t += "## Token: vittorie e incertezza statistica (Wilson 95%)\\n\\n"
+	t += "Un rapporto vittorie/partite non misura da solo la forza del token: archetipi, sinergie e scelte IA sono fattori confondenti.\\n"
+	t += "Servono almeno 100 presenze per considerare preliminarmente il dato; per modificare un costo non deve bastare il risultato puntuale.\\n\\n"
+	t += "| Token | Categoria | Costo | Presenze | Vittorie | IC 95% | Giudizio |\\n| --- | --- | --- | --- | --- | --- | --- |\\n"
 	var righe := []
 	for id in st["token"]:
 		var r: Dictionary = st["token"][id]
@@ -207,7 +223,10 @@ func scrivi_rapporto(st: Dictionary, percorso: String) -> void:
 	for x in righe:
 		var tk: Dictionary = cat[x[1]]
 		var costo := str(Motore.costo_token(tk, 1)) if not tk.has("livelli") else "/".join(tk["livelli"].map(func(L): return str(L["costo"])))
-		t += "| %s | %s | %s | %d | %.0f%% |\n" % [tk["nome"], tk["categoria"], costo, x[2], x[0] * 100]
+		var ri: Dictionary = st["token"][x[1]]
+		var ic := intervallo_95(int(ri["v"]), int(ri["n"]))
+		var giudizio := "campione insufficiente" if int(ri["n"]) < 100 else ("potenzialmente forte" if float(ic[0]) > 0.57 else ("potenzialmente debole" if float(ic[1]) < 0.43 else "inconcludente"))
+		t += "| %s | %s | %s | %d | %.0f%% | %.0f–%.0f%% | %s |\\n" % [tk["nome"], tk["categoria"], costo, x[2], x[0] * 100, float(ic[0]) * 100, float(ic[1]) * 100, giudizio]
 	t += "\n## Spazi mai usati dall'IA\n\n"
 	var mai := []
 	for tk in dati["token"]:
