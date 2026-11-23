@@ -35,7 +35,7 @@ func _init() -> void:
 
 func giro(n: int, budget_fisso: int) -> Dictionary:
 	var st := {"partite": 0, "scambi": 0, "tempo": 0, "rifiuti": 0, "token": {}, "spazi": {}, "coppie": {},
-		"budget": {}, "durate": [], "danno": 0, "senza_attacchi": 0, "esagoni": 0, "spinti": 0, "giri": 0}
+		"budget": {}, "durate": [], "danno": 0, "senza_attacchi": 0, "esagoni": 0, "spinti": 0, "giri": 0, "riposi": 0, "emergenze": 0, "interrotte": 0, "passi": 0}
 	var t0 := Time.get_ticks_msec()
 	for i in n:
 		var budget: int = budget_fisso if budget_fisso > 0 else [30, 45, 60][i % 3]
@@ -50,6 +50,10 @@ func giro(n: int, budget_fisso: int) -> Dictionary:
 			var op := IA.scegli(m, chi, rng)
 			if op.is_empty():
 				break
+			if op["t"] == "riposo":
+				st["riposi"] += 1
+			elif op["t"] == "emergenza":
+				st["emergenze"] += 1
 			if op["t"] == "slot":
 				var k: String = op["tok"] + "/" + op["slot"]
 				st["spazi"][k] = int(st["spazi"].get(k, 0)) + 1
@@ -76,6 +80,9 @@ func giro(n: int, budget_fisso: int) -> Dictionary:
 						st["giri"] += 1
 				elif ev["t"] == "salto":
 					st["esagoni"] += 1
+		if m.s["vinc"] < 0 and passi < 5000:
+			st["interrotte"] += 1
+		st["passi"] += passi
 		st["partite"] += 1
 		st["scambi"] += int(m.s["round"])
 		st["durate"].append(int(m.s["round"]))
@@ -109,6 +116,7 @@ func stampa(st: Dictionary, it: int) -> void:
 	d.sort()
 	print("--- Giro %d: %d partite in %d s, scambi medi %.1f (mediana %d, massimo %d), a tempo %d, senza attacchi %d, rifiuti %d" % [
 		it + 1, st["partite"], st["ms"] / 1000, float(st["scambi"]) / st["partite"], d[d.size() / 2], d[-1], st["tempo"], st["senza_attacchi"], st["rifiuti"]])
+	print("    Riposi %d, sblocchi emergenza %d, simulazioni interrotte %d, decisioni %d" % [st["riposi"], st["emergenze"], st["interrotte"], st["passi"]])
 	print("    Movimento per partita: %.1f esagoni percorsi, di cui %.1f per spinte, %.1f rotazioni" % [float(st["esagoni"]) / st["partite"], float(st["spinti"]) / st["partite"], float(st["giri"]) / st["partite"]])
 	var righe := []
 	for id in st["token"]:
@@ -189,7 +197,7 @@ func scrivi_rapporto(st: Dictionary, percorso: String) -> void:
 	d.sort()
 	t += "- Scambi per partita: media %.1f, mediana %d, massimo %d\n" % [float(st["scambi"]) / st["partite"], d[d.size() / 2], d[-1]]
 	t += "- Movimento per partita: %.1f esagoni percorsi (%.1f per spinte e lanci), %.1f rotazioni\n" % [float(st["esagoni"]) / st["partite"], float(st["spinti"]) / st["partite"], float(st["giri"]) / st["partite"]]
-	t += "- Partite finite al limite di tempo: %d\n- Partite in cui qualcuno non ha mai attaccato: %d\n- Opzioni rifiutate dal motore (errori): %d\n\n" % [st["tempo"], st["senza_attacchi"], st["rifiuti"]]
+	t += "- Partite finite al limite di tempo: %d\n- Partite in cui qualcuno non ha mai attaccato: %d\n- Opzioni rifiutate dal motore (errori): %d\n- Partite interrotte prima della vittoria: %d\n- Riposi: %d\n- Sblocchi di emergenza: %d\n- Decisioni elaborate: %d\n\n" % [st["tempo"], st["senza_attacchi"], st["rifiuti"], st["interrotte"], st["riposi"], st["emergenze"], st["passi"]]
 	t += "## Token: percentuale di vittorie di chi li ha\n\n| Token | Categoria | Costo | Partite | Vittorie |\n| --- | --- | --- | --- | --- |\n"
 	var righe := []
 	for id in st["token"]:
