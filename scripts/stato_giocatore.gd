@@ -1,6 +1,6 @@
 class_name StatoGiocatore
 extends Control
-## Riquadro in alto: nome, ferite, ritmo, armatura e dadi del combattente.
+## Riquadro in alto: nome, Attitudine, ferite, Ritmo, armatura e ciclo dei dadi.
 
 var motore: Motore
 var giocatore := 0
@@ -43,10 +43,13 @@ func _draw() -> void:
 	var ax := x0 + 26 + bw + 66
 	Disegno.icona(self, "scudo", Rect2(ax, 36, 20, 20), Color("#9aa3ab"))
 	Disegno.testo(self, Vector2(ax + 24, 53), str(g["armatura"]), 16, Disegno.PERGAMENA)
-	# ritmo (dadi pescati a ogni scambio) e recupero
+	# Ritmo (massimo per azione), recupero e Attitudine dinamica
 	var rx := ax + 56
-	Disegno.testo(self, Vector2(rx, 53), "Ritmo %d  Recupero %d" % [g["ritmo"], g["recupero"]], 14, Disegno.PERGAMENA.darkened(0.1), Disegno.font_titolo())
-	# dadi: mano in piccolo, poi i numeri degli altri gruppi
+	Disegno.testo(self, Vector2(rx, 53), "Ritmo %d/%d  Recupero %d" % [motore.ritmo_disponibile(giocatore), motore.ritmo_azione(giocatore), g["recupero"]], 14, Disegno.PERGAMENA.darkened(0.1), Disegno.font_titolo())
+	var nomi_col := {"rosso": Color("#d96a5f"), "blu": Color("#5f9fd0"), "verde": Color("#65ad79"), "viola": Color("#9b79c9")}
+	var col_att: String = g.get("attitudine_colore", "")
+	Disegno.testo(self, Vector2(w - 190, 77), "Attitudine %s" % String(g.get("attitudine", "neutrale")).capitalize(), 14, nomi_col.get(col_att, Disegno.PERGAMENA.darkened(0.1)), Disegno.font_titolo(), 178, HORIZONTAL_ALIGNMENT_RIGHT)
+	# dadi preparati o conservati in piccolo; il mucchio resta nel vassoio centrale
 	var dx := x0
 	for st in ["mano", "conservato", "stordito"]:
 		for d in motore.dadi_di(giocatore, st):
@@ -57,4 +60,4 @@ func _draw() -> void:
 	var occ := 0
 	for k in g["occupati"]:
 		occ += g["occupati"][k].size()
-	Disegno.testo(self, Vector2(maxf(dx + 6, x0 + 150), 77), "mucchio %d   attesa %d   sui token %d" % [motore.dadi_di(giocatore, "mucchio").size(), motore.dadi_di(giocatore, "attesa").size(), occ], 14, Disegno.PERGAMENA.darkened(0.2))
+	Disegno.testo(self, Vector2(maxf(dx + 6, x0 + 115), 77), "mucchio %d   attesa %d   token %d" % [motore.dadi_di(giocatore, "mucchio").size(), motore.dadi_di(giocatore, "attesa").size(), occ], 13, Disegno.PERGAMENA.darkened(0.2))

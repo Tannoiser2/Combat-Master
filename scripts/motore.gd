@@ -1,9 +1,9 @@
 class_name Motore
 extends RefCounted
 ## Motore delle regole di Combat Master.
-## I dadi girano in cerchio: dal mucchio se ne pescano e tirano tanti quanto il Ritmo,
-## si piazzano sugli spazi dei token, dove restano (e lo spazio resta occupato)
-## finché uno sblocco li trasferisce in Attesa. Solo il recupero li riporta nel mucchio.
+## I dadi girano in cerchio: per ogni azione si scelgono direttamente dal mucchio
+## entro il Ritmo e i limiti cromatici dell'Attitudine. I dadi usati occupano i
+## token o entrano in Attesa; il recupero li riporta nel mucchio.
 ## Nessuna dipendenza grafica: serve all'interfaccia, all'IA e ai test headless.
 
 const DIRS: Array[Vector2i] = [Vector2i(1, 0), Vector2i(1, -1), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(-1, 1), Vector2i(0, 1)]
@@ -138,7 +138,7 @@ func nuova_partita(pg0: Dictionary, pg1: Dictionary, arena_id: String, seme: int
 				n += 1
 		s["g"].append({"nome": pg.get("nome", "Combattente"), "pg": pg.duplicate(true),
 			"vita": st["vita"], "vita_max": st["vita"], "ritmo": st["ritmo"], "recupero": st["recupero"],
-			"assetto": 0, "scambi_senza_attacco": 0,
+			"assetto": 0, "scambi_senza_attacco": 0, "attitudine": "neutrale", "attitudine_colore": "", "attitudine_punti": {}, "ultimo_colore_azione": "", "ritmo_speso": 0, "colori_spesi": {},
 			"armatura": st["armatura"], "mov": st["movimento"], "conserva_max": st["conserva"],
 			"ini": st["iniziativa"], "flag": st["flag"], "pos": partenze[i], "dir": dirs[i],
 			"dadi": dadi, "occupati": {}, "passato": false, "spinte": 0, "usi": {}, "armati": {}, "rivelati": {}, "bonus_ritmo": 0,
@@ -357,6 +357,90 @@ func da_prendere(p: int) -> int:
 		r -= 1
 	return mini(maxi(1, r), dadi_di(p, "mucchio").size())
 
+## Il Ritmo ora limita la selezione temporanea di ogni singola azione.
+func ritmo_azione(p: int) -> int:
+	var g: Dictionary = s["g"][p]
+	var r := int(g["ritmo"]) + int(g.get("bonus_ritmo", 0))
+	if g["vita"] * 2 <= g["vita_max"]:
+		r -= 1
+	return maxi(1, r)
+
+const NOMI_ATTITUDINE := {"rosso": "aggressiva", "blu": "fluida", "verde": "guardinga", "viola": "concentrata"}
+
+func limite_colore(p: int, colore: String) -> int:
+	var r := ritmo_azione(p)
+	if colore == "bianco" or String(s["g"][p].get("attitudine_colore", "")) == colore:
+		return r
+	return maxi(1, int(ceil(float(r) / 2.0)))
+
+func ritmo_disponibile(p: int) -> int:
+	return maxi(0, ritmo_azione(p) - int(s["g"][p].get("ritmo_speso", 0)))
+
+func selezione_attitudine_ok(p: int, ids: Array) -> bool:
+	if ids.size() > ritmo_disponibile(p):
+		return false
+	var conteggio: Dictionary = s["g"][p].get("colori_spesi", {}).duplicate()
+	for id in ids:
+		var d := dado(p, int(id))
+		if d.is_empty() or not (d.get("st", "") in ["mucchio", "mano"]):
+			return false
+		var col: String = d["col"]
+		conteggio[col] = int(conteggio.get(col, 0)) + 1
+		if int(conteggio[col]) > limite_colore(p, col):
+			return false
+	return true
+
+func _spendi_ritmo(p: int, ids: Array) -> void:
+	var g: Dictionary = s["g"][p]
+	g["ritmo_speso"] = int(g.get("ritmo_speso", 0)) + ids.size()
+	for id in ids:
+		var col: String = dado(p, int(id))["col"]
+		g["colori_spesi"][col] = int(g["colori_spesi"].get(col, 0)) + 1
+
+func _colore_attitudine(tok: String, sl: Dictionary) -> String:
+	var eff: String = sl.get("effetto", "")
+	if eff in ["attacco", "assalto", "supp_danno", "stordisci", "disarma", "rompi_guardia"]:
+		return "rosso"
+	if eff in ["movimento", "passo_ombra", "schiva", "contrattacco", "spingi", "attira"]:
+		return "blu"
+	if eff in ["para", "supp_difesa", "recupera", "sblocca", "cura", "guardia"]:
+		return "verde"
+	if cat.get(tok, {}).get("categoria", "") == "magia" or eff in ["concentrazione", "prepara_attesa", "scambia", "rovescia", "ritocca", "pesca"]:
+		return "viola"
+	return ""
+
+func aggiorna_attitudine(p: int) -> void:
+	var g: Dictionary = s["g"][p]
+	var punti := {"rosso": 0, "blu": 0, "verde": 0, "viola": 0}
+	for key in g["occupati"]:
+		var parti: PackedStringArray = String(key).split("/")
+		var sl := slot_def(parti[0], parti[1])
+		var col := _colore_attitudine(parti[0], sl)
+		if col != "":
+			punti[col] += g["occupati"][key].size()
+	var ultimo: String = g.get("ultimo_colore_azione", "")
+	if ultimo != "" and int(g.get("assetto", 0)) != 0:
+		punti[ultimo] = maxi(0, int(punti[ultimo]) + int(g["assetto"]))
+	var migliore := ""
+	var massimo := 1
+	var pari := false
+	for col in punti:
+		if int(punti[col]) > massimo:
+			massimo = int(punti[col])
+			migliore = col
+			pari = false
+		elif int(punti[col]) == massimo and massimo >= 2:
+			pari = true
+	if pari and ultimo != "" and int(punti.get(ultimo, 0)) == massimo:
+		migliore = ultimo
+		pari = false
+	if pari:
+		migliore = ""
+	g["attitudine_punti"] = punti
+	g["attitudine_colore"] = migliore
+	g["attitudine"] = NOMI_ATTITUDINE.get(migliore, "neutrale")
+	_evento({"t": "attitudine", "p": p, "nome": g["attitudine"], "colore": migliore, "punti": punti.duplicate()})
+
 func chi_decide() -> int:
 	if s["vinc"] >= 0:
 		return -1
@@ -453,13 +537,13 @@ func slot_attivabile(p: int, tok: String, sl: Dictionary) -> bool:
 
 func ordina_dadi(p: int, sl: Dictionary, ids: Array) -> Array:
 	var req: Array = sl["dadi"]
-	if ids.size() != req.size():
+	if ids.size() != req.size() or not selezione_attitudine_ok(p, ids):
 		return []
 	for perm in _permutazioni(ids):
 		var ok := true
 		for i in perm.size():
 			var d := dado(p, perm[i])
-			if d.is_empty() or d["st"] != "mano" or not colore_ok(d["col"], req[i]):
+			if d.is_empty() or not (d["st"] in ["mucchio", "mano"]) or not colore_ok(d["col"], req[i]):
 				ok = false
 				break
 		if ok and _condizione_ok(p, sl, perm):
@@ -533,8 +617,10 @@ func spiega_dadi(p: int, sl: Dictionary, ids: Array) -> String:
 	if ids.size() != req.size():
 		return "%s vuole %s (%s), ne hai scelti %d." % [sl["nome"], plurale(req.size(), "dado", "dadi"), testo_colori(req), ids.size()]
 	for id in ids:
-		if dado(p, id).get("st", "") != "mano":
-			return "Si usano solo i dadi in mano."
+		if not (dado(p, id).get("st", "") in ["mucchio", "mano"]):
+			return "Si usano solo dadi disponibili nel mucchio."
+	if not selezione_attitudine_ok(p, ids):
+		return "La selezione supera il Ritmo o il limite cromatico dell'Attitudine %s." % s["g"][p].get("attitudine", "neutrale")
 	var colori_ok := false
 	for perm in _permutazioni(ids):
 		var ok := true
@@ -549,10 +635,10 @@ func spiega_dadi(p: int, sl: Dictionary, ids: Array) -> String:
 		return "%s vuole: %s." % [sl["nome"], testo_condizione(sl)]
 	return ""
 
-## Perché nessun dado in mano va su questo spazio.
+## Perché nessun dado disponibile va su questo spazio.
 func spiega_mano(p: int, sl: Dictionary) -> String:
 	var req: Array = sl["dadi"]
-	var mano := dadi_di(p, "mano")
+	var mano := dadi_di(p, "mucchio") + dadi_di(p, "mano")
 	var adatti := 0
 	for d in mano:
 		for alloggio in req:
@@ -560,10 +646,10 @@ func spiega_mano(p: int, sl: Dictionary) -> String:
 				adatti += 1
 				break
 	if adatti == 0:
-		return "Non hai in mano dadi %s per %s." % [testo_colori(req), sl["nome"]]
+		return "Non hai nel mucchio dadi %s per %s." % [testo_colori(req), sl["nome"]]
 	if adatti < req.size():
-		return "%s vuole %s (%s): non ne hai abbastanza in mano." % [sl["nome"], plurale(req.size(), "dado", "dadi"), testo_colori(req)]
-	return "Nessun dado in mano va bene per %s, che vuole: %s." % [sl["nome"], testo_condizione(sl)]
+		return "%s vuole %s (%s): non ne hai abbastanza disponibili." % [sl["nome"], plurale(req.size(), "dado", "dadi"), testo_colori(req)]
+	return "Nessun dado disponibile va bene per %s, che vuole: %s." % [sl["nome"], testo_condizione(sl)]
 
 func _condizione_ok(p: int, sl: Dictionary, ids: Array) -> bool:
 	var v := _valori(p, ids)
@@ -677,12 +763,13 @@ func _libera(p: int, key: String, _in_mano := false) -> void:
 	g["armati"].erase(key)
 	g["carichi"].erase(key)
 	g["guardie"].erase(key)
+	aggiorna_attitudine(p)
 
 # ================================================================ bersagli
 
 func _mano_senza(p: int, ids: Array) -> Array:
 	var out := []
-	for d in dadi_di(p, "mano"):
+	for d in dadi_di(p, "mucchio") + dadi_di(p, "mano"):
 		if not ids.has(d["id"]):
 			out.append(d)
 	return out
@@ -750,7 +837,7 @@ func bersagli(p: int, tok: String, sl: Dictionary, ids: Array) -> Array:
 		"stordisci":
 			var V := quantita(p, sl, ids)
 			if dist(g["pos"], go["pos"]) <= int(sl.get("gittata", 4)):
-				for d in dadi_di(o, "mano"):
+				for d in dadi_di(o, "mucchio") + dadi_di(o, "mano"):
 					if d["v"] <= V:
 						out.append({"bers": o})
 						break
@@ -815,7 +902,7 @@ func bersagli(p: int, tok: String, sl: Dictionary, ids: Array) -> Array:
 				out.append({"bers": o})
 		"congela":
 			if dist(g["pos"], go["pos"]) <= int(sl.get("gittata", 3)):
-				for d in dadi_di(o, "mano"):
+				for d in dadi_di(o, "mucchio") + dadi_di(o, "mano"):
 					if d["v"] > 1:
 						out.append({"bers": o})
 						break
@@ -898,8 +985,8 @@ func reazione_possibile(dif: int, sl: Dictionary) -> bool:
 
 # ================================================================ opzioni
 
-func combinazioni(p: int, sl: Dictionary) -> Array:
-	var mano := dadi_di(p, "mano")
+func combinazioni(p: int, sl: Dictionary, limite: int = 0) -> Array:
+	var mano := dadi_di(p, "mucchio") + dadi_di(p, "mano")
 	var k: int = sl["dadi"].size()
 	if mano.size() < k:
 		return []
@@ -920,6 +1007,8 @@ func combinazioni(p: int, sl: Dictionary) -> Array:
 			continue
 		visti[firma] = true
 		out.append(ord)
+		if limite > 0 and out.size() >= limite:
+			break
 	return out
 
 static func _scelte(a: Array, k: int) -> Array:
@@ -942,7 +1031,7 @@ func opzioni(p: int) -> Array:
 	if f == "pesca":
 		return out
 	if f == "azzardo":
-		for d in dadi_di(p, "mano"):
+		for d in dadi_di(p, "mucchio") + dadi_di(p, "mano"):
 			if colore_ok(d["col"], ["rosso"]):
 				out.append({"t": "rilancia", "dado": d["id"]})
 				break
@@ -952,7 +1041,9 @@ func opzioni(p: int) -> Array:
 		var sl: Dictionary = ts[1]
 		if not slot_attivabile(p, ts[0], sl):
 			continue
-		for ids in combinazioni(p, sl):
+		# L'interfaccia può esplorare tutte le combinazioni; l'IA riceve un
+		# campione rappresentativo per non moltiplicare i cloni dell'intero stato.
+		for ids in combinazioni(p, sl, 8):
 			for b in bersagli(p, ts[0], sl, ids):
 				out.append({"t": "slot", "tok": ts[0], "slot": sl["id"], "dadi": ids, "b": b})
 	match f:
@@ -969,7 +1060,7 @@ func opzioni(p: int) -> Array:
 				out.append({"t": "riposo"})
 			if int(s["g"][p]["usi"].get("emergenza", 0)) == 0:
 				for k in s["g"][p]["occupati"]:
-					for d in dadi_di(p, "mano"):
+					for d in dadi_di(p, "mucchio") + dadi_di(p, "mano"):
 						out.append({"t": "emergenza", "key": k, "dado": d["id"]})
 			# Il vantaggio può trasformarsi in fluidità: libera un gesto già
 			# eseguito, ma i dadi devono comunque attraversare l'Attesa.
@@ -1126,9 +1217,10 @@ func applica(p: int, op: Dictionary) -> String:
 				return "Hai gia usato lo sblocco di emergenza."
 			var key_e: String = str(op.get("key", ""))
 			var d_e := dado(p, int(op.get("dado", -1)))
-			if not g_e["occupati"].has(key_e) or d_e.is_empty() or d_e["st"] != "mano":
+			if not g_e["occupati"].has(key_e) or d_e.is_empty() or not (d_e["st"] in ["mucchio", "mano"]):
 				return "Scegli uno spazio occupato e un dado dalla mano."
 			d_e["st"] = "attesa"
+			_spendi_ritmo(p, [d_e["id"]])
 			_libera(p, key_e)
 			g_e["usi"]["emergenza"] = 1
 			_scrivi("%s sacrifica un dado per sbloccare %s (dadi in Attesa)." % [g_e["nome"], key_e])
@@ -1264,7 +1356,13 @@ func _slot(p: int, op: Dictionary) -> String:
 	var fase: String = s["fase"]
 	var q := quantita(p, sl, ids)
 	var vals := _valori(p, ids)
+	_spendi_ritmo(p, ids)
 	_piazza(p, tok, sl["id"], ids, sl)
+	s["g"][p]["bonus_ritmo"] = 0
+	var colore_azione := _colore_attitudine(tok, sl)
+	if colore_azione != "":
+		s["g"][p]["ultimo_colore_azione"] = colore_azione
+	aggiorna_attitudine(p)
 	if sl.get("una_volta", false):
 		s["g"][p]["usi"]["slot:" + chiave(tok, sl["id"])] = 1
 	_evento({"t": "dadi", "p": p})
@@ -1428,7 +1526,7 @@ func _slot(p: int, op: Dictionary) -> String:
 			_dopo_movimento(p)
 		"stordisci":
 			var best := {}
-			for d in dadi_di(o, "mano"):
+			for d in dadi_di(o, "mucchio") + dadi_di(o, "mano"):
 				if d["v"] <= q and (best.is_empty() or d["v"] > best["v"]):
 					best = d
 			if not best.is_empty():
@@ -1471,7 +1569,7 @@ func _slot(p: int, op: Dictionary) -> String:
 			_scrivi("%s si rigenera: +%d." % [g["nome"], n])
 			_evento({"t": "cura", "p": p, "n": n})
 		"concentrazione":
-			var bassi := dadi_di(p, "mano")
+			var bassi := dadi_di(p, "mucchio") + dadi_di(p, "mano")
 			bassi.sort_custom(func(a, b2): return a["v"] < b2["v"])
 			var k := 0
 			for d in bassi:
@@ -1509,7 +1607,7 @@ func _slot(p: int, op: Dictionary) -> String:
 				_evento({"t": "blocco", "p": o, "n": 1})
 		"congela":
 			var best := {}
-			for d in dadi_di(o, "mano"):
+			for d in dadi_di(o, "mucchio") + dadi_di(o, "mano"):
 				if best.is_empty() or d["v"] > best["v"]:
 					best = d
 			if not best.is_empty():
@@ -1572,8 +1670,8 @@ func _rilancia(p: int, id: int) -> String:
 	if s["fase"] != "azzardo":
 		return "Nessun azzardo in corso."
 	var d := dado(p, id)
-	if d.is_empty() or d["st"] != "mano" or not colore_ok(d["col"], ["rosso"]):
-		return "Serve un tuo dado rosso in mano."
+	if d.is_empty() or not (d["st"] in ["mucchio", "mano"]) or not colore_ok(d["col"], ["rosso"]):
+		return "Serve un tuo dado rosso disponibile."
 	var az: Dictionary = s["azz"]
 	var g: Dictionary = s["g"][p]
 	d["v"] = _tira()
@@ -1707,7 +1805,7 @@ func _risolvi_attacco() -> void:
 			_scrivi("Il colpo è pesante: %s arretra." % gd["nome"])
 			_spingi(att, dif, 1, false)
 		if s["vinc"] < 0 and pe["blocca"] > 0:
-			var mano := dadi_di(dif, "mano")
+			var mano := dadi_di(dif, "mucchio") + dadi_di(dif, "mano")
 			mano.sort_custom(func(a, b): return a["v"] > b["v"])
 			var n := 0
 			for d in mano:
@@ -1782,7 +1880,7 @@ func _spingi(att: int, dif: int, n: int, verso: bool, deviazione := 0, lancia :=
 		_scrivi("%s sbatte contro un ostacolo!" % gd["nome"])
 		_ferisci(dif, DANNO_URTO + (1 if lancia else 0))
 		if lancia and s["vinc"] < 0:
-			var mano := dadi_di(dif, "mano")
+			var mano := dadi_di(dif, "mucchio") + dadi_di(dif, "mano")
 			mano.sort_custom(func(a, b): return a["v"] > b["v"])
 			if not mano.is_empty():
 				mano[0]["st"] = "stordito"
@@ -1856,7 +1954,7 @@ func _mossa_obbligata(att: int, dif: int, poi: Dictionary) -> void:
 			ga["pos"] = best
 			per.append(Vector3i(best.x, best.y, ga["dir"]))
 	if per.size() == 1:
-		var mano := dadi_di(att, "mano")
+		var mano := dadi_di(att, "mucchio") + dadi_di(att, "mano")
 		mano.sort_custom(func(a, b): return a["v"] > b["v"])
 		if not mano.is_empty():
 			mano[0]["st"] = "stordito"
@@ -1909,13 +2007,16 @@ func _spinta(p: int, ids: Array) -> String:
 		return "Non puoi spingere la fortuna adesso."
 	if ids.is_empty():
 		return "Scegli i dadi da ritirare."
+	if not selezione_attitudine_ok(p, ids):
+		return "La Spinta supera il Ritmo o i limiti dell'Attitudine."
 	var g: Dictionary = s["g"][p]
+	_spendi_ritmo(p, ids)
 	if not spinta_disponibile(p):
 		return "Hai già spinto la fortuna in questo scambio."
 	for id in ids:
 		var d := dado(p, id)
-		if d.is_empty() or d["st"] != "mano":
-			return "Si ritirano solo dadi in mano."
+		if d.is_empty() or not (d["st"] in ["mucchio", "mano"]):
+			return "Si ritirano solo dadi disponibili."
 	g["spinte"] += 1
 	var storditi := 0
 	var esiti := []
@@ -1938,8 +2039,8 @@ func _conserva(p: int, id: int) -> String:
 		return "Non puoi farlo adesso."
 	var g: Dictionary = s["g"][p]
 	var d := dado(p, id)
-	if d.is_empty() or d["st"] != "mano":
-		return "Si conservano solo dadi in mano."
+	if d.is_empty() or not (d["st"] in ["mucchio", "mano"]):
+		return "Si conservano solo dadi disponibili."
 	if dadi_di(p, "conservato").size() >= int(g["conserva_max"]):
 		return "Puoi conservare al massimo %s." % plurale(g["conserva_max"], "dado", "dadi")
 	d["st"] = "conservato"
@@ -1989,6 +2090,8 @@ func _nuovo_round() -> void:
 		g["passato"] = false
 		g["spinte"] = 0
 		g["usi"] = {}
+		g["ritmo_speso"] = 0
+		g["colori_spesi"] = {}
 		g["disarmati"] = {}
 		for d in dadi_di(p, "conservato"):
 			d["st"] = "mano"
@@ -2000,13 +2103,10 @@ func _nuovo_round() -> void:
 			_al_mucchio(in_attesa[0])
 			_scrivi("%s recupera naturalmente 1 dado dall'Attesa." % g["nome"])
 			_evento({"t": "dadi", "p": p})
-		if da_prendere(p) > 0:
-			s["da_pescare"].append(p)
-	s["fase"] = "pesca"
-	_scrivi("--- Scambio %d: si scelgono i dadi dal mucchio." % s["round"])
+	s["fase"] = "azione"
+	_scrivi("--- Scambio %d: i dadi si scelgono direttamente dal mucchio per ogni azione." % s["round"])
 	_evento({"t": "round", "n": s["round"], "p": -1})
-	if s["da_pescare"].is_empty():
-		_inizia_azioni()
+	_inizia_azioni()
 
 ## Scelta dei dadi dal mucchio a inizio scambio (tanti quanto il Ritmo).
 func _prendi(p: int, ids: Array) -> String:
@@ -2033,9 +2133,13 @@ func _prendi(p: int, ids: Array) -> String:
 func _inizia_azioni() -> void:
 	var ini := [0, 0]
 	for p in 2:
-		for d in dadi_di(p, "mano"):
+		var blu := []
+		for d in dadi_di(p, "mucchio") + dadi_di(p, "mano"):
 			if d["col"] == "blu":
-				ini[p] += d["v"]
+				blu.append(d)
+		blu.sort_custom(func(a, b): return a["v"] > b["v"])
+		for i in mini(ritmo_azione(p), blu.size()):
+			ini[p] += int(blu[i]["v"])
 		ini[p] += int(s["g"][p]["ini"])
 	var primo: int
 	if ini[0] != ini[1]:
@@ -2096,7 +2200,7 @@ func _innesca(p: int, innesco: String) -> void:
 					s["pend"]["annullato"] = true
 					_evento({"t": "schiva", "p": p})
 			"stordisci":
-				var mano := dadi_di(o, "mano")
+				var mano := dadi_di(o, "mucchio") + dadi_di(o, "mano")
 				mano.sort_custom(func(x, y): return x["v"] > y["v"])
 				for i in mini(2, mano.size()):
 					mano[i]["st"] = "stordito"

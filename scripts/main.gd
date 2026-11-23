@@ -1227,9 +1227,6 @@ func _umano_decide() -> int:
 func _aggiorna() -> void:
 	if m == null or _stati.is_empty():
 		return
-	var chi0 := _umano_decide()
-	if chi0 >= 0 and m.s["fase"] == "pesca" and attesa.is_empty():
-		attesa = {"passo": "mucchio", "inizio": true, "n": m.da_prendere(chi0), "scelti": []}
 	var p := _giocatore_mostrato()
 	if p != mostra:
 		mostra = p
@@ -1244,7 +1241,7 @@ func _aggiorna() -> void:
 			_adatta_lato.call_deferred(q)
 		var va: Vassoio = _lati[q]["vassoio"]
 		var attivo: bool = q == mostra
-		va.scegli_mucchio = attivo and attesa.get("passo", "") == "mucchio"
+		va.scegli_mucchio = attivo and chi == q and attesa.is_empty() and m.s["fase"] in ["azione", "rinforzo", "reazione", "azzardo"]
 		va.selezionati = (attesa["scelti"] if attesa.get("passo", "") in ["mucchio", "dadi"] else sel) if attivo else []
 		va.interattivo = chi == q
 		va.queue_redraw()
@@ -1268,8 +1265,6 @@ func _messaggio() -> String:
 	var nome: String = m.s["g"][chi]["nome"]
 	if ia[chi]:
 		return "%s sta decidendo..." % nome
-	if m.s["fase"] == "pesca" and ia[chi]:
-		return "%s sceglie i dadi dal mucchio..." % nome
 	if not attesa.is_empty():
 		match attesa["passo"]:
 			"mucchio":
@@ -1303,9 +1298,8 @@ func _messaggio() -> String:
 			return "%s: arriva %s (%s, dado %d). Reagisci o subisci." % [nome, pe["nome"], Motore.plurale(int(pe["danno"]) + int(pe["bonus"]), "danno", "danni"), pe["vd"]]
 		"azzardo":
 			return "%s: Furia a %d. Rilancia un rosso (con 1 fallisce) o fermati." % [nome, m.s["azz"]["tot"]]
-	if m.dadi_di(chi, "mano").is_empty():
-		return "%s: niente dadi in mano. Passa e libera uno spazio." % nome
-	return "%s: scegli i dadi e tocca uno spazio evidenziato." % nome
+	var g: Dictionary = m.s["g"][chi]
+	return "%s: Attitudine %s, Ritmo %d/%d disponibile. Scegli dal mucchio e tocca un'azione." % [nome, String(g.get("attitudine", "neutrale")).capitalize(), m.ritmo_disponibile(chi), m.ritmo_azione(chi)]
 
 func _aggiorna_evidenze() -> void:
 	var p := mostra
@@ -1376,7 +1370,7 @@ func _aggiorna_comandi() -> void:
 	var cons_sel := []
 	for id in sel:
 		var d := m.dado(chi, id)
-		if d.get("st", "") == "mano":
+		if d.get("st", "") in ["mucchio", "mano"]:
 			in_mano.append(id)
 		elif d.get("st", "") == "conservato":
 			cons_sel.append(id)
@@ -1402,7 +1396,7 @@ func _aggiorna_comandi() -> void:
 			_btn["rilancia"].visible = true
 			_btn["ferma"].visible = true
 			var ha := false
-			for d in m.dadi_di(chi, "mano"):
+			for d in m.dadi_di(chi, "mucchio") + m.dadi_di(chi, "mano"):
 				if Motore.colore_ok(d["col"], ["rosso"]):
 					ha = true
 			_btn["rilancia"].disabled = not ha
@@ -1448,7 +1442,18 @@ func _dado(id: int) -> void:
 	if sel.has(id):
 		sel.erase(id)
 	else:
-		sel.append(id)
+		var d := m.dado(mostra, id)
+		if d.get("st", "") == "conservato":
+			sel = [id]
+		elif d.get("st", "") in ["mucchio", "mano"]:
+			var prova := sel.duplicate()
+			prova.append(id)
+			if not m.selezione_attitudine_ok(mostra, prova):
+				_msg.text = "Limite superato: restano %d punti Ritmo; Attitudine %s (max %d dadi %s nello scambio)." % [m.ritmo_disponibile(mostra), String(m.s["g"][mostra].get("attitudine", "neutrale")).capitalize(), m.limite_colore(mostra, d["col"]), d["col"]]
+				return
+			sel.append(id)
+		else:
+			return
 	_aggiorna()
 	_suggerisci_spazi()
 

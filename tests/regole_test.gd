@@ -32,20 +32,17 @@ func _init() -> void:
 	controlla(Motore.lato(Vector2i(0, 0), 0, Vector2i(0, -1)) == "fianco", "fianco")
 	controlla(Motore.lato(Vector2i(0, 0), 0, Vector2i(1, -1)) == "fronte", "fronte diagonale")
 
-	# meccaniche di base: si pesca il ritmo dal mucchio
+	# meccaniche di base: il mucchio è disponibile direttamente, entro il Ritmo
 	var m := Motore.new(dati)
 	m.nuova_partita(dati["personaggi"][0], dati["personaggi"][1], "cortile", 7)
 	controlla(m.s["round"] == 1, "primo scambio")
-	controlla(m.s["fase"] == "pesca", "si comincia scegliendo dal mucchio")
+	controlla(m.s["fase"] == "azione", "si comincia agendo direttamente dal mucchio")
 	for d in m.s["g"][0]["dadi"]:
 		controlla(d["v"] >= 1 and d["v"] <= 6, "il mucchio è già tirato")
-	controlla(m.applica(m.chi_decide(), {"t": "prendi", "dadi": []}) != "", "bisogna prendere il ritmo giusto")
-	while m.s["fase"] == "pesca":
-		var chi := m.chi_decide()
-		controlla(m.applica(chi, IA.scegli(m, chi)) == "", "scelta dal mucchio")
 	for p in 2:
 		var g0: Dictionary = m.s["g"][p]
-		controlla(m.dadi_di(p, "mano").size() == mini(g0["ritmo"], g0["dadi"].size()), "in mano tanti dadi quanto il ritmo")
+		controlla(m.dadi_di(p, "mano").is_empty(), "nessuna mano permanente")
+		controlla(m.ritmo_disponibile(p) == m.ritmo_azione(p), "Ritmo interamente disponibile a inizio scambio")
 	var p: int = m.chi_decide()
 	controlla(m.opzioni(p).size() > 1, "ci sono opzioni all'inizio")
 	var rag := m.raggiungibili(p, 1)
@@ -55,7 +52,7 @@ func _init() -> void:
 	var dietro: Vector2i = g["pos"] - Motore.DIRS[g["dir"]]
 	controlla(not rag["costo"].has(Vector3i(dietro.x, dietro.y, g["dir"])), "indietro costa 2")
 	var ids := []
-	for d in m.dadi_di(p, "mano"):
+	for d in m.dadi_di(p, "mucchio"):
 		ids.append(d["id"])
 	controlla(m.applica(p, {"t": "spinta", "dadi": [ids[0]]}) == "", "spinta")
 	controlla(m.applica(p, {"t": "spinta", "dadi": [ids[0]]}) != "", "una sola spinta per scambio")

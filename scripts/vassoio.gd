@@ -1,7 +1,7 @@
 class_name Vassoio
 extends Control
-## Vassoio dei dadi di un combattente: la mano (dadi pescati e tirati, si toccano per sceglierli),
-## i conservati, il mucchio da cui si pesca, gli storditi e gli eliminati.
+## Vassoio circolare dei dadi: il mucchio è la riserva operativa da cui si
+## seleziona direttamente per ogni azione; Attesa e fuori gioco sono separati.
 ## I dadi piazzati restano disegnati sugli spazi dei token.
 
 signal dado_premuto(id: int)
@@ -14,7 +14,7 @@ var giocatore := 0
 var selezionati: Array = []
 var evidenziati: Array = []   # dadi selezionabili come bersaglio (scambio, rovescio...)
 var interattivo := true
-var scegli_mucchio := false   # true quando si scelgono dadi dal mucchio
+var scegli_mucchio := false   # true quando il mucchio è selezionabile per un'azione
 var _rect := {}
 var _tutti := {}              # id -> rettangolo di ogni dado disegnato
 var in_volo: Dictionary = {}  # dadi che stanno arrivando in volo: non si disegnano ancora
@@ -22,57 +22,81 @@ var _premuto := Vector2.ZERO
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	custom_minimum_size = Vector2(240, 120)
+	custom_minimum_size = Vector2(270, 300)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-## In colonna: in mano, conservati, mucchio, scartati (storditi ed eliminati). I dadi vanno a capo.
+## Il mucchio è un cerchio centrale; le condizioni eccezionali orbitano sotto.
 func _draw() -> void:
 	_rect.clear()
 	_tutti.clear()
 	if motore == null:
 		return
-	var w := maxf(size.x, 200.0)
-	var scartati: Array = motore.dadi_di(giocatore, "stordito") + motore.dadi_di(giocatore, "eliminato")
-	var gruppi := [["In mano", motore.dadi_di(giocatore, "mano"), not scegli_mucchio],
+	var w := maxf(size.x, 240.0)
+	var fuori: Array = motore.dadi_di(giocatore, "stordito") + motore.dadi_di(giocatore, "eliminato")
+	var mucchio: Array = motore.dadi_di(giocatore, "mucchio")
+	var centro := Vector2(w * 0.5, 132)
+	var raggio := clampf(w * 0.36, 92.0, 122.0)
+	draw_circle(centro, raggio + 7, Color(0.73, 0.55, 0.24, 0.16))
+	draw_circle(centro, raggio, Color(0.10, 0.085, 0.065, 0.92))
+	draw_arc(centro, raggio, 0, TAU, 64, Disegno.ORO if scegli_mucchio else Color("#6f5b3e"), 2.5 if scegli_mucchio else 1.2, true)
+	var titolo := "MUCCHIO · scegli fino al Ritmo" if scegli_mucchio else "MUCCHIO"
+	Disegno.testo(self, Vector2(centro.x - raggio + 8, centro.y - raggio + 22), titolo, 14, Disegno.ORO if scegli_mucchio else Disegno.PERGAMENA.darkened(0.1), Disegno.font_titolo(), raggio * 2.0 - 16, HORIZONTAL_ALIGNMENT_CENTER)
+	var dim := 38.0 if scegli_mucchio else 32.0
+	var colonne := maxi(3, int((raggio * 2.0 - 28.0) / (dim + 5.0)))
+	var righe := int(ceil(float(maxi(1, mucchio.size())) / colonne))
+	var larghezza := mini(colonne, maxi(1, mucchio.size())) * (dim + 5.0) - 5.0
+	var altezza := righe * (dim + 5.0) - 5.0
+	var origine := Vector2(centro.x - larghezza * 0.5, centro.y - altezza * 0.5 + 12)
+	for i in mucchio.size():
+		var d: Dictionary = mucchio[i]
+		var rr := Rect2(origine + Vector2((i % colonne) * (dim + 5.0), (i / colonne) * (dim + 5.0)), Vector2(dim, dim))
+		_tutti[d["id"]] = rr
+		if not in_volo.has(d["id"]):
+			Disegno.dado(self, rr, d["col"], d["v"], "pronto", selezionati.has(d["id"]))
+		if scegli_mucchio:
+			_rect[d["id"]] = rr
+
+	var y := centro.y + raggio + 34.0
+	var attesa_dadi := motore.dadi_di(giocatore, "attesa")
+	if not attesa_dadi.is_empty():
+		# Due frecce sottili rendono visibile il circuito Attesa -> Mucchio.
+		var freccia := Color("#9e8357")
+		draw_line(Vector2(centro.x - 24, centro.y + raggio + 3), Vector2(centro.x - 24, y - 8), freccia, 2)
+		draw_colored_polygon(PackedVector2Array([Vector2(centro.x - 29, y - 13), Vector2(centro.x - 19, y - 13), Vector2(centro.x - 24, y - 5)]), freccia)
+		draw_line(Vector2(centro.x + 24, y - 8), Vector2(centro.x + 24, centro.y + raggio + 3), freccia, 2)
+		draw_colored_polygon(PackedVector2Array([Vector2(centro.x + 19, centro.y + raggio + 11), Vector2(centro.x + 29, centro.y + raggio + 11), Vector2(centro.x + 24, centro.y + raggio + 3)]), freccia)
+
+	var gruppi := [["IN ATTESA", attesa_dadi, false],
+		["Preparati", motore.dadi_di(giocatore, "mano"), scegli_mucchio],
 		["Conservati", motore.dadi_di(giocatore, "conservato"), not scegli_mucchio],
-		["Mucchio", motore.dadi_di(giocatore, "mucchio"), scegli_mucchio],
-		["Scartati", scartati, false]]
-	var y := 0.0
+		["Fuori gioco", fuori, false]]
 	for k in gruppi.size():
 		var nome: String = gruppi[k][0]
 		var lista: Array = gruppi[k][1]
 		var tocc: bool = gruppi[k][2]
-		if lista.is_empty() and k == 1:
-			continue
-		var titolo := "%s (%d)" % [nome, lista.size()] if k >= 2 else nome
-		if k == 2 and scegli_mucchio:
-			titolo = "Mucchio: tocca i dadi da prendere"
-		Disegno.testo(self, Vector2(4, y + 16), titolo, 14, Disegno.ORO if (k == 2 and scegli_mucchio) else Disegno.PERGAMENA.darkened(0.15), Disegno.font_titolo(), w - 8)
-		y += 22
-		var dim := D if (tocc or k == 0) else D * 0.62
 		if lista.is_empty():
-			Disegno.testo(self, Vector2(6, y + 16), "vuoto", 14, Color(1, 1, 1, 0.45))
-			y += 26
 			continue
+		Disegno.testo(self, Vector2(8, y + 16), "%s (%d)" % [nome, lista.size()], 13, Disegno.PERGAMENA.darkened(0.15), Disegno.font_titolo(), w - 16, HORIZONTAL_ALIGNMENT_CENTER)
+		y += 22
+		var dim2 := D if tocc else D * 0.62
 		var ordinati := lista.duplicate()
-		if k >= 2:
-			ordinati.sort_custom(func(a, b): return Motore.COLORI.find(a["col"]) < Motore.COLORI.find(b["col"]))
-		var x := 4.0
+		ordinati.sort_custom(func(a, b): return Motore.COLORI.find(a["col"]) < Motore.COLORI.find(b["col"]))
+		var totale := ordinati.size() * (dim2 + 5.0) - 5.0
+		var x := maxf(8.0, (w - totale) * 0.5)
 		for d in ordinati:
-			if x + dim > w - 2:
+			if x + dim2 > w - 4:
 				x = 4.0
-				y += dim + 6
-			var r := Rect2(x, y, dim, dim)
+				y += dim2 + 6
+			var rr := Rect2(x, y, dim2, dim2)
 			if evidenziati.has(d["id"]):
-				draw_rect(r.grow(6), Color(0.6, 0.85, 0.5, 0.45))
-			var st: String = "pronto" if k == 2 else ("bloccato" if k == 3 else d["st"])
-			_tutti[d["id"]] = r
+				draw_rect(rr.grow(6), Color(0.6, 0.85, 0.5, 0.45))
+			_tutti[d["id"]] = rr
 			if not in_volo.has(d["id"]):
-				Disegno.dado(self, r, d["col"], d["v"], st, selezionati.has(d["id"]))
+				Disegno.dado(self, rr, d["col"], d["v"], "bloccato" if k in [0, 3] else d["st"], selezionati.has(d["id"]))
 			if tocc:
-				_rect[d["id"]] = r
-			x += dim + GAP * (1.0 if tocc else 0.5)
-		y += dim + 10
+				_rect[d["id"]] = rr
+			x += dim2 + 5.0
+		y += dim2 + 10
 	if absf(custom_minimum_size.y - y) > 1.0:
 		custom_minimum_size.y = y
 
