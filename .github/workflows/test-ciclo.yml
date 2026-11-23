@@ -3,6 +3,16 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      duelli_per_fascia:
+        description: "Duelli IA per budget (200 standard, 1000 approfondito)"
+        required: false
+        default: "200"
+        type: choice
+        options: ["200", "400", "1000"]
+concurrency:
+  group: test-ciclo-v2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -28,7 +38,7 @@ jobs:
       - name: Bilancia 200 duelli per fascia
         run: |
           G=/tmp/godot-bin/Godot_v4.7-stable_linux.x86_64
-          $G --headless --path . --script tests/bilancia.gd -- partite=200 budget=${{ matrix.budget }} seme=${{ matrix.budget }} iterazioni=1 applica=0 rapporto=./docs/bilanciamento-v2-${{ matrix.budget }}.md
+          $G --headless --path . --script tests/bilancia.gd -- partite=${{ github.event.inputs.duelli_per_fascia || 200 }} budget=${{ matrix.budget }} seme=${{ matrix.budget }} iterazioni=1 applica=0 rapporto=./docs/bilanciamento-v2-${{ matrix.budget }}.md
       - name: Carica rapporto di bilanciamento
         if: always()
         uses: actions/upload-artifact@v4
