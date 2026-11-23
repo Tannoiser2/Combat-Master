@@ -1,0 +1,160 @@
+file,nome,categoria,caratteristica,descrizione
+base.png,Azioni di base,Azioni di base,,"Due combattenti si studiano in cerchio sulla sabbia dell'arena; uno sposta il peso per cercare un'apertura, l'altro legge il movimento con lo sguardo fisso sulle spalle dell'avversario."
+forza.png,Forza del soldato,Caratteristiche,Forza,"Un fante con corazza semplice spinge con la spalla un avversario sbilanciato, il pugno libero già caricato. Postura solida, piedi ben piantati."
+furia.png,Forza del berserker,Caratteristiche,Forza,"Un guerriero a torso nudo, dipinto di guerra, urla a pieni polmoni con gli occhi stravolti, ferito ma ancora più pericoloso. Polvere e sangue sollevati attorno."
+potenza.png,Forza del colosso,Caratteristiche,Forza,Un gigante dalle spalle enormi abbatte entrambe le braccia su uno scudo che si incrina; l'avversario piega le ginocchia sotto il colpo.
+presa.png,Forza del lottatore,Caratteristiche,Forza,"Un lottatore afferra l'avversario alla vita e lo solleva per rovesciarlo, muscoli in tensione, sabbia che schizza dai piedi."
+boscaiolo.png,Forza del boscaiolo,Caratteristiche,Forza,Un uomo barbuto con camicia di lana cala l'ascia dall'alto come su un tronco; la guardia di legno del nemico si spacca in schegge.
+portatore.png,Forza del portatore,Caratteristiche,Forza,Un facchino robusto con le cinghie del carico ancora sulle spalle spinge un avversario con il palmo aperto; casse e sacchi abbandonati sullo sfondo.
+pugile.png,Forza del pugile,Caratteristiche,Forza,Un pugile con le mani fasciate sferra un montante sotto il mento dell'avversario; l'altro braccio resta alto a proteggere il volto.
+gladiatore.png,Forza del gladiatore,Caratteristiche,Forza,Un gladiatore con elmo crestato alza la spada verso gli spalti gremiti che ruggiscono; ai suoi piedi un avversario in ginocchio.
+fabbro.png,Forza del fabbro,Caratteristiche,Forza,Un fabbro con grembiule di cuoio colpisce con il martello da forgia; scintille arancioni volano come sull'incudine.
+toro.png,Forza del toro,Caratteristiche,Forza,"Un guerriero con elmo cornuto carica a testa bassa, le corna puntate contro il petto dell'avversario, polvere sollevata dietro di lui."
+agilita.png,Destrezza dello schermidore,Caratteristiche,Destrezza,"Uno schermidore elegante ruota su un piede schivando una lama per un soffio, il mantello che vortica, la propria spada tesa in linea."
+velocita.png,Destrezza del ladro,Caratteristiche,Destrezza,"Una figura incappucciata scatta in avanti e colpisce con un pugnale corto, già pronta a balzare indietro; scia di movimento."
+equilibrio.png,Destrezza del danzatore,Caratteristiche,Destrezza,"Un danzatore guerriero in equilibrio perfetto su un piede taglia girando su se stesso, stoffe colorate che seguono la rotazione."
+riflessi.png,Destrezza del gatto,Caratteristiche,Destrezza,"Un combattente agile atterra di lato a quattro zampe come un gatto, evitando un colpo che si schianta dove era un attimo prima."
+precisione.png,Destrezza del cecchino,Caratteristiche,Destrezza,"Una tiratrice socchiude un occhio e prende la mira con una fionda tesa; in lontananza l'avversario, il sasso già in volo."
+istinto.png,Destrezza del cacciatore,Caratteristiche,Destrezza,Un cacciatore in pelli si abbassa d'istinto sotto un fendente e risponde infilando la lancia corta nel varco lasciato aperto.
+destrezza.png,Destrezza del giocoliere,Caratteristiche,Destrezza,"Un giocoliere fa volteggiare tre pugnali in aria e ne afferra uno al volo per colpire di polso, sorriso beffardo."
+occhio_acuto.png,Destrezza del duellante,Caratteristiche,Destrezza,Una duellante con camicia bianca e fioretto vede arrivare il colpo e infila la punta nello spiraglio tra lama e corpo dell'avversario.
+acrobata.png,Destrezza dell'acrobata,Caratteristiche,Destrezza,"Un'acrobata in capriola a mezz'aria sferra un calcio rotante; sotto di lei l'avversario guarda in alto, sorpreso."
+borseggiatore.png,Destrezza del borseggiatore,Caratteristiche,Destrezza,Un ragazzo sgusciante sfila la spada dalla cintura dell'avversario mentre gli passa accanto; l'altro non se ne è ancora accorto.
+tempra.png,Tempra del veterano,Caratteristiche,Tempra,"Un veterano coperto di cicatrici incassa un colpo sullo spallaccio senza arretrare di un passo, lo sguardo calmo."
+resistenza.png,Tempra del legionario,Caratteristiche,Tempra,Un legionario dietro lo scudo rettangolare riprende fiato e respinge l'avversario con un colpo d'urto.
+volonta.png,Tempra del monaco,Caratteristiche,Tempra,Un monaco a piedi nudi resta immobile mentre un bastone gli si spezza sul braccio teso; espressione serena.
+costituzione.png,Tempra del gigante,Caratteristiche,Tempra,Un gigante dalla pelle dura come corteccia avanza spingendo con tutto il suo peso un avversario che slitta all'indietro.
+montanaro.png,Tempra del montanaro,Caratteristiche,Tempra,"Un montanaro con mantello di lana pesante, piantato come una roccia sul terreno, il vento della montagna che gli scompiglia la barba."
+marinaio.png,Tempra del marinaio,Caratteristiche,Tempra,"Un marinaio a gambe larghe, come sul ponte in tempesta, lancia un gancio d'abbordaggio verso l'avversario."
+orso.png,Tempra dell'orso,Caratteristiche,Tempra,"Un guerriero avvolto in una pelliccia d'orso stringe l'avversario in un abbraccio soffocante, la testa d'orso a fargli da cappuccio."
+penitente.png,Tempra del penitente,Caratteristiche,Tempra,"Un penitente con il saio lacero e catene ai polsi sopporta un colpo a occhi chiusi, quasi traendone forza."
+guardiano.png,Tempra del guardiano,Caratteristiche,Tempra,Un guardiano dietro un grande scudo sbarra un passaggio tra due colonne: nessuno passa.
+corridore.png,Tempra del corridore,Caratteristiche,Tempra,"Una corritrice snella ancora in movimento, il petto che si alza per il secondo fiato, la polvere dell'arena alle spalle."
+mente.png,Mente del tattico,Caratteristiche,Mente,"Un comandante con il mantello dei gradi fissa l'avversario con uno sguardo che lo fa esitare; dietro di lui, una mappa schizzata nella sabbia."
+astuzia.png,Mente dell'imbroglione,Caratteristiche,Mente,Un imbroglione accenna un colpo a destra mentre la vera lama arriva da sinistra; il suo sorriso tradisce la finta.
+arcano.png,Mente del mago,Caratteristiche,Mente,"Una maga concentra una luce viola tra le mani a coppa, gli occhi socchiusi, sottili rune che si affinano nell'aria."
+intelletto.png,Mente dello stratega,Caratteristiche,Mente,"Uno stratega anziano osserva il duello da vicino; attorno alla sua testa, sagome trasparenti delle prossime mosse dell'avversario."
+veggente.png,Mente del veggente,Caratteristiche,Mente,Un veggente bendato alza la mano e ferma in anticipo un colpo che vede solo in sogno; un'eco luminosa della lama lo precede.
+azzardo.png,Mente del giocatore d'azzardo,Caratteristiche,Mente,Un giocatore d'azzardo con il cappello di sbieco lancia due dadi sul palmo mentre para con il pugnale; posta e rischio nello sguardo.
+maestro.png,Mente del maestro d'armi,Caratteristiche,Mente,"Un maestro d'armi con i capelli grigi corregge con il bastone la guardia di un allievo, gesto preciso e paziente."
+ipnotista.png,Mente dell'ipnotista,Caratteristiche,Mente,"Un'ipnotista fissa l'avversario negli occhi; spirali viola sottili si irradiano dal suo sguardo e l'altro abbassa l'arma, intontito."
+cacciatore_taglie.png,Mente del cacciatore di taglie,Caratteristiche,Mente,"Un cacciatore di taglie con il manifesto di un ricercato alla cintura si posiziona nel punto cieco della preda, che guarda altrove."
+monaco_guerriero.png,Mente del monaco guerriero,Caratteristiche,Mente,Un monaco guerriero in posizione calma colpisce con il palmo aperto il petto dell'avversario; un'onda d'aria si propaga dall'impatto.
+spada.png,Spada,Armi,,"Una spada lunga cala in un fendente diagonale; dettaglio della lama e della mano guantata, con un avversario che para all'ultimo."
+pugnali.png,Pugnali gemelli,Armi,,"Due pugnali identici, uno in mano per la stoccata rapida e l'altro che vola verso il bersaglio lanciato di punta."
+ascia.png,Ascia da guerra,Armi,,Un'ascia bipenne pesante si abbatte su una guardia di legno e la spezza in due.
+lancia.png,Lancia,Armi,,Una lancia in affondo lungo tiene a distanza un avversario; la punta ferma a un palmo dal suo petto.
+arco.png,Arco lungo,Armi,,"Un arciere tende l'arco lungo fino all'orecchio, la freccia incoccata puntata verso l'arena."
+bastone.png,Bastone arcano,Armi,,Un bastone nodoso con un cristallo in cima sprigiona un dardo luminoso e un'onda di forza che solleva la sabbia.
+scudo.png,Scudo,Armi,,Uno scudo rotondo rinforzato regge un colpo violento; schegge e scintille sul bordo di ferro.
+martello.png,Martello da guerra,Armi,,Un martello da guerra colpisce un elmo; il rintocco metallico si vede come cerchi concentrici nell'aria.
+frusta.png,Frusta,Armi,,Una frusta di cuoio schiocca nell'aria e si avvolge come un laccio attorno al polso dell'avversario.
+cuoio.png,Corpetto di cuoio,Equipaggiamento,,Un combattente con un corpetto di cuoio leggero rotola via a terra sotto un colpo che va a vuoto.
+maglia.png,Cotta di maglia,Equipaggiamento,,Primo piano di una cotta di maglia che ferma una lama; gli anelli si tendono ma reggono.
+piastre.png,Armatura a piastre,Equipaggiamento,,Un cavaliere in armatura a piastre completa resta in piedi come un muro d'acciaio mentre una spada gli rimbalza sulla corazza.
+mantello.png,Mantello d'ombra,Equipaggiamento,,Un mantello scuro si dissolve in fumo dove un attimo prima c'era il combattente; la lama nemica attraversa solo ombra.
+doppio_fendente.png,Doppio fendente,Strategie,,"Un guerriero colpisce due volte in rapida successione, a destra e a sinistra; due scie di lama si incrociano a X."
+assalto.png,Assalto,Strategie,,Un guerriero lancia la carica a testa bassa con l'arma in avanti; la polvere si solleva dietro i suoi passi.
+turbine.png,Turbine d'acciaio,Strategie,,"Un combattente ruota su se stesso con la spada tesa, creando un cerchio d'acciaio scintillante attorno al corpo."
+passo_ombra.png,Passo d'ombra,Strategie,,Un'assassina compare dietro l'avversario uscendo da un'ombra; il punto da cui è partita svanisce in fumo nero.
+furia_cieca.png,Furia cieca,Strategie,,"Un guerriero con gli occhi chiusi dalla rabbia mena colpi a raffica, senza difese, i capelli scarmigliati."
+contrattacco.png,Contrattacco,Strategie,,Uno spadaccino para il colpo e nello stesso movimento risponde con una riposta al petto dell'avversario.
+spallata.png,Spallata,Strategie,,"Un combattente colpisce con tutta la spalla il busto dell'avversario, che vola all'indietro."
+novizio.png,Combinazione del novizio,Strategie,,"Un giovane apprendista esegue con impegno tre colpi in sequenza, uno, due, tre, ancora un po' goffo ma deciso."
+in_serie.png,Colpi in serie,Strategie,,"Una sequenza di colpi rapidi mostrata come più braccia sovrapposte in movimento, ciascuno più veloce del precedente."
+sacrificio.png,Sacrificio,Strategie,,Un guerriero lascia scoperto il proprio fianco a un colpo pur di affondare la lama nel cuore della guardia nemica.
+ritmo_battaglia.png,Ritmo di battaglia,Strategie,,"Un combattente danza al ritmo di un tamburo da guerra che risuona sugli spalti, i colpi scanditi a tempo."
+cambio_guardia.png,Cambio di guardia,Strategie,,"Uno spadaccino passa la spada dall'alto al basso cambiando guardia di scatto, confondendo l'avversario."
+passo_rapido.png,Passo rapido,Strategie,,"Piedi leggeri che si spostano in un lampo sulla sabbia, lasciando impronte ravvicinate e una scia di polvere."
+ferocia.png,Ferocia,Strategie,,Un guerriero digrigna i denti come una belva e si getta sull'avversario con le mani artigliate sull'arma.
+danza_lame.png,Danza delle lame,Strategie,,"Una danzatrice con due spade corte salta e taglia volteggiando, nastri di stoffa e riflessi di metallo attorno a lei."
+guardia_alta.png,Guardia alta,Talenti,,"Un combattente tiene la spada alta sopra la testa, pronto a calarla, lo sguardo vigile sotto la lama."
+riflesso.png,Riflesso fortunato,Talenti,,Un combattente inciampa per caso e proprio così evita un colpo che gli sfiora i capelli; espressione di sorpresa.
+mira_istintiva.png,Mira istintiva,Talenti,,"Un arciere scocca senza quasi guardare, d'istinto, e la freccia trova il bersaglio."
+ferro.png,Volontà di ferro,Talenti,,"Un guerriero stremato, in ginocchio, si rialza puntando la spada a terra, mascella serrata."
+sesto_senso.png,Sesto senso,Talenti,,"Un combattente si volta all'improvviso verso un pericolo alle sue spalle, avvertito da un brivido luminoso dietro la nuca."
+riscossa.png,Riscossa,Talenti,,"Un guerriero ferito si rialza dalla polvere e contrattacca con rinnovata energia, la luce che lo colpisce dall'alto."
+trappola.png,Trappola a molla,Segreti,,Una tagliola nascosta nella sabbia scatta sulla caviglia di un combattente che avanzava ignaro.
+agguato.png,Agguato,Segreti,,Una figura acquattata dietro una colonna dell'arena attende con il pugnale pronto mentre l'avversario le passa accanto.
+pelle_pietra.png,Pelle di pietra,Segreti,,La pelle di un guerriero si trasforma in pietra grigia nel punto esatto in cui una lama lo colpisce.
+rito.png,Rito notturno,Segreti,,"Una figura incappucciata traccia un cerchio di simboli sotto la luna, candele attorno, preparando un rito segreto."
+fortuna_matto.png,Fortuna del matto,Segreti,,"Un buffone di corte con il cappello a sonagli schiva tutto per pura fortuna, ridendo, mentre i colpi lo mancano da ogni lato."
+ira.png,Ira repressa,Segreti,,Un guerriero dall'aria calma stringe i pugni tremanti; sotto la pelle si intravede un bagliore rosso pronto a esplodere.
+tenacia.png,Tenacia,Talenti,,Un combattente con bende insanguinate stringe i denti e resta in piedi oltre ogni limite.
+ritmo.png,Ritmo serrato,Talenti,,"Un combattente cambia tempo di colpo, rapidissimo, mentre l'avversario resta un passo indietro."
+fiato_lungo.png,Fiato lungo,Talenti,,"Un combattente espira lentamente, una nuvola di vapore nell'aria fredda, rilassando le spalle tra uno scambio e l'altro."
+pazienza.png,Pazienza,Talenti,,"Un guerriero aspetta immobile con la spada abbassata, mentre l'avversario si agita e si stanca."
+temerario.png,Temerario,Talenti,,"Un combattente provoca l'avversario a braccia aperte, petto in fuori, con un sorriso sfrontato."
+niente_spreco.png,Niente si spreca,Talenti,,Un combattente raccoglie al volo un'arma caduta a terra e la rimette subito in gioco.
+prodigio.png,Prodigio,Talenti,,"Un giovane combattente avvolto da un lampo di luce bianca, come se il talento puro gli guidasse la mano."
+rapido.png,Rapido,Talenti,,"Un combattente colpisce per primo, prima ancora che l'avversario abbia sguainato l'arma."
+berserker.png,Sangue di berserker,Talenti,,"Un guerriero coperto di ferite ride mentre il sangue gli cola sul volto, i colpi sempre più violenti."
+occhio.png,Occhio di falco,Talenti,,Un arciere con un falco sulla spalla; i due guardano lo stesso bersaglio lontano con la stessa intensità.
+cintura_gigante.png,Cintura del gigante,Oggetti,,Una cintura borchiata enorme con una fibbia a forma di pugno; chi la indossa sferra un colpo da gigante.
+stivali_alati.png,Stivali alati,Oggetti,,"Stivali di cuoio con piccole ali piumate alle caviglie, sollevati in un balzo sopra la sabbia."
+amuleto_quarzo.png,Amuleto di quarzo,Oggetti,,Un amuleto di quarzo viola appeso a una catenina emana una luce soffusa sul petto del combattente.
+borraccia.png,Borraccia del pellegrino,Oggetti,,"Un combattente beve un sorso da una borraccia di zucca consumata, la conchiglia del pellegrino legata alla cinghia."
+talismano_gatto.png,Talismano del gatto,Oggetti,,"Un talismano a forma di gatto nero con occhi di giada, appeso al collo di un combattente che scivola via illeso."
+pietra_luna.png,Pietra di luna,Oggetti,,"Una pietra lattiginosa che riflette la luce lunare, tenuta nel palmo aperto, con un alone argenteo."
+sacca_trucchi.png,Sacca dei trucchi,Oggetti,,"Un combattente lancia una manciata di polvere dalla sacca negli occhi dell'avversario, che si copre il volto."
+corno_guerra.png,Corno di guerra,Oggetti,,Un guerriero suona un grande corno ricurvo; le onde sonore fanno vibrare la sabbia dell'arena.
+clessidra.png,Clessidra,Oggetti,,Una clessidra di ottone girata da una mano guantata; la sabbia scende lenta e il tempo sembra sospeso.
+cristallo.png,Cristallo della tempesta,Oggetti,,Un cristallo azzurro tenuto in alto sprigiona fulmini e vento che fanno turbinare il mantello del combattente.
+colpo_caricato.png,Colpo caricato,Strategie,,"Un guerriero porta l'arma indietro sopra la spalla, i muscoli tesi al massimo, accumulando forza per un unico colpo."
+esecuzione.png,Esecuzione,Strategie,,"Un guerriero alza la spada a due mani sopra un avversario a terra, pronto al colpo finale."
+ultimo_respiro.png,Ultimo respiro,Strategie,,Un combattente morente usa l'ultimo respiro per un colpo disperato; il suo sguardo è fermo nonostante tutto.
+disarmare.png,Disarmare,Strategie,,"Una lama aggancia l'elsa nemica e fa volare via la spada dell'avversario, che ruota in aria."
+gelo.png,Tocco di gelo,Strategie,,"Una mano coperta di brina sfiora il braccio dell'avversario, che si ricopre di cristalli di ghiaccio."
+colpo_mirato.png,Colpo alle spalle,Strategie,,Un combattente colpisce alle spalle un avversario che guarda nella direzione sbagliata.
+ira_ferita.png,Ira del ferito,Strategie,,Un guerriero appena colpito si volta con occhi di fuoco e restituisce il colpo con il doppio della forza.
+tempesta_colpi.png,Tempesta di colpi,Strategie,,"Una raffica di colpi rapidissimi, rappresentata come decine di lame sovrapposte in un vortice di metallo."
+rabbia.png,Rabbia covata,Strategie,,"Un combattente seduto in un angolo, testa bassa, stringe l'impugnatura della spada fino a sbiancare le nocche."
+guardia_ferrea.png,Guardia ferrea,Strategie,,Un guerriero con braccia e spada incrociate davanti al corpo forma una barriera impenetrabile.
+somma_perfetta.png,Somma perfetta,Strategie,,Due dadi che sommano sette brillano su una lama sollevata; il colpo parte nel momento perfetto.
+piccoli_passi.png,Piccoli passi,Strategie,,"Piedi che avanzano con passi brevi e misurati, guadagnando terreno senza mai perdere l'equilibrio."
+doppio_pari.png,Doppio pari,Strategie,,"Due spade gemelle colpiscono in perfetta simmetria, come uno specchio, dai due lati dell'avversario."
+colpo_dispari.png,Colpo dispari,Strategie,,"Un colpo storto e imprevedibile arriva da un'angolazione strana, cogliendo l'avversario di sorpresa."
+colpo_volo.png,Colpo in volo,Strategie,,"Un guerriero salta in alto e colpisce dall'alto verso il basso, l'arma sopra la testa, il mantello aperto."
+seconda_aria.png,Seconda aria,Talenti,,"Un combattente esausto alza lo sguardo, respira a fondo e ritrova le forze; la luce gli torna negli occhi."
+cuore_leone.png,Cuore di leone,Talenti,,Un guerriero con un leone ruggente dipinto sullo scudo avanza senza arretrare di un passo.
+specchio.png,Specchio dell'anima,Talenti,,Un combattente guarda in uno specchio rotondo e il suo riflesso compie la stessa mossa dell'avversario.
+fumo.png,Bomba di fumo,Segreti,,Una sfera di terracotta esplode a terra in una nuvola di fumo grigio; il combattente scompare.
+rete.png,Rete nascosta,Segreti,,Una rete coperta di sabbia si solleva di scatto e intrappola le gambe di un combattente.
+ultima_risorsa.png,Ultima risorsa,Segreti,,"Un combattente con le spalle al muro estrae un pugnale nascosto nello stivale, l'ultima carta da giocare."
+veleno.png,Veleno lento,Segreti,,Una goccia verde scivola lungo la lama di un pugnale sottile; fumo pallido si alza dal filo.
+postura.png,Postura di difesa,Strategie,,"Un combattente in posizione bassa e raccolta, arma davanti al corpo, pronto a ricevere l'attacco."
+rotella.png,Rotella,Equipaggiamento,,Un piccolo scudo rotondo da pugno devia un colpo di lato con un movimento secco del polso.
+tenere.png,Tenere la guardia,Talenti,,Un combattente rinsalda la presa sull'arma e rimette a posto la guardia dopo un colpo violento.
+calibrato.png,Colpo calibrato,Strategie,,Una lama si ferma con precisione millimetrica su un punto preciso dell'armatura avversaria.
+affondo_rientro.png,Affondo e rientro,Strategie,,"Uno schermidore affonda in avanti e in un attimo è già due passi indietro, fuori portata."
+taglio_passaggio.png,Taglio di passaggio,Strategie,,"Un combattente taglia di lato mentre scivola oltre l'avversario, senza fermarsi."
+sgambetto.png,Sgambetto,Strategie,,"Un piede aggancia la caviglia dell'avversario, che perde l'equilibrio e cade all'indietro."
+proiezione.png,Proiezione,Strategie,,"Un lottatore scaglia l'avversario contro una colonna di pietra dell'arena, che si crepa nell'urto."
+rompiguardia.png,Rompiguardia,Strategie,,"Un colpo potente sfonda la guardia incrociata dell'avversario, che allarga le braccia sbilanciato."
+passo_laterale.png,Passo laterale,Talenti,,Un combattente fa un passo deciso di lato e l'attacco dell'avversario gli passa accanto senza toccarlo.
+lama_scudo.png,Lama e brocchiero,Armi,,Uno spadaccino con spada nella destra e piccolo scudo nella sinistra taglia e copre nello stesso tempo.
+respingere.png,Respingere,Talenti,,"Un combattente allontana l'avversario con una spinta decisa dello scudo, guadagnando spazio."
+torsione.png,Torsione,Strategie,,"Un combattente ruota il busto e torce il braccio armato dell'avversario, costringendolo a girarsi."
+traverso.png,Colpo di traverso,Strategie,,"Un fendente orizzontale arriva di traverso, dal fianco, dove la guardia dell'avversario non arriva."
+danza_guerra.png,Danza di guerra,Talenti,,"Un guerriero gira attorno all'avversario con passi di danza tribale, cercando l'angolo giusto per colpire."
+dardo_arcano.png,Dardo arcano,Magie,,Un mago punta l'indice e scaglia un dardo di luce viola che sibila verso il bersaglio.
+spinta_arcana.png,Spinta arcana,Magie,,"Un'onda di forza invisibile, resa come aria distorta, scaglia indietro un combattente sollevando polvere."
+scudo_arcano.png,Scudo arcano,Magie,,Una cupola esagonale di luce azzurra si materializza attorno al mago e ferma una lama.
+passo_nebbia.png,Passo nella nebbia,Magie,,"Un mago si dissolve in nebbia argentata e ricompare poco lontano, la sagoma ancora sfumata."
+morsa_gelo.png,Morsa di gelo,Magie,,Ghiaccio blu sale dal terreno e imprigiona le gambe dell'avversario fino alle ginocchia.
+catene.png,Catene mentali,Magie,,"Catene viola trasparenti si avvolgono attorno alla testa e alle braccia di un combattente, che si irrigidisce."
+fiamma.png,Fiammata,Magie,,Un getto di fiamme arancioni esce dalle mani di un mago e investe l'avversario dietro lo scudo.
+vortice.png,Vortice,Magie,,Un turbine di vento e sabbia solleva e fa girare su se stesso un combattente al centro dell'arena.
+respiro_profondo.png,Respiro profondo,Talenti,,"Un combattente a occhi chiusi inspira profondamente, il petto che si gonfia, l'aria attorno immobile."
+riposo_tattico.png,Riposo tattico,Strategie,,"Un combattente si ritira un passo dietro una colonna e riprende fiato, senza perdere d'occhio l'avversario."
+meditazione_rituale.png,Meditazione rituale,Magie,,"Un mago seduto a gambe incrociate sulla sabbia, cerchi di rune luminose che ruotano lenti attorno a lui."
+gestione_del_fiato.png,Gestione del fiato,Talenti,,"Un combattente espira lentamente mentre para con calma, ogni gesto misurato per non sprecare energia."
+istinto_di_sopravvivenza.png,Istinto di sopravvivenza,Talenti,,"Un combattente all'angolo, ferito, con gli occhi accesi come quelli di un animale braccato, pronto a tutto."
+riciclo_arcano.png,Riciclo arcano,Magie,,Frammenti di un incantesimo esaurito vengono riassorbiti nelle mani del mago come scintille che tornano a lui.
+raccogliere_le_forze.png,Raccogliere le forze,Strategie,,"Un guerriero si ricompone, raddrizza la schiena e rimette in ordine la guardia, raccogliendo le energie."
+disciplina_del_duellante.png,Disciplina del duellante,Strategie,,"Una duellante si ferma un istante, ritrova la propria postura perfetta e il proprio tempo."
+cerchio_della_vita.png,Cerchio della vita,Magie,,Un cerchio di luce verde si accende sotto i piedi di una sacerdotessa; foglie e germogli spuntano nella sabbia.
+secondo_respiro.png,Secondo respiro,Oggetti,,"Una fiaschetta d'argento con un liquido ambrato, stappata da un combattente che si riprende dopo un colpo duro."
+tecnica_del_logoramento.png,Tecnica del logoramento,Strategie,,"Un combattente scioglie con pazienza la presa dell'avversario, dita contro dita, stancandolo poco a poco."
+preghiera_del_rientro.png,Preghiera del rientro,Magie,,Un guerriero inginocchiato prega a mani giunte; una luce dorata scende dall'alto e lo rinvigorisce.
+preparazione_del_ritorno.png,Preparazione del ritorno,Strategie,,"Un combattente controlla lacci, cinghie e lama, mettendo tutto a punto prima di tornare nella mischia."
