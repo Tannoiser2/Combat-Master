@@ -18,7 +18,7 @@ Invarianti: la somma dei dadi nelle zone coincide con il totale generato, meno i
 - **Recuperare**: Attesa → Mucchio, ritira ciascun dado al momento del rientro. Non libera spazi.
 - **Recupero naturale**: al passaggio, il combattente può sbloccare fino a `Recupero` spazi (Azioni → Attesa); non riporta direttamente dadi nel mucchio.
 - **Fine scambio**: i dadi non utilizzati in mano rientrano nel mucchio con le regole attuali; i dadi in Attesa non tornano automaticamente nel mucchio.
-- **Riposo** (azione universale di sicurezza, proposta): se il combattente non riesce o non vuole agire, cede l'iniziativa e trasferisce fino a **2 dadi** da Attesa a Mucchio ritirandoli. Non infligge danno. Si può usare anche con mano vuota. Se non possiede dadi in Attesa, equivale a Passare.
+- **Riposo** (azione universale di sicurezza, proposta): se il combattente non riesce o non vuole agire, cede l'iniziativa e trasferisce fino a **1 dado** da Attesa a Mucchio ritirandoli. Non infligge danno. Si può usare anche con mano vuota. Se non possiede dadi in Attesa, equivale a Passare.
 - **Sblocco di emergenza** (proposta): scarta dalla mano un dado per liberare uno spazio occupato; il dado liberato passa ad Attesa e quello speso passa ad Attesa. Per compensare il vantaggio, non si può usare più di una volta per scambio.
 - **Stanchezza** (da testare, NON regola fissa): un dado basso può liberare un dado alto; il dado liberato rientra in Attesa con penalità temporanea di valore, rimossa al ritiro successivo. Evitare doppia contabilità finché non è chiaro l'impatto sull'IA.
 
