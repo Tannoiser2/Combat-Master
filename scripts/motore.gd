@@ -333,7 +333,8 @@ func _tira() -> int:
 ## Ogni dado che entra nel mucchio viene tirato: il mucchio è sempre visibile.
 func _al_mucchio(d: Dictionary) -> void:
 	d["st"] = "mucchio"
-	d["v"] = _tira()
+	d["v"] = maxi(_tira(), int(d.get("min_rientro", 1)))
+	d.erase("min_rientro")
 
 ## Prende dal mucchio i dadi più alti (usato dagli effetti automatici dei segreti).
 func _pesca_migliori(p: int, n: int) -> int:
@@ -735,6 +736,10 @@ func bersagli(p: int, tok: String, sl: Dictionary, ids: Array) -> Array:
 					if d["v"] <= V:
 						out.append({"bers": o})
 						break
+		"prepara_attesa":
+			for ris in dadi_di(p, "attesa"):
+				if not ids.has(ris["id"]) and int(ris.get("min_rientro", 1)) < int(sl.get("soglia", 4)):
+					out.append({"dado": ris["id"]})
 		"recupera":
 			var riserva := dadi_di(p, "attesa")
 			# Il giocatore sceglie quali dadi recuperare: il colore conta tanto quanto il valore.
@@ -1356,6 +1361,10 @@ func _slot(p: int, op: Dictionary) -> String:
 				_scrivi("%s: %s, stordito un %d di %s." % [g["nome"], sl["nome"], best["v"], s["g"][o]["nome"]])
 				_evento({"t": "blocco", "p": o, "n": 1})
 				_evento({"t": "dadi", "p": o})
+		"prepara_attesa":
+			var preparato := dado(p, int(b["dado"]))
+			preparato["min_rientro"] = maxi(int(preparato.get("min_rientro", 1)), int(sl.get("soglia", 4)))
+			_scrivi("%s prepara un dado %s in Attesa: al recupero uscira almeno %d." % [g["nome"], preparato["col"], preparato["min_rientro"]])
 		"recupera":
 			var quanti := 0
 			for id_att in b["dadi"]:
