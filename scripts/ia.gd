@@ -399,8 +399,8 @@ static func minaccia(m: Motore, p: int) -> float:
 			portata = 6
 		if d - avvicina > portata or d < int(sl.get("gittata_min", 1)):
 			continue
-		for ids in m.combinazioni(p, sl):
-			var q := float(m.quantita(p, sl, ids))
+		for ids in m.combinazioni(p, sl, 8):
+			var q := float(maxi(0, m.quantita(p, sl, ids) - int(Motore.regole.get("attrito_mucchio", 0))))
 			if not sl.get("ignora_armatura", false):
 				q -= float(go["armatura"])
 			best = maxf(best, q)

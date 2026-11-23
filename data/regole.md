@@ -10,26 +10,27 @@ Lo scenario stabilisce il budget di punti (30, 45 o 60). Nell'Officina scegli i 
 - Equipaggiamento, oggetti, talenti e magie: 1 azione ciascuno. Alcuni danno anche un dado in più o un vantaggio fisso (armatura, ferite, ritmo), ma sempre insieme a un'azione.
 - Segreti: restano coperti per l'avversario finché non scattano.
 Il mucchio è la somma dei dadi indicati sui token. Ogni spazio accetta solo certi colori (le strisce colorate sotto l'alloggio) e spesso chiede un valore (dado 4 o più, dado 1-2, due dadi uguali…); il dado bianco vale come qualsiasi colore.
-In battaglia le schede dei due combattenti stanno ai lati dello schermo (in verticale, affiancate sotto la mappa), con i dadi in mano, il mucchio e gli scartati, e tutte le carte in vista senza scorrere: toccando il nome di una carta la vedi a grandezza piena. Quando tocchi un dado in mano, gli spazi dove può andare si illuminano d'oro e quelli inutilizzabili si sbiadiscono; in alto compare dove puoi usarlo, oppure il motivo per cui non va (colore, valore, fase o bersaglio).
-Si parte con 14 ferite, Ritmo 3, Recupero 1 e la possibilità di conservare 1 dado.
+In battaglia le schede dei due combattenti mostrano il mucchio circolare, la zona In Attesa e tutte le carte. Toccando un dado disponibile, gli spazi dove può andare si illuminano d'oro; non esistono una Mano permanente né una zona generica Scartati.
+Si parte con 30 ferite, Ritmo 3, Recupero 1 e la possibilità di conservare 1 dado.
 
 ## Il ciclo dei dadi
 Ogni dado che entra nel mucchio viene tirato subito: il mucchio è sempre visibile. All'inizio si tirano tutti.
-1. Scelta: a ogni scambio prendi dal mucchio tanti dadi quanto il tuo Ritmo, scegliendoli fra quelli visibili. Con metà delle ferite o meno ne prendi uno in meno.
-2. Iniziativa: comincia chi ha la somma più alta dei dadi blu in mano (più i bonus).
-3. Azioni: chi ha l'iniziativa fa UNA azione, piazzando dadi della mano su uno spazio. Poi l'iniziativa passa, salvo gli spazi "Mantieni l'iniziativa" e le azioni LIBERE, che non la cedono.
-4. I dadi piazzati restano sul token e occupano lo spazio. **Sbloccare** libera lo spazio ma manda i dadi in **Attesa**, senza ritirarli; non diventano subito disponibili.
-5. Passare: quando passi sblocchi tanti spazi quanto il tuo Recupero, mandando i relativi dadi in Attesa. Chi passa per primo lascia all'avversario la possibilità di agire da solo.
-6. Fine dello scambio: i dadi rimasti in mano e quelli storditi tornano nel mucchio (ritirati), salvo quelli conservati. I dadi in Attesa vi restano.
-7. **Riposo**: una volta per scambio, durante la propria azione, si può recuperare fino a 1 dado dall'Attesa, rimettendoli nel mucchio e ritirandoli. Riposare cede l'iniziativa. I dadi recuperati non entrano direttamente in mano.
+1. Ritmo: a ogni scambio disponi di un budget di dadi pari al Ritmo; con metà delle ferite o meno diminuisce di uno. Non devi sceglierli tutti in anticipo.
+2. Iniziativa: comincia chi ha la somma più alta dei migliori dadi blu disponibili, fino al proprio Ritmo, più i bonus.
+3. Azioni: chi ha l'iniziativa fa UNA azione scegliendo direttamente dal mucchio i dadi richiesti. Ogni dado impegnato consuma un punto Ritmo dello scambio. Poi l'iniziativa passa, salvo combo e azioni LIBERE.
+4. Attitudine: i dadi rimasti sui token e l'Assetto formano Aggressiva (rosso), Fluida (blu), Guardinga (verde) o Concentrata (viola). L'Attitudine consente di concentrare il Ritmo sul colore favorito; in Neutrale occorre una selezione più mista.
+5. I dadi piazzati restano sul token e occupano lo spazio. **Sbloccare** libera lo spazio ma manda i dadi in **Attesa**.
+6. Passare: quando passi sblocchi tanti spazi quanto il Recupero. Chi passa per primo lascia all'avversario la possibilità di agire da solo.
+7. Fine dello scambio: i dadi storditi e quelli preparati ma non utilizzati tornano nel mucchio; i dadi in Attesa vi restano. Il budget di Ritmo si rinnova.
+8. **Riposo**: una volta per scambio, dopo aver attaccato, recupera 1 dado dall'Attesa al mucchio e cede l'iniziativa.
 
 ## Azioni base
 - Riposo: recupera fino a 1 dado dalla zona di Attesa al Mucchio, ritirandoli; una volta per scambio, cede l'iniziativa.
-- Sblocco di emergenza: una volta per scambio puoi spendere un dado in mano per liberare uno spazio occupato. Il dado speso e quelli liberati finiscono in Attesa; l'iniziativa passa. Anche un dado da 1 può essere utile.
+- Sblocco di emergenza: una volta per scambio puoi spendere un dado disponibile e un punto Ritmo per liberare uno spazio occupato. Il dado speso e quelli liberati finiscono in Attesa.
 - Colpo improvvisato: ogni scheda ha questo spazio; con un dado qualsiasi colpisci a portata 1 per un terzo del dado.
 - Passo: una volta per scambio, senza dadi, ti muovi con 2 punti movimento.
-- Spingere la fortuna: una volta per scambio ritiri i dadi in mano che vuoi; ogni 1 che esce resta stordito.
-- Conservare: metti da parte un dado in mano per lo scambio seguente.
+- Spingere la fortuna: una volta per scambio ritiri dadi selezionati dal mucchio, consumando il relativo Ritmo; ogni 1 resta stordito.
+- Conservare: metti da parte un dado disponibile per lo scambio seguente.
 
 ## Economia dell'Attesa
 Il Riposo universale recupera solo 1 dado e cede l'iniziativa. I token specializzati possono recuperare 2 o 3 dadi, modificare i risultati o curare, ma richiedono un investimento di punti e lasciano il dado speso impegnato. Gli sblocchi trasferiscono sempre i dadi in Attesa; anche i dadi che evitano di occupare un token grazie a un talento passano per Attesa.

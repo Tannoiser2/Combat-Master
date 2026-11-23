@@ -66,7 +66,7 @@ func _init() -> void:
 	var vita0: int = m.s["g"][1]["vita"]
 	controlla(m.applica(0, {"t": "slot", "tok": "spada", "slot": "fendente", "dadi": [r], "b": {"bers": 1, "lato": 0}}) == "", "fendente mirato")
 	chiudi(m)
-	controlla(m.s["g"][1]["vita"] == vita0 - 1, "6 contro guardia 5: passa 1 (vita %d)" % m.s["g"][1]["vita"])
+	controlla(m.s["g"][1]["vita"] == vita0, "5 dopo attrito contro guardia 5: nessun danno (vita %d)" % m.s["g"][1]["vita"])
 	controlla(m.valore_guardia(1, "postura/in_guardia") == 4, "la guardia si consuma di 1")
 
 	# colpo mirato di sbieco e passo laterale che fa andare a vuoto
@@ -93,7 +93,7 @@ func _init() -> void:
 	# resta a contatto ma di sbieco: il colpo mirato perde 1
 	controlla(m.applica(1, {"t": "slot", "tok": "passo_laterale", "slot": "scarta", "dadi": [b], "b": {"pos": Vector2i(1, -1)}}) == "", "passo laterale vicino")
 	chiudi(m)
-	controlla(m.s["g"][1]["vita"] == vita0 - 5, "colpo mirato di sbieco: 6-1 (vita %d)" % m.s["g"][1]["vita"])
+	controlla(m.s["g"][1]["vita"] == vita0 - 4, "colpo mirato di sbieco: 6-1 attrito-1 angolo (vita %d)" % m.s["g"][1]["vita"])
 
 	# affondo e rientro: l'attaccante deve arretrare di 2
 	m = duello({"forza": 2, "affondo_rientro": 1}, {"tempra": 1})
@@ -129,7 +129,7 @@ func _init() -> void:
 	vita0 = m.s["g"][1]["vita"]
 	controlla(m.applica(0, {"t": "slot", "tok": "proiezione", "slot": "proietta", "dadi": [r, vv], "b": {"bers": 1}}) == "", "proiezione")
 	chiudi(m)
-	controlla(m.s["g"][1]["vita"] == vita0 - 3 - 3, "proiezione: 3 di colpo e 3 d'urto (vita %d)" % m.s["g"][1]["vita"])
+	controlla(m.s["g"][1]["vita"] == vita0 - 2 - 3, "proiezione: 2 di colpo e 3 d'urto (vita %d)" % m.s["g"][1]["vita"])
 	controlla(m.dadi_di(1, "stordito").size() == 1, "l'urto stordisce un dado")
 
 	# colpo pesante: con 4 danni o più il difensore arretra di uno

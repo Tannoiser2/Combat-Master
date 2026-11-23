@@ -990,9 +990,29 @@ func combinazioni(p: int, sl: Dictionary, limite: int = 0) -> Array:
 	var k: int = sl["dadi"].size()
 	if mano.size() < k:
 		return []
+	# Con il mucchio intero, materializzare tutte le combinazioni per ogni clone
+	# dell'IA è molto costoso. Alterniamo valori alti e bassi e interrompiamo la
+	# generazione; l'interfaccia umana (limite 0) conserva invece l'insieme pieno.
+	var candidati := mano
+	var grezze: Array
+	if limite > 0:
+		var ordinati := mano.duplicate()
+		ordinati.sort_custom(func(a, b): return a["v"] > b["v"] if a["v"] != b["v"] else COLORI.find(a["col"]) < COLORI.find(b["col"]))
+		candidati = []
+		var sx := 0
+		var dx := ordinati.size() - 1
+		while sx <= dx:
+			candidati.append(ordinati[sx])
+			sx += 1
+			if sx <= dx:
+				candidati.append(ordinati[dx])
+				dx -= 1
+		grezze = _scelte_limitate(candidati, k, maxi(48, limite * 10))
+	else:
+		grezze = _scelte(candidati, k)
 	var out := []
 	var visti := {}
-	for combo in _scelte(mano, k):
+	for combo in grezze:
 		var ids := []
 		for d in combo:
 			ids.append(d["id"])
@@ -1009,6 +1029,28 @@ func combinazioni(p: int, sl: Dictionary, limite: int = 0) -> Array:
 		out.append(ord)
 		if limite > 0 and out.size() >= limite:
 			break
+	return out
+
+static func _scelte_limitate(a: Array, k: int, limite: int) -> Array:
+	var out := []
+	if k == 1:
+		for i in a.size():
+			out.append([a[i]])
+			if out.size() >= limite:
+				break
+	elif k == 2:
+		for i in a.size():
+			for j in range(i + 1, a.size()):
+				out.append([a[i], a[j]])
+				if out.size() >= limite:
+					return out
+	elif k == 3:
+		for i in a.size():
+			for j in range(i + 1, a.size()):
+				for q in range(j + 1, a.size()):
+					out.append([a[i], a[j], a[q]])
+					if out.size() >= limite:
+						return out
 	return out
 
 static func _scelte(a: Array, k: int) -> Array:
@@ -1043,7 +1085,7 @@ func opzioni(p: int) -> Array:
 			continue
 		# L'interfaccia può esplorare tutte le combinazioni; l'IA riceve un
 		# campione rappresentativo per non moltiplicare i cloni dell'intero stato.
-		for ids in combinazioni(p, sl, 8):
+		for ids in combinazioni(p, sl, 4):
 			for b in bersagli(p, ts[0], sl, ids):
 				out.append({"t": "slot", "tok": ts[0], "slot": sl["id"], "dadi": ids, "b": b})
 	match f:
@@ -1702,6 +1744,10 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionar
 	g["usi"]["attacchi"] = int(g["usi"].get("attacchi", 0)) + 1
 	var d := dist(g["pos"], go["pos"])
 	var l := lato(go["pos"], go["dir"], g["pos"])
+	# La selezione differita dal mucchio trova più facilmente il dado ideale.
+	# Un punto di attrito compensa questa flessibilità sui danni base, senza
+	# aumentare vita o armatura e senza toccare bonus, fianchi ed effetti.
+	var impatto := maxi(0, q - int(regole.get("attrito_mucchio", 0)))
 	var bonus := 0
 	# L'Assetto positivo può essere convertito in precisione. Si spende al
 	# massimo un punto per colpo, evitando esplosioni di danno.
@@ -1727,7 +1773,7 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionar
 	bonus += _accumulo(p, "accumulo_attacco")
 	# l'arena si scalda: più si combatte, più i colpi fanno male
 	bonus += int(s["round"]) / 10
-	s["pend"] = {"att": p, "dif": o, "danno": q, "bonus": bonus, "vd": vd, "mischia": d <= 2 and int(sl.get("portata", 1)) <= 2,
+	s["pend"] = {"att": p, "dif": o, "danno": impatto, "bonus": bonus, "vd": vd, "mischia": d <= 2 and int(sl.get("portata", 1)) <= 2,
 		"lato": l, "ignora": sl.get("ignora_armatura", false), "non_schivabile": sl.get("non_schivabile", false),
 		"riduz": 0, "annullato": false, "contro": 0, "spingi": int(sl.get("spingi", 0)), "attira": int(sl.get("attira", 0)),
 		"blocca": int(sl.get("blocca", 0)), "catena": sl.get("catena", false), "nome": sl["nome"], "ruba": false, "no_spinta": false,
@@ -1740,7 +1786,7 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionar
 		s["pend"]["ignora"] = true
 		s["pend"]["imparabile"] = true
 	var latotxt := "" if l == "fronte" else (" sul fianco" if l == "fianco" else " alle spalle")
-	_scrivi("%s: %s%s, %s." % [g["nome"], sl["nome"], latotxt, plurale(q + bonus, "danno", "danni")])
+	_scrivi("%s: %s%s, %s." % [g["nome"], sl["nome"], latotxt, plurale(impatto + bonus, "danno", "danni")])
 	_evento({"t": "attacco", "p": p, "bers": o, "dist": d})
 	if s["pend"]["mischia"]:
 		_innesca(o, "attaccato_mischia")

@@ -84,7 +84,7 @@ func _init() -> void:
 		m2.applica(0, {"t": "sferra"})
 	if m2.s["fase"] == "reazione":
 		m2.applica(1, {"t": "risolvi"})
-	controlla(m2.s["g"][1]["vita"] == vita1 - (5 - m2.s["g"][1]["armatura"]), "danno del fendente meno armatura")
+	controlla(m2.s["g"][1]["vita"] == vita1 - maxi(1, 4 - m2.s["g"][1]["armatura"]), "danno del fendente con attrito e armatura")
 	controlla(m2.occupato(0, "spada", "fendente"), "il fendente resta occupato")
 	controlla(m2.dado(0, rosso)["st"] == "token", "il dado resta sul token")
 	m2.s["attivo"] = 0

@@ -1,19 +1,21 @@
 # Combat Master
 
 Gioco originale di schermaglie fantasy per due combattenti, in Godot 4.7 (GL Compatibility, esportazione web).
-Ogni giocatore compone il proprio personaggio con dei **token** che mettono **dadi colorati nel mucchio** e offrono **spazi** su cui piazzarli. I dadi girano in cerchio: si scelgono dal mucchio visibile tanti quanto il Ritmo, si piazzano sui token dove restano a occupare lo spazio; lo **sblocco** li sposta nella zona di **Attesa**, mentre il **recupero** li riporta nel mucchio e li ritira. L'iniziativa salta da un combattente all'altro secondo azioni, combo e reazioni.
+Ogni giocatore compone il proprio personaggio con dei **token** che mettono **dadi colorati nel mucchio** e offrono **spazi** su cui piazzarli. I dadi girano in cerchio: per ogni azione si scelgono direttamente dal mucchio entro il budget di **Ritmo** e i limiti cromatici dell'**Attitudine**; sui token restano a occupare lo spazio, lo **sblocco** li sposta in **Attesa** e il **recupero** li riporta nel mucchio.
 
 Le regole complete sono in [`data/regole.md`](data/regole.md) e si leggono anche nel gioco.
 
-## Novità sperimentali (ramo `design/ciclo-dadi-attesa`)
+## Novità sperimentali (ramo `design/attitudine-mucchio`)
 - I dadi liberati dai token entrano in **Attesa**; non tornano automaticamente nel mucchio.
 - **Riposo** (1 dado, una volta per scambio) riporta dadi dall'Attesa al mucchio, cedendo l'iniziativa.
-- **Sblocco di emergenza**: spendi un dado della mano per liberare uno spazio occupato; entrambi i dadi coinvolti finiscono in Attesa. Anche un dado da 1 è utile.
+- Non esiste una Mano ordinaria: il Ritmo è un budget cumulativo dello scambio e la selezione avviene al momento dell'azione.
+- **Attitudine** Aggressiva, Fluida, Guardinga o Concentrata: emerge dai dadi impegnati, dall'Assetto e dalle azioni, ampliando il limite del colore coerente senza aggiungere dadi.
+- **Sblocco di emergenza**: spendi un dado disponibile per liberare uno spazio occupato; entrambi i dadi coinvolti finiscono in Attesa.
 - La scheda mostra il conteggio dei dadi in Attesa. L'IA valuta le nuove opzioni, ma i pesi e il catalogo richiedono ulteriori playtest.
 - I test Godot sono eseguiti sulla pull request con `.github/workflows/test-ciclo.yml`.
 
 ## Economia dell'Attesa
-Dodici nuovi token di recupero e sblocco (catalogo di 158 token). Il Riposo universale recupera un solo dado; le tecniche specialistiche possono recuperarne fino a tre e offrire piccoli benefici. Tutti gli sblocchi passano ora dalla zona Attesa, senza ritorno diretto in mano.
+Dodici nuovi token di recupero e sblocco (catalogo di 158 token). Il Riposo universale recupera un solo dado; le tecniche specialistiche possono recuperarne fino a tre. Tutti gli sblocchi passano dalla zona Attesa, senza ritorno diretto all'uso.
 
 ## Cosa c'è
 - **Quasi 150 token**. Quattro caratteristiche obbligatorie (Forza, Destrezza, Tempra, Mente), ognuna con dieci schede fra cui sceglierne una: 2-3 azioni e i dadi del mucchio. Poi armi e strategie (1-2 azioni), equipaggiamento, oggetti, talenti e magie (1 azione), segreti.

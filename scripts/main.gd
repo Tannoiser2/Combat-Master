@@ -1336,7 +1336,7 @@ func _slot_usabile(p: int, tok: String, sl: Dictionary) -> bool:
 			return false
 		combos = [o]
 	else:
-		combos = m.combinazioni(p, sl)
+		combos = m.combinazioni(p, sl, 24)
 	for ids in combos:
 		if not m.bersagli(p, tok, sl, ids).is_empty():
 			return true
@@ -1568,7 +1568,7 @@ func _slot(tok: String, sid: String) -> void:
 	else:
 		var best := []
 		var bv := -1
-		var combo: Array = m.combinazioni(p, sl)
+		var combo: Array = m.combinazioni(p, sl, 24)
 		if combo.is_empty():
 			_msg.text = m.spiega_mano(p, sl)
 			return
