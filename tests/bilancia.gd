@@ -43,7 +43,8 @@ func _init() -> void:
 func giro(n: int, budget_fisso: int, min_scambi: int = 10, quota_doppi: float = 0.5) -> Dictionary:
 	var st := {"partite": 0, "scambi": 0, "tempo": 0, "rifiuti": 0, "token": {}, "spazi": {}, "coppie": {},
 		"budget": {}, "durate": [], "danno": 0, "senza_attacchi": 0, "esagoni": 0, "spinti": 0, "giri": 0, "riposi": 0, "emergenze": 0, "interrotte": 0, "passi": 0, "recuperi_token": 0, "sblocchi_token": 0, "preparazioni_attesa": 0, "azioni_offensive": 0, "attacchi_reali": 0, "senza_attacchi_pg": 0, "attesa_picco": 0, "somme_attesa": 0, "campioni_attesa": 0,
-		"min_scambi": min_scambi, "quota_doppi": quota_doppi, "scambi_doppi": 0, "duelli_brevi": 0, "duelli_senza_entrambi": 0, "duelli_quota_doppi": 0, "duelli_non_validi": 0, "violazioni": []}
+		"min_scambi": min_scambi, "quota_doppi": quota_doppi, "scambi_doppi": 0, "duelli_brevi": 0, "duelli_senza_entrambi": 0, "duelli_quota_doppi": 0, "duelli_non_validi": 0, "violazioni": [],
+		"assetto_generato": 0, "assetto_speso": 0, "sblocchi_assetto": 0, "difese_assetto": 0}
 	var t0 := Time.get_ticks_msec()
 	for i in n:
 		var budget: int = budget_fisso if budget_fisso > 0 else [30, 45, 60][i % 3]
@@ -63,6 +64,10 @@ func giro(n: int, budget_fisso: int, min_scambi: int = 10, quota_doppi: float = 
 				st["riposi"] += 1
 			elif op["t"] == "emergenza":
 				st["emergenze"] += 1
+			elif op["t"] == "flusso":
+				st["sblocchi_assetto"] += 1
+			elif op["t"] == "adatta":
+				st["difese_assetto"] += 1
 			if op["t"] == "slot":
 				var k: String = op["tok"] + "/" + op["slot"]
 				st["spazi"][k] = int(st["spazi"].get(k, 0)) + 1
@@ -91,6 +96,12 @@ func giro(n: int, budget_fisso: int, min_scambi: int = 10, quota_doppi: float = 
 				st["somme_attesa"] += attesa_n
 				st["campioni_attesa"] += 1
 			for ev in m.prendi_eventi():
+				if ev["t"] == "assetto":
+					var delta_assetto := int(ev["delta"])
+					if delta_assetto > 0:
+						st["assetto_generato"] += delta_assetto
+					else:
+						st["assetto_speso"] -= delta_assetto
 				if ev["t"] == "attacco":
 					var round_attacco := int(m.s["round"])
 					if not attacchi_per_scambio.has(round_attacco):
@@ -177,6 +188,8 @@ func stampa(st: Dictionary, it: int) -> void:
 		st["duelli_non_validi"], st["duelli_brevi"], st["duelli_senza_entrambi"], st["duelli_quota_doppi"], st["scambi_doppi"]])
 	for v in st["violazioni"]:
 		print("      VIOLAZIONE: ", v)
+	print("    Assetto: generato %d, speso %d, sblocchi fluidi %d, difese fluide %d" % [
+		st["assetto_generato"], st["assetto_speso"], st["sblocchi_assetto"], st["difese_assetto"]])
 	print("    Attesa media %.2f dadi per combattente/decisione; picco %d" % [
 		float(st["somme_attesa"]) / maxi(1, int(st["campioni_attesa"])), st["attesa_picco"]])
 	print("    Movimento per partita: %.1f esagoni percorsi, di cui %.1f per spinte, %.1f rotazioni" % [float(st["esagoni"]) / st["partite"], float(st["spinti"]) / st["partite"], float(st["giri"]) / st["partite"]])
@@ -277,6 +290,7 @@ func scrivi_rapporto(st: Dictionary, percorso: String) -> void:
 	t += "- Durata minima: %d scambi\n- Quota minima di scambi con attacchi di entrambi: %.0f%%\n- Duelli non validi: %d\n- Duelli troppo brevi: %d\n- Duelli in cui uno dei due non attacca: %d\n- Duelli sotto la quota di attacchi reciproci: %d\n\n" % [
 		st["min_scambi"], float(st["quota_doppi"]) * 100.0, st["duelli_non_validi"], st["duelli_brevi"], st["duelli_senza_entrambi"], st["duelli_quota_doppi"]]
 	t += "## Economia dell'Attesa\\n\\n"
+	t += "- Assetto generato: %d\\n- Assetto speso: %d\\n- Sblocchi tramite Assetto: %d\\n- Difese tramite Assetto: %d\\n" % [st["assetto_generato"], st["assetto_speso"], st["sblocchi_assetto"], st["difese_assetto"]]
 	t += "- Recuperi tramite token: %d\\n- Sblocchi tramite token: %d\\n- Dadi preparati in Attesa: %d\\n- Azioni offensive: %d\\n- Combattenti che non hanno attaccato: %d\\n- Dadi medi in Attesa per combattente e decisione: %.2f\\n- Picco Attesa: %d\\n\\n" % [
 		st["recuperi_token"], st["sblocchi_token"], st["preparazioni_attesa"], st["azioni_offensive"], st["senza_attacchi_pg"],
 		float(st["somme_attesa"]) / maxi(1, int(st["campioni_attesa"])), st["attesa_picco"]]
