@@ -263,7 +263,11 @@ static func _risorse(m: Motore, p: int, w: Dictionary) -> float:
 	for d in m.dadi_di(p, "mucchio"):
 		v += w["mucchio_base"] + w["mucchio_val"] * d["v"]
 	# Dadi in Attesa valgono meno di quelli pronti: il recupero e una scelta tattica.
-	v += 0.15 * m.dadi_di(p, "attesa").size()
+	# Valore futuro: i dadi pronti valgono di piu dei dadi bloccati in Attesa.
+	# Premia la preparazione di un dado con soglia minima al prossimo recupero.
+	for d in m.dadi_di(p, "attesa"):
+		v += 0.15 + 0.35 * maxf(0.0, float(int(d.get("min_rientro", 1)) - 1))
+	v += 0.35 * m.dadi_di(p, "mucchio").size()
 	v += w["conservato"] * m.dadi_di(p, "conservato").size()
 	v -= w["stordito"] * m.dadi_di(p, "stordito").size()
 	v -= w["eliminato"] * m.dadi_di(p, "eliminato").size()
