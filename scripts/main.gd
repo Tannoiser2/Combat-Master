@@ -1696,6 +1696,19 @@ func _slot(tok: String, sid: String) -> void:
 			attesa["selezionabili"] = cand
 			sel.clear()
 			_aggiorna()
+		"prepara_attesa":
+			if bs.size() == 1:
+				_esegui(p, {"t": "slot", "tok": tok, "slot": sid, "dadi": ids, "b": bs[0]})
+				return
+			attesa = base
+			attesa["passo"] = "scelta"
+			var voci := []
+			for bb in bs:
+				var bx: Dictionary = bb
+				var dado_a := m.dado(p, int(bx["dado"]))
+				voci.append(["Prepara " + str(dado_a["col"]), func(): _esegui(p, _op_attesa(bx))])
+			_mostra_scelte(voci)
+			_aggiorna()
 		"recupera":
 			if bs.size() == 1:
 				_esegui(p, {"t": "slot", "tok": tok, "slot": sid, "dadi": ids, "b": bs[0]})
