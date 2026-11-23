@@ -20,9 +20,12 @@ Ogni dado che entra nel mucchio viene tirato subito: il mucchio è sempre visibi
 3. Azioni: chi ha l'iniziativa fa UNA azione, piazzando dadi della mano su uno spazio. Poi l'iniziativa passa, salvo gli spazi "Mantieni l'iniziativa" e le azioni LIBERE, che non la cedono.
 4. I dadi piazzati restano sul token e occupano lo spazio. **Sbloccare** libera lo spazio ma manda i dadi in **Attesa**, senza ritirarli; non diventano subito disponibili.
 5. Passare: quando passi sblocchi tanti spazi quanto il tuo Recupero, mandando i relativi dadi in Attesa. Chi passa per primo lascia all'avversario la possibilità di agire da solo.
-6. Fine dello scambio: i dadi rimasti in mano e quelli storditi tornano nel mucchio (ritirati), salvo quelli conservati. I dadi in Attesa vi restano.\n7. **Riposo**: una volta per scambio, durante la propria azione, si può recuperare fino a 2 dadi dall'Attesa, rimettendoli nel mucchio e ritirandoli. Riposare cede l'iniziativa. I dadi recuperati non entrano direttamente in mano.
+6. Fine dello scambio: i dadi rimasti in mano e quelli storditi tornano nel mucchio (ritirati), salvo quelli conservati. I dadi in Attesa vi restano.
+7. **Riposo**: una volta per scambio, durante la propria azione, si può recuperare fino a 2 dadi dall'Attesa, rimettendoli nel mucchio e ritirandoli. Riposare cede l'iniziativa. I dadi recuperati non entrano direttamente in mano.
 
 ## Azioni base
+- Riposo: recupera fino a 2 dadi dalla zona di Attesa al Mucchio, ritirandoli; una volta per scambio, cede l'iniziativa.
+- Sblocco di emergenza: una volta per scambio puoi spendere un dado in mano per liberare uno spazio occupato. Il dado speso e quelli liberati finiscono in Attesa; l'iniziativa passa. Anche un dado da 1 può essere utile.
 - Colpo improvvisato: ogni scheda ha questo spazio; con un dado qualsiasi colpisci a portata 1 per un terzo del dado.
 - Passo: una volta per scambio, senza dadi, ti muovi con 2 punti movimento.
 - Spingere la fortuna: una volta per scambio ritiri i dadi in mano che vuoi; ogni 1 che esce resta stordito.
