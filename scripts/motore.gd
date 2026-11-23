@@ -739,6 +739,16 @@ func bersagli(p: int, tok: String, sl: Dictionary, ids: Array) -> Array:
 					if d["v"] <= V:
 						out.append({"bers": o})
 						break
+		"recupera":
+			var riserva := dadi_di(p, "attesa")
+			# Il giocatore sceglie quali dadi recuperare: il colore conta tanto quanto il valore.
+			var massimo := mini(quantita(p, sl, ids), riserva.size())
+			for n_rec in range(1, massimo + 1):
+				for gruppo in _scelte(riserva, n_rec):
+					var scelti := []
+					for dado_att in gruppo:
+						scelti.append(dado_att["id"])
+					out.append({"dadi": scelti})
 		"sblocca":
 			var chiavi: Array = g["occupati"].keys()
 			chiavi.erase(chiave(tok, sl["id"]))
@@ -1345,6 +1355,22 @@ func _slot(p: int, op: Dictionary) -> String:
 				_scrivi("%s: %s, stordito un %d di %s." % [g["nome"], sl["nome"], best["v"], s["g"][o]["nome"]])
 				_evento({"t": "blocco", "p": o, "n": 1})
 				_evento({"t": "dadi", "p": o})
+		"recupera":
+			var quanti := 0
+			for id_att in b["dadi"]:
+				var recuperato := dado(p, int(id_att))
+				if recuperato.get("st", "") != "attesa":
+					continue
+				_al_mucchio(recuperato)
+				if int(sl.get("bonus_dado", 0)) != 0:
+					recuperato["v"] = clampi(int(recuperato["v"]) + int(sl["bonus_dado"]), 1, 6)
+				quanti += 1
+			if int(sl.get("cura", 0)) > 0 and quanti > 0:
+				var salute := mini(int(sl["cura"]), g["vita_max"] - g["vita"])
+				g["vita"] += salute
+				if salute > 0:
+					_evento({"t": "cura", "p": p, "n": salute})
+			_scrivi("%s: %s, recupera %s dall'Attesa." % [g["nome"], sl["nome"], plurale(quanti, "dado", "dadi")])
 		"sblocca":
 			for k in b["slots"]:
 				_libera(p, k, sl.get("in_mano", false))
