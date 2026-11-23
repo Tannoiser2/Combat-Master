@@ -1862,7 +1862,7 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionar
 		_evento({"t": "muovi", "p": p, "percorso": [Vector3i(g["pos"].x, g["pos"].y, g["dir"])]})
 	var l := lato(go["pos"], go["dir"], g["pos"])
 	# La selezione differita dal mucchio trova più facilmente il dado ideale.
-	# Un punto di attrito compensa questa flessibilità sui danni base, senza
+	# L'attrito (regole.attrito_mucchio) compensa questa flessibilità sui danni base, senza
 	# aumentare vita o armatura e senza toccare bonus, fianchi ed effetti.
 	var impatto := maxi(0, q - int(regole.get("attrito_mucchio", 0)))
 	var bonus := 0

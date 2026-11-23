@@ -14,6 +14,7 @@ func controlla(cond: bool, msg: String) -> void:
 func duello(t0: Dictionary, t1: Dictionary, chi := 0) -> Motore:
 	var m := Motore.new(dati)
 	m.nuova_partita({"nome": "Alfa", "token": t0}, {"nome": "Beta", "token": t1}, "cortile", 5)
+	m.regole["attrito_mucchio"] = 1  # le prove di meccanica sono tarate su attrito 1
 	m.s["g"][0]["pos"] = Vector2i(0, 0)
 	m.s["g"][0]["dir"] = 0
 	m.s["g"][1]["pos"] = Vector2i(1, 0)

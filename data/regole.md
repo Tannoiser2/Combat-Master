@@ -83,7 +83,8 @@ Alcuni token hanno un esagono disegnato. Il dado si mette su un lato dell'esagon
 
 ## Colpire e difendersi
 - Ogni combattente guarda verso uno dei sei lati. Muoversi in avanti costa 1, di lato o indietro 2, girarsi di un lato 1.
-- Gli attacchi colpiscono verso il fronte (i tre lati davanti), salvo quelli ad area.
+- Gli attacchi colpiscono verso il fronte (i tre lati davanti), salvo quelli ad area. Un nemico sul fianco entro 2 esagoni si può colpire girandosi verso di lui nello stesso attacco.
+- Attrito: il danno base di ogni colpo (il valore che il dado porta nell'azione) cala di 2 prima dei modificatori.
 - Colpire sul fianco dà +1 danno, alle spalle +2.
 - Le armature riducono ogni colpo del loro valore, salvo gli attacchi che ignorano l'armatura; da sola però l'armatura non scende sotto 1 danno: un colpo andato a segno fa sempre almeno 1 ferita, a meno di parate e schivate.
 - Più lo scontro dura, più l'arena si scalda: dal decimo scambio ogni colpo fa +1, dal ventesimo +2.
