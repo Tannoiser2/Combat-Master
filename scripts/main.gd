@@ -1010,7 +1010,8 @@ func _costruisci_hud() -> void:
 	_btn.clear()
 	var comandi := [["consigliata", "Scelta consigliata", _cmd_consigliata], ["passo", "Passo (2)", _cmd_passo],
 		["spinta", "Spingi la fortuna", _cmd_spinta], ["conserva", "Conserva", _cmd_conserva],
-		["passa", "Passa", _cmd_passa], ["riposo", "Riposo (+2)", _cmd_riposo], ["sferra", "Sferra il colpo", _cmd_sferra], ["risolvi", "Subisci il colpo", _cmd_risolvi],
+		["passa", "Passa", _cmd_passa], ["riposo", "Riposo (+2)", _cmd_riposo],
+		["emergenza", "Sblocca (dado)", _cmd_emergenza], ["sferra", "Sferra il colpo", _cmd_sferra], ["risolvi", "Subisci il colpo", _cmd_risolvi],
 		["rilancia", "Rilancia", _cmd_rilancia], ["ferma", "Fermati", _cmd_ferma], ["conferma", "Conferma", _cmd_conferma],
 		["annulla", "Annulla", _cmd_annulla]]
 	for c in comandi:
@@ -1282,6 +1283,8 @@ func _messaggio() -> String:
 			"scelta":
 				return "Scegli tra i pulsanti."
 			"spazi":
+				if attesa.get("emergenza", false):
+					return "Sblocca di emergenza: scegli uno spazio da liberare. Il dado speso e quelli sbloccati vanno in Attesa."
 				if attesa.get("passa", false):
 					return "Passi: tocca fino a %s da liberare, poi Conferma." % Motore.plurale(attesa["n"], "spazio occupato", "spazi occupati")
 				return "Tocca %s da liberare, poi Conferma." % Motore.plurale(attesa["n"], "spazio occupato", "spazi occupati")
@@ -1389,6 +1392,7 @@ func _aggiorna_comandi() -> void:
 		"azione":
 			_btn["passa"].visible = true
 			_btn["riposo"].visible = not m.dadi_di(chi, "attesa").is_empty() and int(m.s["g"][chi]["usi"].get("riposo", 0)) == 0
+			_btn["emergenza"].visible = in_mano.size() == 1 and not m.s["g"][chi]["occupati"].is_empty() and int(m.s["g"][chi]["usi"].get("emergenza", 0)) == 0
 			_btn["passo"].visible = not m.bersagli_passo(chi).is_empty()
 		"rinforzo":
 			_btn["sferra"].visible = true
@@ -1860,6 +1864,16 @@ func _cmd_conserva() -> void:
 	var d := m.dado(p, sel[0])
 	_esegui(p, {"t": "riprendi" if d["st"] == "conservato" else "conserva", "dado": sel[0]})
 
+func _cmd_emergenza() -> void:
+	var p := _umano_decide()
+	if p < 0 or sel.size() != 1 or m.dado(p, sel[0]).get("st", "") != "mano":
+		return
+	var occ: Array = m.s["g"][p]["occupati"].keys()
+	if occ.is_empty():
+		return
+	attesa = {"passo": "spazi", "emergenza": true, "dado": sel[0], "n": 1, "scelti": [], "selezionabili": occ}
+	_aggiorna()
+
 func _cmd_riposo() -> void:
 	var p := _umano_decide()
 	if p >= 0:
@@ -1907,6 +1921,9 @@ func _cmd_conferma() -> void:
 			_esegui(p, _op_attesa({"dadi": attesa["scelti"].duplicate()}))
 		return
 	if attesa.get("passo", "") != "spazi":
+		return
+	if attesa.get("emergenza", false):
+		_esegui(p, {"t": "emergenza", "key": attesa["scelti"][0], "dado": attesa["dado"]})
 		return
 	if attesa.get("passa", false):
 		_esegui(p, {"t": "passa", "slots": attesa["scelti"].duplicate()})
