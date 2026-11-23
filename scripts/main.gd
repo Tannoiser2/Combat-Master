@@ -1010,7 +1010,7 @@ func _costruisci_hud() -> void:
 	_btn.clear()
 	var comandi := [["consigliata", "Scelta consigliata", _cmd_consigliata], ["passo", "Passo (2)", _cmd_passo],
 		["spinta", "Spingi la fortuna", _cmd_spinta], ["conserva", "Conserva", _cmd_conserva],
-		["passa", "Passa", _cmd_passa], ["sferra", "Sferra il colpo", _cmd_sferra], ["risolvi", "Subisci il colpo", _cmd_risolvi],
+		["passa", "Passa", _cmd_passa], ["riposo", "Riposo (+2)", _cmd_riposo], ["sferra", "Sferra il colpo", _cmd_sferra], ["risolvi", "Subisci il colpo", _cmd_risolvi],
 		["rilancia", "Rilancia", _cmd_rilancia], ["ferma", "Fermati", _cmd_ferma], ["conferma", "Conferma", _cmd_conferma],
 		["annulla", "Annulla", _cmd_annulla]]
 	for c in comandi:
@@ -1388,6 +1388,7 @@ func _aggiorna_comandi() -> void:
 	match fase:
 		"azione":
 			_btn["passa"].visible = true
+			_btn["riposo"].visible = not m.dadi_di(chi, "attesa").is_empty() and int(m.s["g"][chi]["usi"].get("riposo", 0)) == 0
 			_btn["passo"].visible = not m.bersagli_passo(chi).is_empty()
 		"rinforzo":
 			_btn["sferra"].visible = true
@@ -1858,6 +1859,11 @@ func _cmd_conserva() -> void:
 		return
 	var d := m.dado(p, sel[0])
 	_esegui(p, {"t": "riprendi" if d["st"] == "conservato" else "conserva", "dado": sel[0]})
+
+func _cmd_riposo() -> void:
+	var p := _umano_decide()
+	if p >= 0:
+		_esegui(p, {"t": "riposo"})
 
 func _cmd_passa() -> void:
 	var p := _umano_decide()
