@@ -12,6 +12,7 @@ const PESI_BASE := {
 	"iniziativa": 0.8, "azzardo": 7.0, "pesca_spazio": 0.5, "pesca_val": 0.1,
 	"minaccia": 1.2, "pericolo_subito": 1.0, "cede": 0.6, "guardia": 1.0,
 	"presenza_attacco": 10.0,
+	"inerzia_offensiva": 6.0,
 	"assetto": 1.2,
 }
 
@@ -140,7 +141,7 @@ static func valuta_opzione(m: Motore, p: int, op: Dictionary, w: Dictionary) -> 
 	if c.applica(p, op) != "":
 		return -INF
 	_completa(c, p, w)
-	return valuta(c, p, w)
+	return valuta(c, p, w) + _urgenza_offensiva(m, p, op, w)
 
 ## Valore della mossa dopo la risposta migliore dell'avversario (se tocca a lui).
 static func _valuta_con_risposta(m: Motore, p: int, op: Dictionary, w: Dictionary) -> float:
@@ -151,7 +152,7 @@ static func _valuta_con_risposta(m: Motore, p: int, op: Dictionary, w: Dictionar
 	_completa(c, p, w)
 	var o := 1 - p
 	if c.s["vinc"] >= 0 or c.chi_decide() != o or c.s["fase"] != "azione":
-		return valuta(c, p, w)
+		return valuta(c, p, w) + _urgenza_offensiva(m, p, op, w)
 	var peggiore := INF
 	var meglio_per_o := -INF
 	for op2 in _sfoltisci(c, o, c.opzioni(o), w):
@@ -162,8 +163,36 @@ static func _valuta_con_risposta(m: Motore, p: int, op: Dictionary, w: Dictionar
 		var vo := valuta(c2, o, w)
 		if vo > meglio_per_o:
 			meglio_per_o = vo
-			peggiore = valuta(c2, p, w)
-	return peggiore if peggiore < INF else valuta(c, p, w)
+			peggiore = valuta(c2, p, w) + _urgenza_offensiva(m, p, op, w)
+	return peggiore if peggiore < INF else valuta(c, p, w) + _urgenza_offensiva(m, p, op, w)
+
+## Un combattente che non ha ancora attaccato deve prima cercare il contatto.
+## Il bonus cresce se ha saltato anche gli scambi precedenti, ma resta una
+## preferenza dell'IA: legalita, distanza, dadi e rischio continuano a valere.
+static func _urgenza_offensiva(m: Motore, p: int, op: Dictionary, w: Dictionary) -> float:
+	if m.s["fase"] != "azione" or int(m.s["g"][p]["usi"].get("attacchi", 0)) > 0:
+		return 0.0
+	var g: Dictionary = m.s["g"][p]
+	var urgenza: float = float(w["presenza_attacco"]) + float(w["inerzia_offensiva"]) * mini(3, int(g.get("scambi_senza_attacco", 0)))
+	if op["t"] == "scarica":
+		return urgenza
+	if op["t"] == "slot":
+		var sl: Dictionary = m.slot_def(op["tok"], op["slot"])
+		if sl["effetto"] in ["attacco", "assalto"]:
+			return urgenza
+		if sl["effetto"] == "movimento" and op.get("b", {}).has("pos"):
+			var prima := Motore.dist(g["pos"], m.s["g"][1 - p]["pos"])
+			var dopo := Motore.dist(op["b"]["pos"], m.s["g"][1 - p]["pos"])
+			if dopo < prima:
+				return urgenza * 0.45
+	if op["t"] == "passo":
+		var prima := Motore.dist(g["pos"], m.s["g"][1 - p]["pos"])
+		var dopo := Motore.dist(op["b"]["pos"], m.s["g"][1 - p]["pos"])
+		if dopo < prima:
+			return urgenza * 0.45
+	if op["t"] in ["riposo", "passa"]:
+		return -urgenza * 0.75
+	return 0.0
 
 static func _completa(c: Motore, p: int, w: Dictionary) -> void:
 	var guard := 0
@@ -250,8 +279,10 @@ static func valuta(m: Motore, p: int, w: Dictionary) -> float:
 	v += w["minaccia"] * mia
 	# Un primo attacco nello scambio vale più di una seconda preparazione: rende
 	# l'IA combattiva senza obbligarla a sprecare dadi in colpi impossibili.
-	v += w["presenza_attacco"] * signi(int(g["usi"].get("attacchi", 0)))
-	v -= w["presenza_attacco"] * signi(int(go["usi"].get("attacchi", 0)))
+	var mia_urgenza: float = float(w["presenza_attacco"]) + float(w["inerzia_offensiva"]) * mini(3, int(g.get("scambi_senza_attacco", 0)))
+	var sua_urgenza: float = float(w["presenza_attacco"]) + float(w["inerzia_offensiva"]) * mini(3, int(go.get("scambi_senza_attacco", 0)))
+	v += mia_urgenza * signi(int(g["usi"].get("attacchi", 0)))
+	v -= sua_urgenza * signi(int(go["usi"].get("attacchi", 0)))
 	if not go["passato"]:
 		v -= w["pericolo_subito"] * sua
 		# chi passa per primo lascia all'avversario azioni gratuite

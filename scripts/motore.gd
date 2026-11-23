@@ -138,7 +138,7 @@ func nuova_partita(pg0: Dictionary, pg1: Dictionary, arena_id: String, seme: int
 				n += 1
 		s["g"].append({"nome": pg.get("nome", "Combattente"), "pg": pg.duplicate(true),
 			"vita": st["vita"], "vita_max": st["vita"], "ritmo": st["ritmo"], "recupero": st["recupero"],
-			"assetto": 0,
+			"assetto": 0, "scambi_senza_attacco": 0,
 			"armatura": st["armatura"], "mov": st["movimento"], "conserva_max": st["conserva"],
 			"ini": st["iniziativa"], "flag": st["flag"], "pos": partenze[i], "dir": dirs[i],
 			"dadi": dadi, "occupati": {}, "passato": false, "spinte": 0, "usi": {}, "armati": {}, "rivelati": {}, "bonus_ritmo": 0,
@@ -963,7 +963,9 @@ func opzioni(p: int) -> Array:
 				out.append({"t": "scarica", "key": k})
 			for c in opzioni_recupero(p):
 				out.append({"t": "passa", "slots": c})
-			if not dadi_di(p, "attesa").is_empty() and int(s["g"][p]["usi"].get("riposo", 0)) == 0:
+			# Il recupero generico non deve sostituire il primo gesto offensivo:
+			# diventa disponibile solo dopo avere attaccato nello scambio.
+			if not dadi_di(p, "attesa").is_empty() and int(s["g"][p]["usi"].get("riposo", 0)) == 0 and int(s["g"][p]["usi"].get("attacchi", 0)) > 0:
 				out.append({"t": "riposo"})
 			if int(s["g"][p]["usi"].get("emergenza", 0)) == 0:
 				for k in s["g"][p]["occupati"]:
@@ -1979,6 +1981,11 @@ func _nuovo_round() -> void:
 	s["da_pescare"] = []
 	for p in 2:
 		var g: Dictionary = s["g"][p]
+		if int(s["round"]) > 1:
+			if int(g["usi"].get("attacchi", 0)) == 0:
+				g["scambi_senza_attacco"] = mini(3, int(g.get("scambi_senza_attacco", 0)) + 1)
+			else:
+				g["scambi_senza_attacco"] = 0
 		g["passato"] = false
 		g["spinte"] = 0
 		g["usi"] = {}
