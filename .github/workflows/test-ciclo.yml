@@ -20,3 +20,11 @@ jobs:
           $G --headless --path . --editor --import --quit
           $G --headless --path . --script tests/regole_test.gd -- partite=60
           $G --headless --path . --script tests/esagoni_test.gd
+          $G --headless --path . --script tests/bilancia.gd -- partite=200 iterazioni=1 applica=0 rapporto=./docs/bilanciamento-v2-ci.md
+      - name: Carica rapporto di bilanciamento
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bilanciamento-v2
+          path: docs/bilanciamento-v2-ci.md
+          if-no-files-found: warn
