@@ -7,10 +7,13 @@ Le regole complete sono in [`data/regole.md`](data/regole.md) e si leggono anche
 
 ## Novità sperimentali (ramo `design/ciclo-dadi-attesa`)
 - I dadi liberati dai token entrano in **Attesa**; non tornano automaticamente nel mucchio.
-- **Riposo** (max 2 dadi, una volta per scambio) riporta dadi dall'Attesa al mucchio, cedendo l'iniziativa.
+- **Riposo** (1 dado, una volta per scambio) riporta dadi dall'Attesa al mucchio, cedendo l'iniziativa.
 - **Sblocco di emergenza**: spendi un dado della mano per liberare uno spazio occupato; entrambi i dadi coinvolti finiscono in Attesa. Anche un dado da 1 è utile.
 - La scheda mostra il conteggio dei dadi in Attesa. L'IA valuta le nuove opzioni, ma i pesi e il catalogo richiedono ulteriori playtest.
 - I test Godot sono eseguiti sulla pull request con `.github/workflows/test-ciclo.yml`.
+
+## Economia dell'Attesa
+Dodici nuovi token di recupero e sblocco (catalogo di 158 token). Il Riposo universale recupera un solo dado; le tecniche specialistiche possono recuperarne fino a tre e offrire piccoli benefici. Tutti gli sblocchi passano ora dalla zona Attesa, senza ritorno diretto in mano.
 
 ## Cosa c'è
 - **Quasi 150 token**. Quattro caratteristiche obbligatorie (Forza, Destrezza, Tempra, Mente), ognuna con dieci schede fra cui sceglierne una: 2-3 azioni e i dadi del mucchio. Poi armi e strategie (1-2 azioni), equipaggiamento, oggetti, talenti e magie (1 azione), segreti.
