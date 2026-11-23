@@ -35,6 +35,7 @@ jobs:
           $G --headless --path . --script tests/regole_test.gd -- partite=60
           $G --headless --path . --script tests/esagoni_test.gd
           $G --headless --path . --script tests/attesa_test.gd
+          $G --headless --path . --script tests/attitudine_test.gd
       - name: Valida e bilancia i duelli della fascia
         run: |
           G=/tmp/godot-bin/Godot_v4.7-stable_linux.x86_64

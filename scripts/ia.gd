@@ -287,19 +287,17 @@ static func valuta(m: Motore, p: int, w: Dictionary) -> float:
 		v -= w["pericolo_subito"] * sua
 		# chi passa per primo lascia all'avversario azioni gratuite
 		if g["passato"]:
-			v -= w["cede"] * m.dadi_di(o, "mano").size()
+			v -= w["cede"] * (m.dadi_di(o, "mucchio").size() + m.dadi_di(o, "mano").size())
 	elif not g["passato"]:
-		v += w["cede"] * m.dadi_di(p, "mano").size()
+		v += w["cede"] * (m.dadi_di(p, "mucchio").size() + m.dadi_di(p, "mano").size())
 	if m.s["fase"] == "azione" and int(m.s["attivo"]) == p and not g["passato"]:
 		v += w["iniziativa"]
 	return v
 
 static func _risorse(m: Motore, p: int, w: Dictionary) -> float:
 	var v := 0.0
-	for d in m.dadi_di(p, "mano"):
+	for d in m.dadi_di(p, "mucchio") + m.dadi_di(p, "mano"):
 		v += w["mano_base"] + w["mano_val"] * d["v"]
-	for d in m.dadi_di(p, "mucchio"):
-		v += w["mucchio_base"] + w["mucchio_val"] * d["v"]
 	# Dadi in Attesa valgono meno di quelli pronti: il recupero e una scelta tattica.
 	# Valore futuro: i dadi pronti valgono di piu dei dadi bloccati in Attesa.
 	# Premia la preparazione di un dado con soglia minima al prossimo recupero.
@@ -365,32 +363,16 @@ static func _sfoltisci(m: Motore, p: int, opz: Array, w: Dictionary) -> Array:
 	return out
 
 static func _spinta_utile(m: Motore, p: int) -> Dictionary:
-	if not m.spinta_disponibile(p):
-		return {}
-	var ids := []
-	for d in m.dadi_di(p, "mano"):
-		if d["v"] > 2:
-			continue
-		var serve := false
-		for ts in m.slot_del_giocatore(p):
-			var sl: Dictionary = ts[1]
-			var c: Dictionary = sl.get("cond", {})
-			if (c.has("max") or c.has("valori")) and not m.occupato(p, ts[0], sl["id"]):
-				for req in sl["dadi"]:
-					if Motore.colore_ok(d["col"], req):
-						serve = true
-		if not serve:
-			ids.append(d["id"])
-	if ids.is_empty():
-		return {}
-	return {"t": "spinta", "dadi": ids}
+	# Senza una Mano permanente non si scandaglia gratis l'intero mucchio:
+	# la Spinta resta una scelta esplicita del giocatore sui dadi selezionati.
+	return {}
 
 static func _conserva_utile(m: Motore, p: int) -> Dictionary:
 	var g: Dictionary = m.s["g"][p]
 	if m.dadi_di(p, "conservato").size() >= int(g["conserva_max"]):
 		return {}
 	var best := {}
-	for d in m.dadi_di(p, "mano"):
+	for d in m.dadi_di(p, "mucchio") + m.dadi_di(p, "mano"):
 		if (d["v"] >= 5 or d["v"] == 1) and (best.is_empty() or d["v"] > best["v"]):
 			best = d
 	if best.is_empty():
@@ -402,7 +384,7 @@ static func _conserva_utile(m: Motore, p: int) -> Dictionary:
 static func minaccia(m: Motore, p: int) -> float:
 	var g: Dictionary = m.s["g"][p]
 	var go: Dictionary = m.s["g"][1 - p]
-	var mano := m.dadi_di(p, "mano")
+	var mano := m.dadi_di(p, "mucchio") + m.dadi_di(p, "mano")
 	if mano.is_empty():
 		return 0.0
 	var d := Motore.dist(g["pos"], go["pos"])
@@ -417,8 +399,8 @@ static func minaccia(m: Motore, p: int) -> float:
 			portata = 6
 		if d - avvicina > portata or d < int(sl.get("gittata_min", 1)):
 			continue
-		for ids in m.combinazioni(p, sl):
-			var q := float(m.quantita(p, sl, ids))
+		for ids in m.combinazioni(p, sl, 8):
+			var q := float(maxi(0, m.quantita(p, sl, ids) - int(Motore.regole.get("attrito_mucchio", 0))))
 			if not sl.get("ignora_armatura", false):
 				q -= float(go["armatura"])
 			best = maxf(best, q)
