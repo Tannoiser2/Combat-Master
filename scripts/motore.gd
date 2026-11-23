@@ -633,12 +633,12 @@ func _piazza(p: int, tok: String, sid: String, ids: Array, sl: Dictionary) -> vo
 		var d := dado(p, id)
 		if d["v"] == 1 and g["flag"].has("riciclo") and g["usi"].get("riciclo", 0) == 0:
 			g["usi"]["riciclo"] = 1
-			_al_mucchio(d)
-			_scrivi("%s: niente si spreca, l'1 torna subito nel mucchio." % g["nome"])
+			d["st"] = "attesa"
+			_scrivi("%s: niente si spreca, l'1 entra in Attesa anziche occupare il token." % g["nome"])
 			continue
 		if d["v"] == 1 and sl.get("uno_torna", false):
-			d["v"] = _tira()
-			_scrivi("%s: l'1 torna subito in mano (ora %d)." % [g["nome"], d["v"]])
+			d["st"] = "attesa"
+			_scrivi("%s: l'1 entra in Attesa senza occupare il token." % g["nome"])
 			continue
 		d["st"] = "token"
 		restano.append(id)
@@ -646,18 +646,14 @@ func _piazza(p: int, tok: String, sid: String, ids: Array, sl: Dictionary) -> vo
 		var k := chiave(tok, sid)
 		g["occupati"][k] = g["occupati"].get(k, []) + restano
 
-## Sblocca uno spazio: i dadi vanno in Attesa, salvo esplicita restituzione in mano.
-func _libera(p: int, key: String, in_mano := false) -> void:
+## Tutti gli sblocchi inviano i dadi in Attesa: nessun salto diretto in mano.
+func _libera(p: int, key: String, _in_mano := false) -> void:
 	var g: Dictionary = s["g"][p]
 	if not g["occupati"].has(key):
 		return
 	for id in g["occupati"][key]:
 		var d := dado(p, id)
-		if in_mano:
-			d["st"] = "mano"
-			d["v"] = _tira()
-		else:
-			d["st"] = "attesa"
+		d["st"] = "attesa"
 	g["occupati"].erase(key)
 	g["armati"].erase(key)
 	g["carichi"].erase(key)
@@ -1075,7 +1071,7 @@ func applica(p: int, op: Dictionary) -> String:
 			var in_attesa := dadi_di(p, "attesa")
 			if in_attesa.is_empty():
 				return "Non ci sono dadi in Attesa da recuperare."
-			var n_r := mini(2, in_attesa.size())
+			var n_r := mini(1, in_attesa.size())
 			for i in n_r:
 				_al_mucchio(in_attesa[i])
 			g_r["usi"]["riposo"] = 1
