@@ -739,12 +739,17 @@ func bersagli(p: int, tok: String, sl: Dictionary, ids: Array) -> Array:
 			var riserva := dadi_di(p, "attesa")
 			# Il giocatore sceglie quali dadi recuperare: il colore conta tanto quanto il valore.
 			var massimo := mini(quantita(p, sl, ids), riserva.size())
-			for n_rec in range(1, massimo + 1):
+			# Dare priorita al recupero pieno, ma limitare la ramificazione dell'IA.
+			for n_rec in range(massimo, 0, -1):
 				for gruppo in _scelte(riserva, n_rec):
+					if out.size() >= 16:
+						break
 					var scelti := []
 					for dado_att in gruppo:
 						scelti.append(dado_att["id"])
 					out.append({"dadi": scelti})
+				if out.size() >= 16:
+					break
 		"sblocca":
 			var chiavi: Array = g["occupati"].keys()
 			chiavi.erase(chiave(tok, sl["id"]))
