@@ -38,6 +38,33 @@ func _init() -> void:
 			verifica(not unici.has(d["id"]), "nessun dado duplicato")
 			unici[d["id"]] = true
 			verifica(d["st"] in ["mucchio", "mano", "attesa", "token", "stordito", "conservato", "eliminato"], "stato noto")
+	# I dadi in Attesa possono essere preparati: al recupero rispettano la soglia minima.
+	var pg2: Dictionary = dati["personaggi"][0].duplicate(true)
+	pg2["token"]["preparazione_del_ritorno"] = 1
+	var m2 := Motore.new(dati)
+	m2.nuova_partita(pg2, dati["personaggi"][1], "cortile", 49)
+	m2.s["fase"] = "azione"
+	m2.s["attivo"] = 0
+	var costo := -1
+	var bersaglio := -1
+	for dd in m2.s["g"][0]["dadi"]:
+		if costo < 0 and dd["col"] in ["blu", "viola"]:
+			costo = dd["id"]
+			dd["st"] = "mano"
+			dd["v"] = 1
+		elif bersaglio < 0:
+			bersaglio = dd["id"]
+			dd["st"] = "attesa"
+	if costo >= 0 and bersaglio >= 0:
+		var preparazione := {"t": "slot", "tok": "preparazione_del_ritorno", "slot": "messa_a_punto",
+			"dadi": [costo], "b": {"dado": bersaglio}}
+		verifica(m2.applica(0, preparazione) == "", "preparare un dado in Attesa")
+		verifica(int(m2.dado(0, bersaglio).get("min_rientro", 0)) == 4, "dado preparato con soglia 4")
+		m2._al_mucchio(m2.dado(0, bersaglio))
+		verifica(int(m2.dado(0, bersaglio)["v"]) >= 4, "al recupero valore >= 4")
+		verifica(not m2.dado(0, bersaglio).has("min_rientro"), "bonus consumato al recupero")
+	else:
+		verifica(false, "dadi sufficienti per test della preparazione")
 	# I token devono riferirsi a effetti supportati e richiedere almeno un dado.
 	for t in dati["token"]:
 		for sl in t["slot"]:
