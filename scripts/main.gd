@@ -1595,6 +1595,8 @@ func _slot(tok: String, sid: String) -> void:
 				_msg.text = "Il nemico è troppo lontano o non ha dadi in mano adatti."
 			"sblocca":
 				_msg.text = "Non hai altri spazi occupati da liberare."
+			"recupera":
+				_msg.text = "Non hai dadi in Attesa da recuperare."
 			"cura":
 				_msg.text = "Non hai ferite da recuperare."
 			"pesca":
@@ -1693,6 +1695,21 @@ func _slot(tok: String, sid: String) -> void:
 					cand.append(d["id"])
 			attesa["selezionabili"] = cand
 			sel.clear()
+			_aggiorna()
+		"recupera":
+			if bs.size() == 1:
+				_esegui(p, {"t": "slot", "tok": tok, "slot": sid, "dadi": ids, "b": bs[0]})
+				return
+			attesa = base
+			attesa["passo"] = "scelta"
+			var voci := []
+			for bb in bs:
+				var bx: Dictionary = bb
+				var colori := []
+				for did in bx["dadi"]:
+					colori.append(str(m.dado(p, int(did))["col"]))
+				voci.append(["Recupera: " + ", ".join(colori), func(): _esegui(p, _op_attesa(bx))])
+			_mostra_scelte(voci)
 			_aggiorna()
 		"pesca":
 			attesa = base
