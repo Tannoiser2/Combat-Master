@@ -444,7 +444,7 @@ func _sferra(tw: Tween, d: int, reazione: String) -> void:
 	if _colpo.is_empty() or int(_colpo["dif"]) != d:
 		# chi è già a terra (proiettato, immobilizzato) non ripete il colpo subito
 		var ap := _ap(d)
-		var a_terra := ap != null and String(ap.current_animation) in ["proiettato", "ko", "rialzata"]
+		var a_terra := ap != null and String(ap.current_animation) in ["proiettato", "ko", "caduta", "rialzata"]
 		if reazione != "" and not a_terra:
 			clip(d, reazione, 1.2)
 		return
@@ -476,6 +476,22 @@ func _ripristina_verso(a: int) -> void:
 	var ry := angolo_y(int(m.s["g"][a]["dir"]))
 	ry = fa.rotation.y + wrapf(ry - fa.rotation.y, -PI, PI)
 	create_tween().tween_property(fa, "rotation:y", ry, 0.25)
+
+## Chi viene spinto contro una colonna o un ostacolo si ferma nell'esagono prima e ci sbatte:
+## un piccolo rimbalzo verso l'ostacolo, la scritta e il colpo subito.
+func _urto(p: int, e: Dictionary) -> Tween:
+	var f := figure[p]
+	var dv := vettore_dir(int(e.get("dir", 0)))
+	var verso := Vector3(dv.x, 0, dv.z).normalized() * 0.45
+	_testo(f.position + Vector3(0, 2.2, 0), "Urto!", Color("#ff9a50"))
+	var tw := create_tween()
+	var base := f.position
+	tw.tween_property(f, "position", base + verso, 0.1)
+	tw.tween_property(f, "position", base, 0.18)
+	var ap := _ap(p)
+	if ap != null and not String(ap.current_animation) in ["proiettato", "caduta"]:
+		clip(p, "colpito_corpo", 1.3)
+	return tw
 
 ## Quale passo animare: avanti, indietro, di lato o una rotazione sul posto.
 func _clip_passo(d: Vector3, ry: float, giro: float) -> String:
@@ -514,9 +530,9 @@ func sincronizza() -> void:
 		corpo.position = Vector3.ZERO
 		if g["vita"] <= 0:
 			var ap := _ap(i)
-			if ap != null and ap.has_animation("ko"):
-				ap.play("ko")
-				ap.seek(ap.get_animation("ko").length, true)
+			if ap != null and ap.has_animation("caduta"):
+				ap.play("caduta")
+				ap.seek(ap.get_animation("caduta").length, true)
 			else:
 				corpo.rotation.x = -PI / 2.2
 				corpo.position.y = 0.25
@@ -678,25 +694,48 @@ func _anima(e: Dictionary) -> Tween:
 	var corpo: Node3D = f.get_node("Corpo")
 	match e["t"]:
 		"tecnica":
-			# tori esegue la tecnica, uke vola (proiezione) o va a terra (immobilizzazione)
+			# tori entra e lancia, uke vola nell'esagono d'arrivo e resta a terra, poi si rialza.
+			# La spinta del lancio (evento successivo) si anima qui, insieme al volo.
 			var u: int = int(e["bers"])
+			var fu := figure[u]
 			var tw := create_tween()
 			_colpo = {}
 			_testo(f.position + Vector3(0, 2.0, 0), String(e.get("nome", "")), Color("#ffe7a8"))
-			if ha_modello(p):
-				var proiez: bool = e.get("genere", "proiezione") == "proiezione"
-				clip(p, "proiezione" if proiez else "parata", 1.0)
-				tw.tween_interval(0.5)
-				tw.tween_callback(func():
-					if proiez:
-						clip(u, "proiettato", 1.2, "rialzata")
-					else:
-						clip(u, "ko", 1.3, "rialzata")
-					if _ap(u) != null:
-						_ap(u).queue("idle"))
-				tw.tween_interval(1.0)
-			else:
-				tw.tween_interval(0.8)
+			var arrivo := fu.position
+			for k in _coda.size():
+				var e2: Dictionary = _coda[k]
+				if e2["t"] == "attacco" or e2["t"] == "tecnica":
+					break
+				if e2["t"] == "spinto" and int(e2["p"]) == u:
+					var per: Array = e2["percorso"]
+					var ult: Vector3i = per[per.size() - 1]
+					arrivo = mondo(Vector2i(ult.x, ult.y))
+					e2["gia_animato"] = true
+					break
+			if not ha_modello(p):
+				tw.tween_property(fu, "position", arrivo, 0.4)
+				return tw
+			var proiez: bool = e.get("genere", "proiezione") == "proiezione"
+			# tori guarda uke e si avvicina per prenderlo
+			var v := fu.position - f.position
+			v.y = 0
+			var ry := f.rotation.y + wrapf(atan2(-v.x, -v.z) - f.rotation.y, -PI, PI)
+			var casa := f.position
+			tw.tween_property(f, "rotation:y", ry, 0.12)
+			tw.tween_callback(func():
+				clip(p, "proiezione" if proiez else "parata", 1.2)
+				clip(u, "proiettato" if proiez else "caduta", 1.2, ""))
+			tw.parallel().tween_property(f, "position", casa + v * 0.35, 0.35)
+			# volo: uke parte a circa metà della clip e atterra nell'esagono d'arrivo
+			tw.tween_interval(0.45)
+			tw.tween_property(fu, "position", arrivo, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			tw.parallel().tween_property(f, "position", casa, 0.55)
+			tw.tween_interval(0.6)
+			tw.tween_callback(func():
+				if _ap(u) != null:
+					_ap(u).play("rialzata", 0.2, 1.3)
+					_ap(u).queue("idle")
+				_ripristina_verso(p))
 			return tw
 		"guardia", "vantaggi", "svantaggi":
 			aggiorna_guardie()
@@ -706,7 +745,9 @@ func _anima(e: Dictionary) -> Tween:
 			return null
 		"muovi", "spinto":
 			var per: Array = e["percorso"]
-			if per.is_empty():
+			if per.is_empty() or e.get("gia_animato", false):
+				if e.get("urto", false):
+					return _urto(p, e)
 				return null
 			var tw := create_tween()
 			var anim := ha_modello(p)
@@ -728,6 +769,9 @@ func _anima(e: Dictionary) -> Tween:
 				pos_prec = pos
 				tw.tween_property(f, "position", pos, dur).set_trans(Tween.TRANS_SINE)
 				tw.parallel().tween_property(f, "rotation:y", ry, dur)
+			if e.get("urto", false):
+				tw.tween_callback(func(): _urto(p, e))
+				tw.tween_interval(0.45)
 			return tw
 		"salto":
 			var tw := create_tween()
@@ -842,7 +886,7 @@ func _anima(e: Dictionary) -> Tween:
 		"ko":
 			var tw := create_tween()
 			if ha_modello(p):
-				tw.tween_interval(clip(p, "ko", 1.0, ""))
+				tw.tween_interval(clip(p, "caduta", 1.0, ""))
 				return tw
 			tw.tween_property(corpo, "rotation:x", -PI / 2.2, 0.6).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 			tw.parallel().tween_property(corpo, "position:y", 0.25, 0.6)

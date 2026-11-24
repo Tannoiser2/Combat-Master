@@ -17,7 +17,13 @@ import bpy
 ANIMAZIONI = ["idle", "jab", "cross", "montante", "calcio", "parata", "schivata",
               "passo_avanti", "passo_indietro", "passo_sinistra", "passo_destra",
               "gira_sinistra", "gira_destra", "colpito_testa", "colpito_corpo",
-              "ko", "rialzata", "proiezione", "proiettato", "vittoria", "sconfitta"]
+              "ko", "rialzata", "proiezione", "proiettato", "vittoria", "sconfitta", "caduta"]
+# parte utile delle clip lunghe (fotogrammi a 30 al secondo): la proiezione dura 6,7 s, la rialzata 8,4 s
+TAGLI = {"proiezione": (40, 118), "proiettato": (40, 118), "rialzata": (95, 190), "caduta": (20, 90)}
+# clip in cui lo spostamento delle anche resta (la caduta all'indietro); nelle altre si toglie
+CON_DERIVA = {"caduta"}
+# clip in cui le anche restano ferme in orizzontale: il volo lo fa il gioco, verso l'esagono giusto
+FISSE = {"proiezione", "proiettato"}
 # clip che si ripetono in loop in Godot
 CICLICHE = {"idle"}
 
@@ -28,8 +34,34 @@ def importa(path):
     return [o for o in bpy.data.objects if o not in prima]
 
 
-def sul_posto(action):
-    """Toglie alle anche la deriva orizzontale: valore - retta tra primo e ultimo fotogramma."""
+def taglia(action, da, a):
+    """Tiene solo i fotogrammi da..a e li riporta a partire da 1."""
+    for fc in _fcurves(action):
+        kp = fc.keyframe_points
+        for i in range(len(kp) - 1, -1, -1):
+            if kp[i].co[0] < da or kp[i].co[0] > a:
+                kp.remove(kp[i])
+        for k in kp:
+            k.co[0] -= da - 1
+            k.handle_left[0] -= da - 1
+            k.handle_right[0] -= da - 1
+        fc.update()
+
+
+def fissa(action):
+    for fc in _fcurves(action):
+        if fc.data_path.endswith('location') and 'Hips' in fc.data_path and fc.array_index in (0, 2):
+            for k in fc.keyframe_points:
+                d = k.co[1]
+                k.co[1] = 0.0
+                k.handle_left[1] -= d
+                k.handle_right[1] -= d
+            fc.update()
+
+
+def sul_posto(action, deriva=False):
+    """Porta le anche all'origine nel primo fotogramma (le clip in coppia di Mixamo partono a 2 m di
+    distanza) e, salvo deriva=True, toglie lo spostamento orizzontale complessivo."""
     for fc in _fcurves(action):
         if fc.data_path.endswith('location') and 'Hips' in fc.data_path and fc.array_index in (0, 2):
             kp = fc.keyframe_points
@@ -39,7 +71,8 @@ def sul_posto(action):
             x1, y1 = kp[-1].co
             for k in kp:
                 t = 0.0 if x1 == x0 else (k.co[0] - x0) / (x1 - x0)
-                d = y0 + (y1 - y0) * t - y0
+                # nella caduta resta un terzo dello spostamento, così chi cade resta nel suo esagono
+                d = y0 + ((k.co[1] - y0) * 0.65 if deriva else (y1 - y0) * t)
                 k.co[1] -= d
                 k.handle_left[1] -= d
                 k.handle_right[1] -= d
@@ -79,7 +112,12 @@ def main(cartella, uscita):
         act = a2.animation_data.action
         act.name = nome
         act.use_fake_user = True
-        sul_posto(act)
+        if nome in TAGLI:
+            taglia(act, *TAGLI[nome])
+        if nome in FISSE:
+            fissa(act)
+        else:
+            sul_posto(act, nome in CON_DERIVA)
         for o in nuovi:
             bpy.data.objects.remove(o, do_unlink=True)
         azioni.append(act)

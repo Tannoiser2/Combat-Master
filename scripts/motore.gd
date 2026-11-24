@@ -2174,7 +2174,7 @@ func _spingi(att: int, dif: int, n: int, verso: bool, deviazione := 0, lancia :=
 			break
 		gd["pos"] = nh
 		per.append(Vector3i(nh.x, nh.y, gd["dir"]))
-	_evento({"t": "spinto", "p": dif, "percorso": per, "lancia": lancia})
+	_evento({"t": "spinto", "p": dif, "percorso": per, "lancia": lancia, "urto": urto, "dir": d})
 	if urto:
 		_scrivi("%s sbatte contro un ostacolo!" % gd["nome"])
 		_ferisci(dif, DANNO_URTO + (1 if lancia else 0))
