@@ -1132,12 +1132,15 @@ func _adatta_lato(p: int) -> void:
 
 ## La carta a grandezza piena, per leggerla con calma (si gioca anche da qui).
 func _immagine_carta(tex: Texture2D, quota: float) -> TextureRect:
-	var h := clampf(pagina.size.y * quota, 260.0, 760.0)
+	# le carte hanno altezze diverse (un modulo per azione): larghezza fissa, altezza limitata
+	var ar := float(tex.get_height()) / float(tex.get_width())
+	var h_max := clampf(pagina.size.y * quota, 240.0, 900.0)
+	var w := minf(clampf(pagina.size.x * 0.34, 260.0, 380.0), h_max / ar)
 	var tr := TextureRect.new()
 	tr.texture = tex
 	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	tr.custom_minimum_size = Vector2(h * 336.0 / 800.0, h)
+	tr.custom_minimum_size = Vector2(w, w * ar)
 	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return tr
 

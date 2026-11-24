@@ -1,0 +1,8 @@
+Illustrazioni provvisorie (prese in prestito da azioni simili): da rifare.
+equilibrio__passo_danza.png      Passo di danza (Destrezza del danzatore)
+precisione__distanze.png         Prendere le distanze (Destrezza del cecchino)
+destrezza__passo_svelto.png      Passo svelto (Destrezza del giocoliere)
+occhio_acuto__rompere_misura.png Rompere la misura (Destrezza del duellante)
+penitente__carne_dura.png        Carne dura (Tempra del penitente)
+corridore__reggere.png           Reggere il colpo (Tempra del corridore)
+cacciatore_taglie__braccare.png  Braccare (Mente del cacciatore di taglie)

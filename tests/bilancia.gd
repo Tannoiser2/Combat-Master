@@ -34,6 +34,10 @@ func _init() -> void:
 		salva_catalogo()
 	if arg["rapporto"] != "":
 		scrivi_rapporto(ultimo, arg["rapporto"])
+	if arg.has("dump"):
+		# vittorie e presenze per token, da sommare tra più esecuzioni in parallelo
+		var f := FileAccess.open(arg["dump"], FileAccess.WRITE)
+		f.store_string(JSON.stringify(ultimo["token"]))
 	if arg["valida"] == "1" and fallimenti > 0:
 		push_error("Validazione duelli fallita: %d duelli non rispettano i criteri obbligatori." % fallimenti)
 		quit(1)
