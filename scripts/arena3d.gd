@@ -259,10 +259,10 @@ func _crea_figura(i: int) -> void:
 	base.top_radius = 0.46
 	base.bottom_radius = 0.5
 	base.height = 0.1
-	_mesh(base, _mat(colp, 0.5, 0.3), Vector3(0, 0.05, 0), radice)
+	var basetta := _mesh(base, _mat(colp, 0.5, 0.3), Vector3(0, 0.05, 0), radice)
 	var punta := PrismMesh.new()
 	punta.size = Vector3(0.36, 0.3, 0.06)
-	_mesh(punta, _mat(colp.lightened(0.3), 0.4), Vector3(0, 0.11, -0.5), radice, Vector3(-PI / 2, 0, 0))
+	var freccia := _mesh(punta, _mat(colp.lightened(0.3), 0.4), Vector3(0, 0.11, -0.5), radice, Vector3(-PI / 2, 0, 0))
 	# colore dominante della scheda per la veste
 	var dom := "rosso"
 	var maxd := -1
@@ -275,6 +275,9 @@ func _crea_figura(i: int) -> void:
 	var modello := _modello_combattente(colp, veste)
 	if modello != null:
 		corpo.add_child(modello)
+		# le miniature animate poggiano direttamente sul terreno, senza basetta
+		basetta.queue_free()
+		freccia.queue_free()
 	else:
 		_figura_semplice(corpo, veste, toks, colp)
 	var nome := Label3D.new()
@@ -286,7 +289,7 @@ func _crea_figura(i: int) -> void:
 	nome.modulate = colp.lightened(0.35)
 	nome.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	nome.no_depth_test = true
-	nome.position = Vector3(0, 1.85 + 0.32 * i, 0)
+	nome.position = Vector3(0, 2.25 + 0.32 * i, 0)
 	nome.name = "Nome"
 	radice.add_child(nome)
 	figure.append(radice)
@@ -385,7 +388,7 @@ func _figura_semplice(corpo: Node3D, veste: Color, toks: Dictionary, colp: Color
 		_mesh(pugno, _mat(Color("#d9b48f")), Vector3(0.3, 0.7, -0.25), corpo)
 
 const MODELLO := "res://assets/modelli/combattente.glb"
-const SCALA_MODELLO := 0.78
+const SCALA_MODELLO := 1.12
 
 ## Il combattente animato (manichino Mixamo): tuta del colore della caratteristica dominante,
 ## giunture del colore del giocatore. Guarda verso -Z come le pedine.
@@ -505,7 +508,7 @@ func aggiorna_guardie() -> void:
 				mt.emission = Disegno.ORO
 				mt.emission_energy_multiplier = 0.3
 			var ang := TAU * k / maxf(tot, 1.0)
-			_mesh(perla, mt, Vector3(cos(ang) * 0.32, 2.05, sin(ang) * 0.32), sf)
+			_mesh(perla, mt, Vector3(cos(ang) * 0.32, 2.4, sin(ang) * 0.32), sf)
 	for i in figure.size():
 		var f := figure[i]
 		var vecchio := f.get_node_or_null("Guardie")
@@ -702,7 +705,7 @@ func _anima(e: Dictionary) -> Tween:
 			return tw
 		"danno":
 			var n: int = e["n"]
-			_testo(f.position + Vector3(0, 1.6, 0), ("-%d" % n) if n > 0 else "nessun danno", Color("#ff5a40") if n > 0 else Color("#d8d0c0"))
+			_testo(f.position + Vector3(0, 2.0, 0), ("-%d" % n) if n > 0 else "nessun danno", Color("#ff5a40") if n > 0 else Color("#d8d0c0"))
 			var tw := create_tween()
 			if ha_modello(p):
 				if n > 0:
@@ -717,7 +720,7 @@ func _anima(e: Dictionary) -> Tween:
 			tw.tween_interval(0.35)
 			return tw
 		"schiva":
-			_testo(f.position + Vector3(0, 1.6, 0), "Schivata!", Color("#8cc8ff"))
+			_testo(f.position + Vector3(0, 2.0, 0), "Schivata!", Color("#8cc8ff"))
 			var tw := create_tween()
 			if ha_modello(p):
 				clip(p, "schivata", 1.4)
@@ -727,7 +730,7 @@ func _anima(e: Dictionary) -> Tween:
 			tw.tween_property(corpo, "position:x", 0.0, 0.2)
 			return tw
 		"para":
-			_testo(f.position + Vector3(0, 1.6, 0), "Parata", Disegno.ORO)
+			_testo(f.position + Vector3(0, 2.0, 0), "Parata", Disegno.ORO)
 			var tw := create_tween()
 			if ha_modello(p):
 				clip(p, "parata", 1.3)
@@ -739,7 +742,7 @@ func _anima(e: Dictionary) -> Tween:
 			tw.tween_interval(0.4)
 			return tw
 		"cura":
-			_testo(f.position + Vector3(0, 1.6, 0), "+%d" % e["n"], Color("#7fe08a"))
+			_testo(f.position + Vector3(0, 2.0, 0), "+%d" % e["n"], Color("#7fe08a"))
 			var tw := create_tween()
 			tw.tween_interval(0.4)
 			return tw
@@ -749,7 +752,7 @@ func _anima(e: Dictionary) -> Tween:
 			tw.tween_interval(0.9)
 			return tw
 		"fallito":
-			_testo(f.position + Vector3(0, 1.6, 0), "Fallito!", Color("#ff8a40"))
+			_testo(f.position + Vector3(0, 2.0, 0), "Fallito!", Color("#ff8a40"))
 			var tw := create_tween()
 			tw.tween_interval(0.5)
 			return tw

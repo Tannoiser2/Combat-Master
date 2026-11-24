@@ -1065,6 +1065,8 @@ func _ricostruisci_carte() -> void:
 			for c in cx.get_children():
 				c.queue_free()
 		lato["carte"] = []
+		lato["chiave"] = ""
+		lato.erase("disp_min")
 		var ids: Array = m.s["g"][p]["pg"]["token"].keys()
 		ids.sort_custom(func(a, b): return _ordine_carta(a, ordine) < _ordine_carta(b, ordine))
 		if cat.has("base"):
@@ -1100,6 +1102,19 @@ func _adatta_lato(p: int) -> void:
 	var disp: float = maxf(colonne.size.y, 300.0)
 	var colw := floorf((colonne.size.x - 8) / 2.0) if colonne.size.x > 100 else (_ll - 32) / 2.0
 	var carte: Array = lato["carte"]
+	# con le carte illustrate le altezze non cambiano: se spazio e carte sono gli stessi non si rifà
+	# la disposizione (rifarla cambia le colonne visibili, che a loro volta ridimensionano: sfarfallio)
+	# l'altezza libera cambia quando nel vassoio compaiono o spariscono righe (Preparati, Conservati):
+	# per le carte illustrate si usa la più piccola vista finora, così le colonne non saltano avanti e indietro
+	if _carte_illustrate:
+		disp = minf(disp, float(lato.get("disp_min", disp)))
+		lato["disp_min"] = disp
+	var chiave := "%d|%d|%d" % [int(colonne.size.x), int(disp), carte.size()]
+	if _carte_illustrate and lato.get("ok_ill", false) and lato.get("chiave", "") == chiave:
+		for carta in carte:
+			carta.queue_redraw()
+		return
+	lato["chiave"] = chiave
 	var scelta := []
 	var ncol := 2
 	var ok_ill := false
@@ -1153,6 +1168,7 @@ func _adatta_lato(p: int) -> void:
 					scelta.append(1)
 			if maxf(h0, tot - h0) <= disp:
 				break
+	lato["ok_ill"] = ok_ill
 	for c in lato["col"].size():
 		lato["col"][c].visible = c < ncol
 	for i in carte.size():
@@ -1260,6 +1276,7 @@ func _mostra_dettaglio(p: int, id: String) -> void:
 
 func _rifai_lati() -> void:
 	for q in _lati.size():
+		_lati[q].erase("disp_min")
 		_adatta_lato.call_deferred(q)
 
 func _chiudi_dettaglio() -> void:
