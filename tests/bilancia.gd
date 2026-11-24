@@ -108,7 +108,10 @@ func giro(n: int, budget_fisso: int, min_scambi: int = 10, quota_doppi: float = 
 				elif ev["t"] == "sfera":
 					st["attacchi_con_sfera"] += 1
 					st["vantaggi_spesi"] += int(ev["n"])
-				if ev["t"] == "attacco":
+				# una tecnica riuscita (proiezione o immobilizzazione) è un'azione offensiva: conta come attacco
+				if ev["t"] == "attacco" or ev["t"] == "tecnica":
+					if ev["t"] == "tecnica":
+						st["tecniche"] = int(st.get("tecniche", 0)) + 1
 					var round_attacco := int(m.s["round"])
 					if not attacchi_per_scambio.has(round_attacco):
 						attacchi_per_scambio[round_attacco] = [false, false]
@@ -190,6 +193,7 @@ func stampa(st: Dictionary, it: int) -> void:
 	print("    Riposi %d, sblocchi emergenza %d, simulazioni interrotte %d, decisioni %d" % [st["riposi"], st["emergenze"], st["interrotte"], st["passi"]])
 	print("    Motore: recuperi token %d, sblocchi token %d, preparazioni %d, attacchi %d, combattenti senza attacchi %d" % [
 		st["recuperi_token"], st["sblocchi_token"], st["preparazioni_attesa"], st["attacchi_reali"], st["senza_attacchi_pg"]])
+	print("    Tecniche riuscite: %d (contano come attacchi nei criteri)" % int(st.get("tecniche", 0)))
 	print("    Criteri rigidi: non validi %d (brevi %d, senza entrambi %d, quota doppi insufficiente %d); scambi con attacchi di entrambi %d" % [
 		st["duelli_non_validi"], st["duelli_brevi"], st["duelli_senza_entrambi"], st["duelli_quota_doppi"], st["scambi_doppi"]])
 	for v in st["violazioni"]:

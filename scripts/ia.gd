@@ -8,7 +8,7 @@ extends RefCounted
 const PESI_BASE := {
 	"vita": 4.0, "vita_bassa": 3.0, "mano_base": 0.55, "mano_val": 0.1, "conservato": 0.9,
 	"mucchio_base": 0.4, "mucchio_val": 0.04, "stordito": 0.4, "eliminato": 0.9, "occupato": 1.0,
-	"armato": 1.5, "distanza": 0.7, "fronte": 1.2, "fianco": 0.8, "retro": 1.6, "pericolo": 3.0,
+	"armato": 1.5, "distanza": 0.7, "fronte": 1.2, "fianco": 0.8, "retro": 1.6, "pericolo": 3.0, "esposto": 2.0,
 	"iniziativa": 0.8, "azzardo": 7.0, "pesca_spazio": 0.5, "pesca_val": 0.1,
 	"minaccia": 1.2, "pericolo_subito": 1.0, "cede": 0.6, "guardia": 1.0,
 	"presenza_attacco": 10.0,
@@ -336,6 +336,9 @@ static func _posizione(m: Motore, p: int, pos: Vector2i, dir: int, w: Dictionary
 		v += w["fronte"]
 	var l := Motore.lato(go["pos"], go["dir"], pos)
 	v += w["fianco"] if l == "fianco" else (w["retro"] if l == "retro" else 0.0)
+	# dare le spalle all'avversario espone a prese dorsali e svantaggi doppi
+	if Motore.lato(pos, dir, go["pos"]) == "retro":
+		v -= float(w.get("esposto", 2.0))
 	if m.s["per"].has(pos):
 		v -= w["pericolo"]
 	return v

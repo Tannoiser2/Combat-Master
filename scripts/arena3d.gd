@@ -250,7 +250,7 @@ func _crea_figura(i: int) -> void:
 	var g: Dictionary = m.s["g"][i]
 	var toks: Dictionary = g["pg"]["token"]
 	var radice := Node3D.new()
-	radice.scale = Vector3.ONE * 1.25
+	radice.scale = Vector3.ONE * SCALA_FIGURA
 	add_child(radice)
 	var corpo := Node3D.new()
 	corpo.name = "Corpo"
@@ -278,7 +278,9 @@ func _crea_figura(i: int) -> void:
 		corpo.add_child(modello)
 		# le miniature animate poggiano direttamente sul terreno, senza basetta
 		basetta.queue_free()
-		freccia.queue_free()
+		# resta una freccia piccola sul terreno, davanti ai piedi, per leggere il verso
+		freccia.scale = Vector3(0.8, 0.8, 0.8)
+		freccia.position = Vector3(0, 0.03, -0.42)
 	else:
 		_figura_semplice(corpo, veste, toks, colp)
 	var nome := Label3D.new()
@@ -390,6 +392,7 @@ func _figura_semplice(corpo: Node3D, veste: Color, toks: Dictionary, colp: Color
 
 const MODELLO := "res://assets/modelli/combattente.glb"
 const SCALA_MODELLO := 1.12
+const SCALA_FIGURA := 1.25
 
 ## Il combattente animato (manichino Mixamo): tuta del colore della caratteristica dominante,
 ## giunture del colore del giocatore. Guarda verso -Z come le pedine.
@@ -449,6 +452,11 @@ func _sferra(tw: Tween, d: int, reazione: String) -> void:
 	var nome: String = _colpo["clip"]
 	_colpo = {}
 	var lento := 1.0 if nome == "proiezione" else 1.3
+	var fa := figure[a]
+	var v := figure[d].position - fa.position
+	var verso := atan2(-v.x, -v.z)
+	verso = fa.rotation.y + wrapf(verso - fa.rotation.y, -PI, PI)
+	tw.tween_property(fa, "rotation:y", verso, 0.12)
 	tw.tween_callback(func(): clip(a, nome, lento))
 	# impatto: circa un terzo della mossa (la proiezione è più lunga)
 	tw.tween_interval(0.55 if nome == "proiezione" else 0.28)
@@ -459,12 +467,21 @@ func _sferra(tw: Tween, d: int, reazione: String) -> void:
 				_ap(d).queue("idle"))
 	if reazione == "proiettato":
 		tw.tween_interval(0.8)
+	# finito il colpo, l'attaccante torna a guardare dove dice il gioco
+	tw.tween_interval(0.35)
+	tw.tween_callback(func(): _ripristina_verso(a))
+
+func _ripristina_verso(a: int) -> void:
+	var fa := figure[a]
+	var ry := angolo_y(int(m.s["g"][a]["dir"]))
+	ry = fa.rotation.y + wrapf(ry - fa.rotation.y, -PI, PI)
+	create_tween().tween_property(fa, "rotation:y", ry, 0.25)
 
 ## Quale passo animare: avanti, indietro, di lato o una rotazione sul posto.
 func _clip_passo(d: Vector3, ry: float, giro: float) -> String:
 	d.y = 0
 	if d.length() < 0.05:
-		return "gira_sinistra" if giro > 0 else "gira_destra"
+		return ""
 	var avanti := Vector3(-sin(ry), 0, -cos(ry))
 	var destra := Vector3(cos(ry), 0, -sin(ry))
 	var fa := d.normalized().dot(avanti)
@@ -705,7 +722,8 @@ func _anima(e: Dictionary) -> Tween:
 				ry = rot_prec + wrapf(ry - rot_prec, -PI, PI)
 				if anim and e["t"] == "muovi":
 					var nome := _clip_passo(pos - pos_prec, rot_prec, ry - rot_prec)
-					tw.tween_callback(func(): clip(p, nome, 1.6))
+					if nome != "":
+						tw.tween_callback(func(): clip(p, nome, 1.6))
 				rot_prec = ry
 				pos_prec = pos
 				tw.tween_property(f, "position", pos, dur).set_trans(Tween.TRANS_SINE)
@@ -717,7 +735,7 @@ func _anima(e: Dictionary) -> Tween:
 			tw.tween_callback(func():
 				f.position = mondo(e["pos"])
 				f.rotation.y = angolo_y(e["dir"]))
-			tw.tween_property(f, "scale", Vector3.ONE, 0.2)
+			tw.tween_property(f, "scale", Vector3.ONE * SCALA_FIGURA, 0.2)
 			return tw
 		"attacco":
 			var b: Node3D = figure[e["bers"]]
@@ -735,10 +753,7 @@ func _anima(e: Dictionary) -> Tween:
 				elif int(e.get("spingi", 0)) > 0:
 					nome = "calcio" if _n_colpi % 2 == 0 else "cross"
 				_colpo = {"att": p, "dif": int(e["bers"]), "clip": nome, "para": false}
-				# l'attaccante si gira verso il bersaglio
-				var ry := atan2(-v.x, -v.z)
-				ry = f.rotation.y + wrapf(ry - f.rotation.y, -PI, PI)
-				tw.tween_property(f, "rotation:y", ry, 0.15)
+				tw.tween_interval(0.05)
 				return tw
 			if int(e.get("dist", 1)) <= 2:
 				var avanti := f.global_transform.basis.inverse() * (v.normalized() * 0.5)
