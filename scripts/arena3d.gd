@@ -31,6 +31,7 @@ var _frecce: Array = []        # [Vector3 centro, dir]
 var _coda: Array = []
 var _occupato := false
 var _n_colpi := 0
+var _colpo := {}   # colpo dichiarato che aspetta l'esito: {att, dif, clip, para}
 
 var _tocchi := {}
 var _trascinato := false
@@ -434,6 +435,28 @@ func clip(p: int, nome: String, velocita := 1.0, poi := "idle") -> float:
 		ap.queue(poi)
 	return ap.get_animation(nome).length / maxf(velocita, 0.01)
 
+## Il colpo in attesa parte adesso; la difesa del bersaglio d (parata, schivata, colpo subito)
+## comincia nel momento dell'impatto.
+func _sferra(tw: Tween, d: int, reazione: String) -> void:
+	if _colpo.is_empty() or int(_colpo["dif"]) != d:
+		if reazione != "":
+			clip(d, reazione, 1.2)
+		return
+	var a: int = _colpo["att"]
+	var nome: String = _colpo["clip"]
+	_colpo = {}
+	var lento := 1.0 if nome == "proiezione" else 1.3
+	tw.tween_callback(func(): clip(a, nome, lento))
+	# impatto: circa un terzo della mossa (la proiezione è più lunga)
+	tw.tween_interval(0.55 if nome == "proiezione" else 0.28)
+	if reazione != "":
+		tw.tween_callback(func():
+			clip(d, reazione, 1.2, "rialzata" if reazione == "proiettato" else "idle")
+			if reazione == "proiettato" and _ap(d) != null:
+				_ap(d).queue("idle"))
+	if reazione == "proiettato":
+		tw.tween_interval(0.8)
+
 ## Quale passo animare: avanti, indietro, di lato o una rotazione sul posto.
 func _clip_passo(d: Vector3, ry: float, giro: float) -> String:
 	d.y = 0
@@ -636,6 +659,9 @@ func _anima(e: Dictionary) -> Tween:
 	match e["t"]:
 		"guardia", "vantaggi", "svantaggi":
 			aggiorna_guardie()
+			# mettersi in guardia: un blocco alzato
+			if e["t"] == "guardia" and ha_modello(p) and _colpo.is_empty():
+				clip(p, "parata", 1.1)
 			return null
 		"muovi", "spinto":
 			var per: Array = e["percorso"]
@@ -647,7 +673,8 @@ func _anima(e: Dictionary) -> Tween:
 			var rot_prec := f.rotation.y
 			var pos_prec := f.position
 			if anim and e["t"] == "spinto":
-				clip(p, "colpito_corpo")
+				if not e.get("lancia", false):
+					clip(p, "colpito_corpo")
 			for st in per:
 				var pos := mondo(Vector2i(st.x, st.y))
 				var ry := angolo_y(st.z) if e["t"] == "muovi" else f.rotation.y
@@ -674,13 +701,18 @@ func _anima(e: Dictionary) -> Tween:
 			v.y = 0
 			var tw := create_tween()
 			if ha_modello(p):
-				# il colpo cambia a ogni attacco: jab, diretto, montante, calcio
+				# il colpo parte quando si conosce l'esito (parata, schivata o danno), insieme alla difesa
 				_n_colpi += 1
 				var nome: String = ["jab", "cross", "montante", "calcio"][_n_colpi % 4]
-				if int(e.get("dist", 1)) > 2:
-					nome = "jab"
-				var durata := clip(p, nome, 1.3)
-				tw.tween_interval(minf(durata * 0.55, 0.6))
+				if e.get("lancia", false):
+					nome = "proiezione"
+				elif int(e.get("spingi", 0)) > 0:
+					nome = "calcio" if _n_colpi % 2 == 0 else "cross"
+				_colpo = {"att": p, "dif": int(e["bers"]), "clip": nome, "para": false}
+				# l'attaccante si gira verso il bersaglio
+				var ry := atan2(-v.x, -v.z)
+				ry = f.rotation.y + wrapf(ry - f.rotation.y, -PI, PI)
+				tw.tween_property(f, "rotation:y", ry, 0.15)
 				return tw
 			if int(e.get("dist", 1)) <= 2:
 				var avanti := f.global_transform.basis.inverse() * (v.normalized() * 0.5)
@@ -708,9 +740,15 @@ func _anima(e: Dictionary) -> Tween:
 			_testo(f.position + Vector3(0, 2.0, 0), ("-%d" % n) if n > 0 else "nessun danno", Color("#ff5a40") if n > 0 else Color("#d8d0c0"))
 			var tw := create_tween()
 			if ha_modello(p):
+				var reazione := ""
 				if n > 0:
-					clip(p, "colpito_testa" if n >= 4 else "colpito_corpo", 1.2)
-				tw.tween_interval(0.45)
+					reazione = "colpito_testa" if n >= 4 else "colpito_corpo"
+				elif not _colpo.is_empty() and _colpo["para"]:
+					reazione = "parata"
+				if _colpo.get("clip", "") == "proiezione" and n > 0:
+					reazione = "proiettato"
+				_sferra(tw, p, reazione)
+				tw.tween_interval(0.35)
 				return tw
 			if n > 0:
 				for k in 3:
@@ -723,8 +761,8 @@ func _anima(e: Dictionary) -> Tween:
 			_testo(f.position + Vector3(0, 2.0, 0), "Schivata!", Color("#8cc8ff"))
 			var tw := create_tween()
 			if ha_modello(p):
-				clip(p, "schivata", 1.4)
-				tw.tween_interval(0.45)
+				_sferra(tw, p, "schivata")
+				tw.tween_interval(0.35)
 				return tw
 			tw.tween_property(corpo, "position:x", -0.35, 0.12)
 			tw.tween_property(corpo, "position:x", 0.0, 0.2)
@@ -733,7 +771,11 @@ func _anima(e: Dictionary) -> Tween:
 			_testo(f.position + Vector3(0, 2.0, 0), "Parata", Disegno.ORO)
 			var tw := create_tween()
 			if ha_modello(p):
-				clip(p, "parata", 1.3)
+				# la parata si vede insieme al colpo, quando arriva l'esito
+				if not _colpo.is_empty() and int(_colpo["dif"]) == p:
+					_colpo["para"] = true
+				else:
+					clip(p, "parata", 1.3)
 			tw.tween_interval(0.35)
 			return tw
 		"blocco":

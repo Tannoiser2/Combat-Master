@@ -1008,8 +1008,12 @@ func _attacco_possibile(p: int, sl: Dictionary, pos: Vector2i, dir: int) -> bool
 		return d == 1
 	if d < int(sl.get("gittata_min", 1)) or d > int(sl.get("portata", 1)):
 		return false
+	# a mani nude si colpisce solo a contatto, nell'esagono vicino
+	var contatto := bool(regole.get("solo_contatto", false))
+	if contatto and d > 1:
+		return false
 	# chi colpisce può girarsi verso un nemico sul fianco (non alle spalle) mentre sferra il colpo
-	if not in_fronte(pos, dir, tp) and not (bool(regole.get("girarsi_per_colpire", false)) and d <= 2 and lato(pos, dir, tp) == "fianco"):
+	if not in_fronte(pos, dir, tp) and not (bool(regole.get("girarsi_per_colpire", false)) and d <= (1 if contatto else 2) and lato(pos, dir, tp) == "fianco"):
 		return false
 	if sl.get("los", false) and not linea_di_vista(pos, tp):
 		return false
@@ -1905,7 +1909,7 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionar
 		s["pend"]["imparabile"] = true
 	var latotxt := "" if l == "fronte" else (" sul fianco" if l == "fianco" else " alle spalle")
 	_scrivi("%s: %s%s, %s." % [g["nome"], sl["nome"], latotxt, plurale(impatto + bonus, "danno", "danni")])
-	_evento({"t": "attacco", "p": p, "bers": o, "dist": d})
+	_evento({"t": "attacco", "p": p, "bers": o, "dist": d, "spingi": int(sl.get("spingi", 0)), "lancia": sl.get("lancia", false), "nome": sl["nome"]})
 	if s["pend"]["mischia"]:
 		_innesca(o, "attaccato_mischia")
 	if s["vinc"] < 0:
@@ -2043,7 +2047,7 @@ func _spingi(att: int, dif: int, n: int, verso: bool, deviazione := 0, lancia :=
 			break
 		gd["pos"] = nh
 		per.append(Vector3i(nh.x, nh.y, gd["dir"]))
-	_evento({"t": "spinto", "p": dif, "percorso": per})
+	_evento({"t": "spinto", "p": dif, "percorso": per, "lancia": lancia})
 	if urto:
 		_scrivi("%s sbatte contro un ostacolo!" % gd["nome"])
 		_ferisci(dif, DANNO_URTO + (1 if lancia else 0))
