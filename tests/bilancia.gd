@@ -280,6 +280,8 @@ func salva_catalogo() -> void:
 	sistema_pronti()
 	var out: Dictionary = dati.duplicate()
 	out.erase("per_id")
+	out["token"] = dati["token_completo"]
+	out.erase("token_completo")
 	var f := FileAccess.open("res://data/tokens.json", FileAccess.WRITE)
 	f.store_string(JSON.stringify(out, " ", false))
 	print("Catalogo salvato con i nuovi costi.")

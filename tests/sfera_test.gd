@@ -44,7 +44,7 @@ func chiudi(m: Motore) -> void:
 		giri += 1
 
 func _init() -> void:
-	dati = Motore.carica_dati()
+	dati = Motore.carica_dati(true)
 
 	# cercare il varco con un 6: tre vantaggi, se il nemico è in vista
 	var m := duello({"forza": 1, "spada": 1}, {"tempra": 1})

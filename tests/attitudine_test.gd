@@ -9,7 +9,7 @@ func verifica(ok: bool, msg: String) -> void:
 		printerr("ERRORE ATTITUDINE: " + msg)
 
 func _init() -> void:
-	var dati := Motore.carica_dati()
+	var dati := Motore.carica_dati(true)
 	var m := Motore.new(dati)
 	m.nuova_partita(dati["personaggi"][0], dati["personaggi"][1], "cortile", 91)
 	m.s["fase"] = "azione"

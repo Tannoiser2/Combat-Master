@@ -10,7 +10,7 @@ func controlla(cond: bool, msg: String) -> void:
 		printerr("ERRORE: " + msg)
 
 func _init() -> void:
-	var dati := Motore.carica_dati()
+	var dati := Motore.carica_dati(true)
 	var cat: Dictionary = dati["per_id"]
 	# costi dei personaggi pronti entro il budget
 	for pg in dati["personaggi"]:
@@ -78,19 +78,19 @@ func _init() -> void:
 	for d in m2.s["g"][1]["dadi"]:
 		d["st"] = "mucchio"
 	var vita1: int = m2.s["g"][1]["vita"]
-	var esito := m2.applica(0, {"t": "slot", "tok": "spada", "slot": "fendente", "dadi": [rosso], "b": {"bers": 1, "lato": 0}})
+	var esito := m2.applica(0, {"t": "slot", "tok": "att13", "slot": "colpo", "dadi": [rosso], "b": {"bers": 1}})
 	controlla(esito == "", "fendente valido: " + esito)
 	if m2.s["fase"] == "rinforzo":
 		m2.applica(0, {"t": "sferra"})
 	if m2.s["fase"] == "reazione":
 		m2.applica(1, {"t": "risolvi"})
 	controlla(m2.s["g"][1]["vita"] == vita1 - maxi(1, 5 - int(Motore.regole.get("attrito_mucchio", 0)) - m2.s["g"][1]["armatura"]), "danno del fendente con attrito e armatura")
-	controlla(m2.occupato(0, "spada", "fendente"), "il fendente resta occupato")
+	controlla(m2.occupato(0, "att13", "colpo"), "il fendente resta occupato")
 	controlla(m2.dado(0, rosso)["st"] == "token", "il dado resta sul token")
 	m2.s["attivo"] = 0
 	m2.s["g"][0]["passato"] = false
-	controlla(m2.applica(0, {"t": "passa", "slots": ["spada/fendente"]}) == "", "passando si libera uno spazio")
-	controlla(not m2.occupato(0, "spada", "fendente"), "spazio liberato")
+	controlla(m2.applica(0, {"t": "passa", "slots": ["att13/colpo"]}) == "", "passando si libera uno spazio")
+	controlla(not m2.occupato(0, "att13", "colpo"), "spazio liberato")
 	controlla(m2.dado(0, rosso)["st"] == "attesa", "il dado sbloccato passa in Attesa")
 	m2.s["fase"] = "azione"
 	m2.s["attivo"] = 0
@@ -114,14 +114,14 @@ func _init() -> void:
 			occupato_dado = d["id"]
 			d["st"] = "token"
 	if libero >= 0 and occupato_dado >= 0:
-		m2.s["g"][0]["occupati"]["spada/fendente"] = [occupato_dado]
-		controlla(m2.applica(0, {"t": "emergenza", "key": "spada/fendente", "dado": libero}) == "", "sblocco emergenza")
-		controlla(not m2.occupato(0, "spada", "fendente"), "emergenza libera lo spazio")
+		m2.s["g"][0]["occupati"]["att13/colpo"] = [occupato_dado]
+		controlla(m2.applica(0, {"t": "emergenza", "key": "att13/colpo", "dado": libero}) == "", "sblocco emergenza")
+		controlla(not m2.occupato(0, "att13", "colpo"), "emergenza libera lo spazio")
 		controlla(m2.dado(0, libero)["st"] == "attesa" and m2.dado(0, occupato_dado)["st"] == "attesa", "emergenza non ricicla immediatamente")
 		m2.s["fase"] = "azione"
 		m2.s["attivo"] = 0
 		m2.s["g"][0]["passato"] = false
-		controlla(m2.applica(0, {"t": "emergenza", "key": "spada/fendente", "dado": libero}) != "", "emergenza una volta per scambio")
+		controlla(m2.applica(0, {"t": "emergenza", "key": "att13/colpo", "dado": libero}) != "", "emergenza una volta per scambio")
 	else:
 		controlla(false, "dadi sufficienti per test emergenza")
 

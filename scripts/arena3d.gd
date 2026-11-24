@@ -439,7 +439,10 @@ func clip(p: int, nome: String, velocita := 1.0, poi := "idle") -> float:
 ## comincia nel momento dell'impatto.
 func _sferra(tw: Tween, d: int, reazione: String) -> void:
 	if _colpo.is_empty() or int(_colpo["dif"]) != d:
-		if reazione != "":
+		# chi è già a terra (proiettato, immobilizzato) non ripete il colpo subito
+		var ap := _ap(d)
+		var a_terra := ap != null and String(ap.current_animation) in ["proiettato", "ko", "rialzata"]
+		if reazione != "" and not a_terra:
 			clip(d, reazione, 1.2)
 		return
 	var a: int = _colpo["att"]
@@ -657,6 +660,27 @@ func _anima(e: Dictionary) -> Tween:
 	var f := figure[p]
 	var corpo: Node3D = f.get_node("Corpo")
 	match e["t"]:
+		"tecnica":
+			# tori esegue la tecnica, uke vola (proiezione) o va a terra (immobilizzazione)
+			var u: int = int(e["bers"])
+			var tw := create_tween()
+			_colpo = {}
+			_testo(f.position + Vector3(0, 2.0, 0), String(e.get("nome", "")), Color("#ffe7a8"))
+			if ha_modello(p):
+				var proiez: bool = e.get("genere", "proiezione") == "proiezione"
+				clip(p, "proiezione" if proiez else "parata", 1.0)
+				tw.tween_interval(0.5)
+				tw.tween_callback(func():
+					if proiez:
+						clip(u, "proiettato", 1.2, "rialzata")
+					else:
+						clip(u, "ko", 1.3, "rialzata")
+					if _ap(u) != null:
+						_ap(u).queue("idle"))
+				tw.tween_interval(1.0)
+			else:
+				tw.tween_interval(0.8)
+			return tw
 		"guardia", "vantaggi", "svantaggi":
 			aggiorna_guardie()
 			# mettersi in guardia: un blocco alzato
@@ -704,6 +728,8 @@ func _anima(e: Dictionary) -> Tween:
 				# il colpo parte quando si conosce l'esito (parata, schivata o danno), insieme alla difesa
 				_n_colpi += 1
 				var nome: String = ["jab", "cross", "montante", "calcio"][_n_colpi % 4]
+				if e.get("genere", "colpo") == "presa":
+					nome = "cross"
 				if e.get("lancia", false):
 					nome = "proiezione"
 				elif int(e.get("spingi", 0)) > 0:

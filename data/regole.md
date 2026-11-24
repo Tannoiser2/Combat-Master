@@ -1,7 +1,18 @@
 # Combat Master — Regole
 
 ## L'idea
-Due combattenti si affrontano in un'arena di esagoni. Ognuno ha una scheda fatta di token: quattro caratteristiche, armi, strategie, equipaggiamento, oggetti, talenti, magie e segreti. I token mettono dadi colorati nel mucchio e offrono spazi su cui piazzarli. Il giocatore costruisce un motore: chi produce dadi di un colore, chi li consuma, chi li sblocca, chi li trasforma. Non ci sono turni fissi: l'iniziativa salta da un combattente all'altro secondo le azioni, le combo e le reazioni.
+Due combattenti si affrontano in un'arena di esagoni. Ognuno ha una scheda fatta di token: quattro caratteristiche, attacchi, tecniche, strategie, talenti e segreti. I token mettono dadi colorati nel mucchio e offrono spazi su cui piazzarli. Il giocatore costruisce un motore: chi produce dadi di un colore, chi li consuma, chi li sblocca, chi li trasforma. Non ci sono turni fissi: l'iniziativa salta da un combattente all'altro secondo le azioni, le combo e le reazioni.
+
+## Attacchi e tecniche (mani nude)
+Il duello è a mani nude, ispirato ad "Aikido e la sfera dinamica". Armi, armature, magie e oggetti sono un'espansione futura e per ora non si usano.
+
+- **18 attacchi**, uno per carta: 12 prese (1-6 frontali, 7-12 dorsali), 3 colpi (13 dall'alto alla testa, 14 circolare, 15 all'addome) e 3 combinazioni (16 presa con presa, 17 presa con colpo, 18 colpo con colpo). Le prese fanno poco danno ma stordiscono dadi o danno svantaggi. Le prese dorsali si tentano solo da dietro il difensore.
+- **35 tecniche** di neutralizzazione: 7 immobilizzazioni (I1-I7) e 28 proiezioni (P1-P28). Ogni tecnica è una reazione che vale solo contro gli attacchi indicati sulla carta, come nella tabella del libro. P28 vale contro tutti. I colpi delle schede senza numero contano come colpi (13-15).
+- La tecnica annulla l'attacco: il difensore non subisce danni e prende l'iniziativa.
+- **Irimi o tenkan**: con un dado dispari il difensore entra sul fianco dell'attaccante (irimi), con un dado pari ruota su se stesso (tenkan). In entrambi i casi guadagna 1 vantaggio.
+- **Proiezione**: chi attaccava vola di 1 esagono (2 con un dado 5+) e subisce 1 ferita più un terzo del dado. Se ha un dado verde nel mucchio rotola (ukemi): il dado va in Attesa e le ferite si dimezzano; altrimenti prende 2 svantaggi.
+- **Immobilizzazione**: chi attaccava subisce 1 ferita (2 con un dado 5+), prende 2 svantaggi e ha due dadi storditi. Il duello si vince sempre portando l'avversario a zero ferite.
+- Il costo di una tecnica cresce con il numero di attacchi che copre; le più versatili chiedono anche un dado alto.
 
 ## Creare il personaggio
 Lo scenario stabilisce il budget di punti (30, 45 o 60). Nell'Officina scegli i token e paghi il loro costo, oppure premi Casuale.

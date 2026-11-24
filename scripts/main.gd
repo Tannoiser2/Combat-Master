@@ -284,6 +284,7 @@ func _carica_miei() -> void:
 				if x is Dictionary and x.has("token"):
 					for k in x["token"]:
 						x["token"][k] = int(x["token"][k])
+					Motore.pulisci_pg(cat, x)
 					miei.append(x)
 
 func _salva_miei() -> void:
@@ -346,6 +347,9 @@ func officina() -> void:
 	vc.add_child(gcat)
 	_off_cat_btn.clear()
 	for c in dati["categorie"]:
+		# le categorie di un'espansione nascosta (armi, magie...) non hanno token visibili: niente pulsante
+		if not dati["token"].any(func(t): return t["categoria"] == c["id"]):
+			continue
 		var b := _bottone(c["nome"], func(): _off_categoria(c["id"]), 142)
 		b.toggle_mode = true
 		b.add_theme_font_size_override("font_size", 14)
@@ -488,7 +492,7 @@ func _off_aggiorna() -> void:
 		carta.carta_premuta.connect(_off_aggiungi)
 		carta.dettaglio.connect(_mostra_carta_illustrata)
 		_off_catalogo.add_child(carta)
-	var ordine := ["base", "attributo", "arma", "mossa", "armatura", "oggetto", "talento", "magia", "segreto"]
+	var ordine := ["base", "attributo", "attacco", "tecnica", "arma", "mossa", "armatura", "oggetto", "talento", "magia", "segreto"]
 	var ids: Array = pg_corrente["token"].keys()
 	ids.sort_custom(func(a, b): return _ordine_carta(a, ordine) < _ordine_carta(b, ordine))
 	# le quattro caratteristiche hanno sempre il loro posto in cima alla scheda
@@ -1057,7 +1061,7 @@ func _centra() -> void:
 
 ## Le carte di entrambi i combattenti: prima le azioni di base, poi le quattro caratteristiche, poi il resto.
 func _ricostruisci_carte() -> void:
-	var ordine := ["base", "attributo", "arma", "mossa", "armatura", "oggetto", "talento", "magia", "segreto"]
+	var ordine := ["base", "attributo", "attacco", "tecnica", "arma", "mossa", "armatura", "oggetto", "talento", "magia", "segreto"]
 	var proprio := _giocatore_proprio()
 	for p in _lati.size():
 		var lato: Dictionary = _lati[p]

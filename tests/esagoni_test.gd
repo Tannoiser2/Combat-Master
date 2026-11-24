@@ -47,7 +47,7 @@ func chiudi(m: Motore) -> void:
 		giri += 1
 
 func _init() -> void:
-	dati = Motore.carica_dati()
+	dati = Motore.carica_dati(true)
 	controlla(Motore.scarto_lati(0, 3) == 3 and Motore.scarto_lati(5, 0) == 1 and Motore.scarto_lati(1, 4) == 3, "scarto tra lati")
 
 	# guardia: il dado sul lato davanti ferma il colpo, poi perde 1

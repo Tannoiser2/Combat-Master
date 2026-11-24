@@ -32,14 +32,24 @@ var simulazione := false
 
 # ================================================================ catalogo
 
-static func carica_dati() -> Dictionary:
+## tutte = true carica anche le espansioni non attive (le prove di meccanica usano armi e magie).
+static func carica_dati(tutte := false) -> Dictionary:
 	var f := FileAccess.open("res://data/tokens.json", FileAccess.READ)
 	var d: Dictionary = JSON.parse_string(f.get_as_text())
+	regole = d.get("regole", {})
+	# i token di un'espansione non attiva (per ora il fantasy: armi, armature, magie, oggetti) restano nel file
+	# ma spariscono dal gioco; "token_completo" li conserva per chi riscrive il catalogo
+	var attive: Array = regole.get("espansioni_attive", [])
+	d["token_completo"] = d["token"]
+	var visibili := []
 	var c := {}
 	for t in d["token"]:
+		if t.has("espansione") and not attive.has(t["espansione"]) and not tutte:
+			continue
+		visibili.append(t)
 		c[t["id"]] = t
+	d["token"] = visibili
 	d["per_id"] = c
-	regole = d.get("regole", {})
 	return d
 
 ## Le quattro caratteristiche obbligatorie: ogni combattente ha una e una sola scheda per ognuna.
@@ -109,7 +119,19 @@ func _init(d: Dictionary = {}) -> void:
 		dati = d
 		cat = d["per_id"]
 
+## Toglie dal personaggio i token che il catalogo non ha (o che appartengono a un'espansione nascosta):
+## i personaggi salvati con armi o magie restano giocabili, senza quei token.
+static func pulisci_pg(c: Dictionary, pg: Dictionary) -> Array:
+	var tolti := []
+	for id in pg.get("token", {}).keys():
+		if not c.has(id):
+			pg["token"].erase(id)
+			tolti.append(id)
+	return tolti
+
 func nuova_partita(pg0: Dictionary, pg1: Dictionary, arena_id: String, seme: int = -1) -> void:
+	pulisci_pg(cat, pg0)
+	pulisci_pg(cat, pg1)
 	if seme >= 0:
 		rng.seed = seme
 	else:
@@ -401,7 +423,7 @@ func _colore_attitudine(tok: String, sl: Dictionary) -> String:
 	var eff: String = sl.get("effetto", "")
 	if eff in ["attacco", "assalto", "supp_danno", "stordisci", "disarma", "rompi_guardia"]:
 		return "rosso"
-	if eff in ["movimento", "passo_ombra", "schiva", "contrattacco", "spingi", "attira"]:
+	if eff in ["movimento", "passo_ombra", "schiva", "contrattacco", "spingi", "attira", "tecnica"]:
 		return "blu"
 	if eff in ["para", "supp_difesa", "recupera", "sblocca", "cura", "guardia"]:
 		return "verde"
@@ -993,7 +1015,7 @@ func bersagli(p: int, tok: String, sl: Dictionary, ids: Array) -> Array:
 					out.append({"dado": d["id"], "d": 1})
 				if d["v"] > 1:
 					out.append({"dado": d["id"], "d": -1})
-		"supp_danno", "supp_difesa", "schiva", "para", "contrattacco":
+		"supp_danno", "supp_difesa", "schiva", "para", "contrattacco", "tecnica":
 			out.append({})
 	return out
 
@@ -1006,6 +1028,11 @@ func _attacco_possibile(p: int, sl: Dictionary, pos: Vector2i, dir: int) -> bool
 			return false
 	if sl.has("area"):
 		return d == 1
+	# le prese dorsali (attacchi 7-12) si tentano solo da dietro il difensore
+	if sl.get("dorsale", false):
+		var go2: Dictionary = s["g"][1 - p]
+		if d != 1 or lato(go2["pos"], go2["dir"], pos) != "retro":
+			return false
 	if d < int(sl.get("gittata_min", 1)) or d > int(sl.get("portata", 1)):
 		return false
 	# a mani nude si colpisce solo a contatto, nell'esagono vicino
@@ -1018,6 +1045,22 @@ func _attacco_possibile(p: int, sl: Dictionary, pos: Vector2i, dir: int) -> bool
 	if sl.get("los", false) and not linea_di_vista(pos, tp):
 		return false
 	return true
+
+## Una tecnica di neutralizzazione vale contro l'attacco in corso se la tabella la spunta per quel numero.
+## Gli attacchi senza numero (i colpi delle schede) contano come un colpo qualsiasi (13, 14 o 15).
+static func tecnica_vale(sl: Dictionary, pe: Dictionary) -> bool:
+	var contro = sl.get("contro", [])
+	if contro is String and contro == "tutti":
+		return true
+	var n := int(pe.get("attacco_n", 0))
+	if n > 0:
+		return (contro as Array).has(float(n)) or (contro as Array).has(n)
+	if String(pe.get("genere", "colpo")) != "colpo":
+		return false
+	for k in [13, 14, 15]:
+		if (contro as Array).has(float(k)) or (contro as Array).has(k):
+			return true
+	return false
 
 func reazione_possibile(dif: int, sl: Dictionary) -> bool:
 	if s["fase"] != "reazione" or sl["tipo"] != "reazione" or int(s["pend"]["dif"]) != dif:
@@ -1038,6 +1081,11 @@ func reazione_possibile(dif: int, sl: Dictionary) -> bool:
 			if pe["lato"] == "retro" and not sl.get("anche_retro", false):
 				return false
 			if pe.get("imparabile", false):
+				return false
+		"tecnica":
+			if not tecnica_vale(sl, pe):
+				return false
+			if dist(s["g"][dif]["pos"], s["g"][pe["att"]]["pos"]) > 1:
 				return false
 		"contrattacco":
 			if pe.get("imparabile", false):
@@ -1533,6 +1581,15 @@ func _slot(p: int, op: Dictionary) -> String:
 			_evento({"t": "para", "p": p})
 			_dopo_risposta()
 			return ""
+		"tecnica":
+			# la tecnica neutralizza l'attacco: niente danno al difensore, poi proiezione o immobilizzazione
+			var pt: Dictionary = s["pend"]
+			pt["annullato"] = true
+			pt["tecnica"] = {"genere": String(sl.get("genere", "proiezione")), "q": q, "v": int(vals[0]) if not vals.is_empty() else q, "nome": sl["nome"]}
+			pt["ruba"] = true
+			_scrivi("%s: %s!" % [g["nome"], sl["nome"]])
+			_risolvi_attacco()
+			return ""
 		"contrattacco":
 			prendi_vantaggi(p, 1, "contrattacco")
 			var pe: Dictionary = s["pend"]
@@ -1901,7 +1958,8 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionar
 		"blocca": int(sl.get("blocca", 0)), "catena": sl.get("catena", false), "nome": sl["nome"], "ruba": false, "no_spinta": false,
 		"imparabile": sl.get("imparabile", false), "mira": int(extra.get("mira", -1)), "portata": int(sl.get("portata", 1)),
 		"area": sl.has("area"), "gira": int(sl.get("gira", 0)), "spingi_lato": int(sl.get("spingi_lato", 0)), "lancia": sl.get("lancia", false),
-		"poi": sl.get("poi", {}), "rompi": int(sl.get("rompi_guardia", 0)), "respingi": 0, "scartato": false}
+		"poi": sl.get("poi", {}), "rompi": int(sl.get("rompi_guardia", 0)), "respingi": 0, "scartato": false,
+		"attacco_n": int(sl.get("attacco_n", 0)), "genere": String(sl.get("genere", "colpo")), "svant_colpito": int(sl.get("svantaggi", 0))}
 	if sl.get("esecuzione", false):
 		s["pend"]["danno"] = 99
 		s["pend"]["non_schivabile"] = true
@@ -1909,7 +1967,7 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionar
 		s["pend"]["imparabile"] = true
 	var latotxt := "" if l == "fronte" else (" sul fianco" if l == "fianco" else " alle spalle")
 	_scrivi("%s: %s%s, %s." % [g["nome"], sl["nome"], latotxt, plurale(impatto + bonus, "danno", "danni")])
-	_evento({"t": "attacco", "p": p, "bers": o, "dist": d, "spingi": int(sl.get("spingi", 0)), "lancia": sl.get("lancia", false), "nome": sl["nome"]})
+	_evento({"t": "attacco", "p": p, "bers": o, "dist": d, "spingi": int(sl.get("spingi", 0)), "lancia": sl.get("lancia", false), "nome": sl["nome"], "genere": String(sl.get("genere", "colpo"))})
 	if s["pend"]["mischia"]:
 		_innesca(o, "attaccato_mischia")
 	if s["vinc"] < 0:
@@ -1989,6 +2047,8 @@ func _risolvi_attacco() -> void:
 				_scrivi("%s ha %s." % [gd["nome"], plurale(n, "dado stordito", "dadi storditi")])
 				_evento({"t": "blocco", "p": dif, "n": n})
 				_evento({"t": "dadi", "p": dif})
+		if s["vinc"] < 0 and int(pe.get("svant_colpito", 0)) > 0:
+			prendi_svantaggi(dif, int(pe["svant_colpito"]), "presa")
 		if s["vinc"] < 0 and pe["spingi"] > 0 and not pe["no_spinta"]:
 			_spingi(att, dif, pe["spingi"], false, 0, pe.get("lancia", false))
 		if s["vinc"] < 0 and int(pe.get("spingi_lato", 0)) > 0 and not pe["no_spinta"]:
@@ -1999,6 +2059,8 @@ func _risolvi_attacco() -> void:
 			_sbilancia(att, dif, int(pe["gira"]))
 		if s["vinc"] < 0 and pe["attira"] > 0 and not pe["no_spinta"]:
 			_spingi(att, dif, pe["attira"], true)
+	if s["vinc"] < 0 and pe.has("tecnica"):
+		_applica_tecnica(dif, att, pe["tecnica"])
 	if s["vinc"] < 0 and pe["contro"] > 0:
 		var dn: int = maxi(0, int(pe["contro"]) - int(ga["armatura"]))
 		_evento({"t": "attacco", "p": dif, "bers": att, "dist": 1})
@@ -2016,6 +2078,71 @@ func _risolvi_attacco() -> void:
 		_evento({"t": "iniziativa", "p": dif})
 		return
 	_dopo_azione(att, pe["catena"])
+
+## Proiezione o immobilizzazione eseguita da t (tori) su u (uke) dopo aver neutralizzato il suo attacco.
+## Dado dispari = irimi: tori entra sul fianco di uke prima di lanciarlo. Dado pari = tenkan: tori ruota
+## su se stesso e uke gli passa davanti. In entrambi i casi tori prende vantaggi sulla sfera.
+func _applica_tecnica(t: int, u: int, tec: Dictionary) -> void:
+	var gt: Dictionary = s["g"][t]
+	var gu: Dictionary = s["g"][u]
+	var v: int = int(tec["v"])
+	var irimi := v % 2 == 1
+	if irimi:
+		# entra sul fianco: un esagono libero vicino a entrambi
+		for k in 6:
+			var h: Vector2i = gu["pos"] + DIRS[k]
+			if h != gt["pos"] and dist(h, gt["pos"]) == 1 and libero(h, t) and lato(gu["pos"], gu["dir"], h) == "fianco":
+				var da := Vector3i(gt["pos"].x, gt["pos"].y, gt["dir"])
+				gt["pos"] = h
+				gt["dir"] = dir_verso(h, gu["pos"])
+				_evento({"t": "muovi", "p": t, "percorso": [da, Vector3i(h.x, h.y, gt["dir"])]})
+				break
+		_scrivi("%s entra (irimi)." % gt["nome"])
+	else:
+		gt["dir"] = (gt["dir"] + 3) % 6
+		_evento({"t": "muovi", "p": t, "percorso": [Vector3i(gt["pos"].x, gt["pos"].y, gt["dir"])]})
+		gt["dir"] = dir_verso(gt["pos"], gu["pos"])
+		_evento({"t": "muovi", "p": t, "percorso": [Vector3i(gt["pos"].x, gt["pos"].y, gt["dir"])]})
+		_scrivi("%s ruota (tenkan)." % gt["nome"])
+	prendi_vantaggi(t, 1, "tecnica")
+	_evento({"t": "tecnica", "p": t, "bers": u, "genere": tec["genere"], "nome": tec["nome"]})
+	if tec["genere"] == "immobilizzazione":
+		# uke a terra sotto controllo: ferite, svantaggi e due dadi storditi
+		var dn := 1 + v / 5
+		_ferisci(u, dn)
+		if s["vinc"] >= 0:
+			return
+		prendi_svantaggi(u, 2, "immobilizzato")
+		var mano := dadi_di(u, "mucchio") + dadi_di(u, "mano")
+		mano.sort_custom(func(a, b): return a["v"] > b["v"])
+		var n := 0
+		for d in mano:
+			if n >= 2:
+				break
+			d["st"] = "stordito"
+			n += 1
+		if n > 0:
+			_evento({"t": "blocco", "p": u, "n": n})
+			_evento({"t": "dadi", "p": u})
+		return
+	# proiezione: uke vola e cade; con un dado di Tempra nel mucchio rotola (ukemi) e attutisce
+	var danno := 1 + v / 3
+	var ukemi := false
+	for d in dadi_di(u, "mucchio"):
+		if d["col"] == "verde":
+			d["st"] = "attesa"
+			ukemi = true
+			break
+	if ukemi:
+		danno = danno / 2
+		_scrivi("%s rotola (ukemi) e attutisce la caduta." % gu["nome"])
+		_evento({"t": "dadi", "p": u})
+	_spingi(t, u, 2 if v >= 5 else 1, false, 0, true)
+	if s["vinc"] >= 0:
+		return
+	_ferisci(u, danno)
+	if s["vinc"] < 0 and not ukemi:
+		prendi_svantaggi(u, 2, "caduta")
 
 func _ferisci(p: int, n: int) -> void:
 	var g: Dictionary = s["g"][p]

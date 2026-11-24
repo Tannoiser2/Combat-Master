@@ -33,7 +33,7 @@ INCH = (43, 33, 24)
 ORO = (201, 162, 74)
 CORNICE = (92, 64, 40)
 
-CAT_COL = {"base": "#5b5046", "arma": "#8e3a2c", "mossa": "#a33a3a", "armatura": "#4d6b8a",
+CAT_COL = {"base": "#5b5046", "attacco": "#9a4a22", "tecnica": "#2f5f7a", "arma": "#8e3a2c", "mossa": "#a33a3a", "armatura": "#4d6b8a",
            "oggetto": "#6f6534", "talento": "#3f7a55", "magia": "#5b4a9a", "segreto": "#3d3550"}
 TIPI = {"azione": ("Azione", "#7a5a2a"), "libera": ("Libera", "#3f7a55"), "reazione": ("Reazione", "#355f93"),
         "supporto_attacco": ("Supporto al colpo", "#a3483a"), "supporto_difesa": ("Supporto alla difesa", "#4d6b8a"),
@@ -151,7 +151,7 @@ def carta(t):
     H = TESTA + h_nota + len(t["slot"]) * MOD + MARG
     im = Image.new("RGB", (W * S, H * S), PERG)
     dr = ImageDraw.Draw(im)
-    fascia = scuro(COL[t["caratteristica"]]) if t.get("caratteristica") else rgb(CAT_COL.get(t["categoria"], "#555"))
+    fascia = scuro(COL[t["caratteristica"]]) if t.get("caratteristica") else rgb(CAT_COL.get(t["categoria"], "#555555"))
     # fascia del titolo
     dr.rounded_rectangle([6 * S, 6 * S, (W - 6) * S, (TESTA - 4) * S], 10 * S, fill=fascia)
     cat = CATN[t["categoria"]] + (f" · {NCAR[t['caratteristica']]}" if t.get("caratteristica") else "")
