@@ -235,14 +235,18 @@ def main():
     os.makedirs(out_webp, exist_ok=True)
     if out_png:
         os.makedirs(out_png, exist_ok=True)
+    geo = {"w": W, "testa": TESTA, "mod": MOD, "img": IMG, "marg": MARG, "carte": {}}
     for t in DATI["token"]:
         im = carta(t)
+        # dove inizia il primo modulo e quanto è alta la carta: al gioco servono per posare i dadi sulle immagini
+        geo["carte"][t["id"]] = {"y0": TESTA + (NOTA if nota(t) else 0), "h": im.height}
         if out_png:
             im.save(os.path.join(out_png, t["id"] + ".png"), optimize=True)
         # per il gioco e il catalogo: 2/3 della larghezza, webp
         w2 = 360
         im.resize((w2, round(im.height * w2 / im.width)), Image.LANCZOS).save(
             os.path.join(out_webp, t["id"] + ".webp"), "WEBP", quality=82, method=6)
+    json.dump(geo, open(os.path.join(out_webp, "geometria.json"), "w"), indent=0)
     print(len(DATI["token"]), "carte")
 
 

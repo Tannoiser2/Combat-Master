@@ -54,6 +54,7 @@ var _verticale := false        # schermo in verticale: mappa in alto, le due sch
 const ALTO_MAPPA := 0.36       # in verticale, frazione di schermo per barra e mappa
 var _dettaglio: Control
 var _carte: Array = []
+var _carte_illustrate := true   # in battaglia: carte illustrate con i dadi sulle immagini (altrimenti carte di testo)
 var _diario: Label
 var _diario_scroll: ScrollContainer
 var _msg: Label
@@ -938,12 +939,14 @@ func _costruisci_hud() -> void:
 		colonne.add_theme_constant_override("separation", 8)
 		colonne.clip_contents = true
 		vl.add_child(colonne)
-		var c0 := VBoxContainer.new()
-		var c1 := VBoxContainer.new()
-		for cx in [c0, c1]:
+		var cols := []
+		for i in 4:
+			var cx := VBoxContainer.new()
 			cx.add_theme_constant_override("separation", 6)
+			cx.visible = i < 2
 			colonne.add_child(cx)
-		_lati.append({"vassoio": va, "colonne": colonne, "col": [c0, c1], "carte": [], "vh": -1.0})
+			cols.append(cx)
+		_lati.append({"vassoio": va, "colonne": colonne, "col": cols, "carte": [], "vh": -1.0})
 		colonne.resized.connect(func(): _adatta_lato.call_deferred(pp))
 	_vassoio = _lati[0]["vassoio"]
 	if not get_viewport().size_changed.is_connected(_rifai_lati):
@@ -1072,6 +1075,7 @@ func _ricostruisci_carte() -> void:
 			carta.giocatore = p
 			carta.coperta = cat[id]["categoria"] == "segreto" and not m.s["g"][p]["rivelati"].has(id) and proprio >= 0 and p != proprio
 			carta.compatta = true
+			carta.illustrata = _carte_illustrate
 			carta.imposta(cat[id], int(m.s["g"][p]["pg"]["token"].get(id, 1)), "gioco")
 			var pp := p
 			carta.slot_premuto.connect(func(t, sid): if _umano_decide() == pp: _slot(t, sid))
@@ -1097,27 +1101,60 @@ func _adatta_lato(p: int) -> void:
 	var colw := floorf((colonne.size.x - 8) / 2.0) if colonne.size.x > 100 else (_ll - 32) / 2.0
 	var carte: Array = lato["carte"]
 	var scelta := []
-	for cfg in [[18, 0], [16, 0], [15, 0], [14, 0], [13, 0], [12, 0], [11, 0], [10, 0], [10, 4], [10, 3], [10, 2], [9, 2], [9, 1]]:
-		var alt := []
-		var tot := 0.0
-		for carta in carte:
-			carta.larg = colw
-			carta.fs = cfg[0]
-			carta.righe = cfg[1]
-			carta._ricalcola()
-			alt.append(carta._h + 6)
-			tot += carta._h + 6
-		# l'ordine resta quello della scheda: la prima colonna si riempie fino a metà circa
-		scelta = []
-		var h0 := 0.0
-		for i in carte.size():
-			if h0 + alt[i] * 0.5 <= tot / 2.0 or i == 0:
-				scelta.append(0)
-				h0 += alt[i]
-			else:
-				scelta.append(1)
-		if maxf(h0, tot - h0) <= disp:
-			break
+	var ncol := 2
+	var ok_ill := false
+	if _carte_illustrate:
+		# carte illustrate: stessa larghezza per tutte, da 2 a 4 colonne finché stanno senza scorrere
+		for nc in [2, 3, 4]:
+			var cw: float = floorf((colonne.size.x - 8.0 * (nc - 1)) / nc) if colonne.size.x > 100 else (_ll - 32) / nc
+			var alt_c := []
+			for c in nc:
+				alt_c.append(0.0)
+			scelta = []
+			for carta in carte:
+				carta.illustrata = true
+				carta.larg = cw
+				carta.fs = 10
+				carta.righe = 2
+				carta._ricalcola()
+				# ogni carta va nella colonna più bassa, così le colonne restano pari
+				var cmin := 0
+				for c in nc:
+					if alt_c[c] < alt_c[cmin] - 0.5:
+						cmin = c
+				scelta.append(cmin)
+				alt_c[cmin] += carta._h + 6
+			if float(alt_c.max()) <= disp:
+				ncol = nc
+				ok_ill = true
+				break
+		if not ok_ill:
+			for carta in carte:
+				carta.illustrata = false
+	if not ok_ill:
+		for cfg in [[18, 0], [16, 0], [15, 0], [14, 0], [13, 0], [12, 0], [11, 0], [10, 0], [10, 4], [10, 3], [10, 2], [9, 2], [9, 1]]:
+			var alt := []
+			var tot := 0.0
+			for carta in carte:
+				carta.larg = colw
+				carta.fs = cfg[0]
+				carta.righe = cfg[1]
+				carta._ricalcola()
+				alt.append(carta._h + 6)
+				tot += carta._h + 6
+			# l'ordine resta quello della scheda: la prima colonna si riempie fino a metà circa
+			scelta = []
+			var h0 := 0.0
+			for i in carte.size():
+				if h0 + alt[i] * 0.5 <= tot / 2.0 or i == 0:
+					scelta.append(0)
+					h0 += alt[i]
+				else:
+					scelta.append(1)
+			if maxf(h0, tot - h0) <= disp:
+				break
+	for c in lato["col"].size():
+		lato["col"][c].visible = c < ncol
 	for i in carte.size():
 		var carta: CartaToken = carte[i]
 		var dest: VBoxContainer = lato["col"][scelta[i]]

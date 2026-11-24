@@ -29,6 +29,7 @@ var compatta := false
 var larg := W
 var fs := 11                   # corpo del testo delle regole
 var righe := 0                 # righe di testo per spazio (0 = tutte)
+var illustrata := false        # in battaglia: la carta illustrata, con i dadi posati sulle immagini delle azioni
 
 var _rect_slot := {}
 var _rect_btn := {}
@@ -120,7 +121,40 @@ func _mini(sl: Dictionary) -> float:
 		return 0.0
 	return round(30.0 * _k())
 
+## Fattore di scala della carta illustrata (pixel della carta -> pixel a schermo).
+func _scala_ill() -> float:
+	return larg / float(Illustrazioni.geometria().get("w", 540))
+
+func _usa_illustrata() -> bool:
+	return compatta and illustrata and not coperta and Illustrazioni.ha_moduli(tok["id"])
+
+func _ricalcola_illustrata() -> void:
+	var g := Illustrazioni.geometria()
+	var gc: Dictionary = g["carte"][tok["id"]]
+	var s := _scala_ill()
+	var mod := float(g["mod"])
+	var marg := float(g["marg"])
+	var y := float(gc["y0"])
+	_rect_btn["dettaglio"] = Rect2(0, 0, larg, float(g["testa"]) * s)
+	for sl in tok.get("slot", []):
+		_rect_slot[sl["id"]] = Rect2(marg * s, (y + 4) * s, (float(g["w"]) - 2 * marg) * s, (mod - 8) * s)
+		y += mod
+	_h = float(gc["h"]) * s
+	custom_minimum_size = Vector2(larg, _h)
+	size = custom_minimum_size
+
+## Riquadro dell'illustrazione dell'azione, dentro il modulo r (coordinate della carta).
+func _rect_img(r: Rect2) -> Rect2:
+	var g := Illustrazioni.geometria()
+	var s := _scala_ill()
+	var img := float(g["img"]) * s
+	var mod := float(g["mod"]) * s
+	return Rect2(r.position.x + 10 * s, r.position.y - 4 * s + (mod - img) / 2.0, img, img)
+
 func _ricalcola_compatta() -> void:
+	if _usa_illustrata():
+		_ricalcola_illustrata()
+		return
 	var k := _k()
 	var y := 22.0 * k
 	_rect_btn["dettaglio"] = Rect2(0, 0, larg, 22.0 * k)
@@ -160,6 +194,15 @@ func _alt_testo(t: String, w: float) -> float:
 ## Rettangolo dell'alloggio i-esimo dentro lo spazio r (coordinate della carta).
 func _rect_sock(sl: Dictionary, r: Rect2, i: int) -> Rect2:
 	var n: int = _alloggi(sl).size()
+	if _usa_illustrata():
+		# i dadi si posano sull'illustrazione: in basso, centrati, una o due file
+		var ri := _rect_img(r)
+		var per_fila := mini(n, 2) if n <= 2 else mini(n, 3)
+		var file := ceili(float(n) / per_fila)
+		var qi := minf(ri.size.x * 0.44, (ri.size.x - 6) / per_fila - 3)
+		var x0i := ri.position.x + (ri.size.x - per_fila * (qi + 3) + 3) / 2.0
+		var y0i := ri.end.y - file * (qi + 3) - 2
+		return Rect2(x0i + (i % per_fila) * (qi + 3), y0i + (i / per_fila) * (qi + 3), qi, qi)
 	if compatta:
 		var c := _cols_c(n)
 		var q := _sc()
@@ -194,6 +237,9 @@ func _draw() -> void:
 	var cc: Color = Disegno.CATEGORIE.get(tok["categoria"], Color.GRAY)
 	if tok.has("caratteristica"):
 		cc = Disegno.colore(tok["caratteristica"]).darkened(0.35)
+	if _usa_illustrata():
+		_draw_illustrata()
+		return
 	if compatta:
 		_draw_compatta(cc)
 		return
@@ -399,6 +445,64 @@ func _draw_compatta(cc: Color) -> void:
 			var sbiadito := Disegno.PERGAMENA
 			sbiadito.a = 0.45
 			draw_rect(_rect_slot[sl["id"]], sbiadito)
+
+func _draw_illustrata() -> void:
+	draw_texture_rect(Illustrazioni.carta(tok["id"]), Rect2(0, 0, larg, _h), false)
+	for sl in tok.get("slot", []):
+		_disegna_spazio_ill(sl)
+
+func _disegna_spazio_ill(sl: Dictionary) -> void:
+	var r: Rect2 = _rect_slot[sl["id"]]
+	var ri := _rect_img(r)
+	var ev = evidenzia.get(sl["id"], null)
+	var key: String = tok["id"] + "/" + sl["id"]
+	var occ: Array = []
+	var g: Dictionary = {}
+	if motore != null:
+		g = motore.s["g"][giocatore]
+		occ = g["occupati"].get(key, [])
+	var pieno: bool = not occ.is_empty() and (int(sl.get("capienza", 0)) == 0 or occ.size() >= int(sl.get("capienza", 0)))
+	var carico: bool = not g.is_empty() and g["carichi"].has(key)
+	var disarmato: bool = not g.is_empty() and g["disarmati"].has(key)
+	var guardia: bool = not g.is_empty() and g["guardie"].has(key)
+	var sc = scelta_spazi.get(sl["id"], null)
+	var sp := maxf(2.0, larg / 90.0)
+	if sc != null:
+		draw_rect(r, Color(0.62, 0.82, 0.54, 0.35) if sc == 1 else Color(0.97, 0.84, 0.48, 0.35))
+		draw_rect(r, Color("#2f7a2a") if sc == 1 else Color("#b07d1f"), false, sp)
+	elif carico:
+		draw_rect(r, Color(0.91, 0.65, 0.29, 0.35))
+		draw_rect(r, Color("#9a3324"), false, sp)
+	elif disarmato:
+		draw_rect(r, Color(0.45, 0.1, 0.08, 0.35))
+	elif pieno and not guardia:
+		draw_rect(ri, Color(0.1, 0.07, 0.05, 0.45))
+	elif ev == true:
+		draw_rect(r, Color(0.97, 0.84, 0.48, 0.28))
+		draw_rect(r, Color("#d9a420"), false, sp)
+	elif ev == false:
+		var sbiadito := Disegno.PERGAMENA
+		sbiadito.a = 0.3
+		draw_rect(r, sbiadito)
+	var all := _alloggi(sl)
+	for i in all.size():
+		if i >= occ.size():
+			Disegno.alloggio(self, _rect_sock(sl, r, i), all[i])
+	for i in occ.size():
+		if in_volo.has(occ[i]):
+			continue
+		var d := motore.dado(giocatore, occ[i])
+		Disegno.dado(self, _rect_sock(sl, r, i), d["col"], d["v"], "usato")
+	if guardia:
+		_disegna_esagono(sl, key, g, ri.position + Vector2(ri.size.x * 0.2, ri.size.x * 0.2), ri.size.x * 0.17)
+	if sl["tipo"] == "contatore" and motore != null:
+		var somma := 0
+		for id in occ:
+			somma += int(motore.dado(giocatore, id)["v"])
+		var etich := "CARICO" if carico else "%d/%d" % [somma, int(sl.get("soglia", 10))]
+		var fz := maxi(9, int(ri.size.x * 0.2))
+		draw_rect(Rect2(ri.position.x, ri.position.y, ri.size.x, fz + 4), Color(0, 0, 0, 0.55))
+		Disegno.testo(self, Vector2(ri.position.x, ri.position.y + fz), etich, fz, Color.WHITE, Disegno.font_titolo(), ri.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 const TIPI_C := {"azione": ["AZIONE", "#5a4630"], "reazione": ["REAZIONE", "#2f5d8a"], "supporto_attacco": ["SUPPORTO", "#7a4a8a"],
 	"supporto_difesa": ["SUPPORTO", "#7a4a8a"], "libera": ["LIBERA", "#2f7a4a"], "segreto": ["SEGRETO", "#3d3550"], "contatore": ["CONTATORE", "#8a5a1a"]}

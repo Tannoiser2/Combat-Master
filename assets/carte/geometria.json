@@ -1,0 +1,645 @@
+{
+"w": 540,
+"testa": 112,
+"mod": 232,
+"img": 204,
+"marg": 12,
+"carte": {
+"base": {
+"y0": 146,
+"h": 854
+},
+"forza": {
+"y0": 112,
+"h": 820
+},
+"furia": {
+"y0": 146,
+"h": 854
+},
+"potenza": {
+"y0": 112,
+"h": 588
+},
+"presa": {
+"y0": 112,
+"h": 820
+},
+"boscaiolo": {
+"y0": 112,
+"h": 588
+},
+"portatore": {
+"y0": 146,
+"h": 622
+},
+"pugile": {
+"y0": 112,
+"h": 820
+},
+"gladiatore": {
+"y0": 112,
+"h": 588
+},
+"fabbro": {
+"y0": 146,
+"h": 854
+},
+"toro": {
+"y0": 112,
+"h": 588
+},
+"agilita": {
+"y0": 112,
+"h": 820
+},
+"velocita": {
+"y0": 112,
+"h": 820
+},
+"equilibrio": {
+"y0": 112,
+"h": 820
+},
+"riflessi": {
+"y0": 112,
+"h": 588
+},
+"precisione": {
+"y0": 112,
+"h": 820
+},
+"istinto": {
+"y0": 112,
+"h": 820
+},
+"destrezza": {
+"y0": 112,
+"h": 820
+},
+"occhio_acuto": {
+"y0": 112,
+"h": 820
+},
+"acrobata": {
+"y0": 112,
+"h": 588
+},
+"borseggiatore": {
+"y0": 146,
+"h": 854
+},
+"tempra": {
+"y0": 112,
+"h": 820
+},
+"resistenza": {
+"y0": 112,
+"h": 588
+},
+"volonta": {
+"y0": 112,
+"h": 820
+},
+"costituzione": {
+"y0": 112,
+"h": 588
+},
+"montanaro": {
+"y0": 112,
+"h": 588
+},
+"marinaio": {
+"y0": 112,
+"h": 820
+},
+"orso": {
+"y0": 146,
+"h": 622
+},
+"penitente": {
+"y0": 112,
+"h": 820
+},
+"guardiano": {
+"y0": 146,
+"h": 854
+},
+"corridore": {
+"y0": 112,
+"h": 820
+},
+"mente": {
+"y0": 112,
+"h": 820
+},
+"astuzia": {
+"y0": 112,
+"h": 820
+},
+"arcano": {
+"y0": 112,
+"h": 588
+},
+"intelletto": {
+"y0": 112,
+"h": 820
+},
+"veggente": {
+"y0": 112,
+"h": 588
+},
+"azzardo": {
+"y0": 112,
+"h": 820
+},
+"maestro": {
+"y0": 146,
+"h": 854
+},
+"ipnotista": {
+"y0": 112,
+"h": 588
+},
+"cacciatore_taglie": {
+"y0": 112,
+"h": 820
+},
+"monaco_guerriero": {
+"y0": 146,
+"h": 622
+},
+"spada": {
+"y0": 112,
+"h": 588
+},
+"pugnali": {
+"y0": 112,
+"h": 588
+},
+"ascia": {
+"y0": 112,
+"h": 588
+},
+"lancia": {
+"y0": 112,
+"h": 588
+},
+"arco": {
+"y0": 112,
+"h": 588
+},
+"bastone": {
+"y0": 112,
+"h": 588
+},
+"scudo": {
+"y0": 112,
+"h": 588
+},
+"martello": {
+"y0": 112,
+"h": 588
+},
+"frusta": {
+"y0": 112,
+"h": 588
+},
+"cuoio": {
+"y0": 146,
+"h": 390
+},
+"maglia": {
+"y0": 146,
+"h": 390
+},
+"piastre": {
+"y0": 146,
+"h": 390
+},
+"mantello": {
+"y0": 112,
+"h": 356
+},
+"doppio_fendente": {
+"y0": 112,
+"h": 356
+},
+"assalto": {
+"y0": 112,
+"h": 356
+},
+"turbine": {
+"y0": 112,
+"h": 356
+},
+"passo_ombra": {
+"y0": 112,
+"h": 356
+},
+"furia_cieca": {
+"y0": 112,
+"h": 356
+},
+"contrattacco": {
+"y0": 112,
+"h": 356
+},
+"spallata": {
+"y0": 112,
+"h": 356
+},
+"novizio": {
+"y0": 112,
+"h": 356
+},
+"in_serie": {
+"y0": 112,
+"h": 356
+},
+"sacrificio": {
+"y0": 112,
+"h": 356
+},
+"ritmo_battaglia": {
+"y0": 112,
+"h": 356
+},
+"cambio_guardia": {
+"y0": 112,
+"h": 356
+},
+"passo_rapido": {
+"y0": 112,
+"h": 356
+},
+"ferocia": {
+"y0": 112,
+"h": 356
+},
+"danza_lame": {
+"y0": 112,
+"h": 588
+},
+"guardia_alta": {
+"y0": 146,
+"h": 390
+},
+"riflesso": {
+"y0": 146,
+"h": 390
+},
+"mira_istintiva": {
+"y0": 146,
+"h": 390
+},
+"ferro": {
+"y0": 146,
+"h": 390
+},
+"sesto_senso": {
+"y0": 146,
+"h": 390
+},
+"riscossa": {
+"y0": 112,
+"h": 356
+},
+"trappola": {
+"y0": 112,
+"h": 356
+},
+"agguato": {
+"y0": 112,
+"h": 356
+},
+"pelle_pietra": {
+"y0": 112,
+"h": 356
+},
+"rito": {
+"y0": 112,
+"h": 356
+},
+"fortuna_matto": {
+"y0": 112,
+"h": 356
+},
+"ira": {
+"y0": 112,
+"h": 356
+},
+"tenacia": {
+"y0": 146,
+"h": 390
+},
+"ritmo": {
+"y0": 146,
+"h": 390
+},
+"fiato_lungo": {
+"y0": 146,
+"h": 390
+},
+"pazienza": {
+"y0": 146,
+"h": 390
+},
+"temerario": {
+"y0": 146,
+"h": 390
+},
+"niente_spreco": {
+"y0": 146,
+"h": 390
+},
+"prodigio": {
+"y0": 146,
+"h": 390
+},
+"rapido": {
+"y0": 146,
+"h": 390
+},
+"berserker": {
+"y0": 146,
+"h": 390
+},
+"occhio": {
+"y0": 146,
+"h": 390
+},
+"cintura_gigante": {
+"y0": 146,
+"h": 390
+},
+"stivali_alati": {
+"y0": 146,
+"h": 390
+},
+"amuleto_quarzo": {
+"y0": 146,
+"h": 390
+},
+"borraccia": {
+"y0": 112,
+"h": 356
+},
+"talismano_gatto": {
+"y0": 146,
+"h": 390
+},
+"pietra_luna": {
+"y0": 146,
+"h": 390
+},
+"sacca_trucchi": {
+"y0": 112,
+"h": 356
+},
+"corno_guerra": {
+"y0": 112,
+"h": 356
+},
+"clessidra": {
+"y0": 146,
+"h": 390
+},
+"cristallo": {
+"y0": 112,
+"h": 356
+},
+"colpo_caricato": {
+"y0": 112,
+"h": 356
+},
+"esecuzione": {
+"y0": 112,
+"h": 356
+},
+"ultimo_respiro": {
+"y0": 112,
+"h": 356
+},
+"disarmare": {
+"y0": 112,
+"h": 356
+},
+"gelo": {
+"y0": 112,
+"h": 356
+},
+"colpo_mirato": {
+"y0": 112,
+"h": 356
+},
+"ira_ferita": {
+"y0": 112,
+"h": 356
+},
+"tempesta_colpi": {
+"y0": 112,
+"h": 356
+},
+"rabbia": {
+"y0": 112,
+"h": 356
+},
+"guardia_ferrea": {
+"y0": 112,
+"h": 356
+},
+"somma_perfetta": {
+"y0": 112,
+"h": 356
+},
+"piccoli_passi": {
+"y0": 112,
+"h": 356
+},
+"doppio_pari": {
+"y0": 112,
+"h": 356
+},
+"colpo_dispari": {
+"y0": 112,
+"h": 356
+},
+"colpo_volo": {
+"y0": 112,
+"h": 356
+},
+"seconda_aria": {
+"y0": 112,
+"h": 356
+},
+"cuore_leone": {
+"y0": 146,
+"h": 390
+},
+"specchio": {
+"y0": 146,
+"h": 390
+},
+"fumo": {
+"y0": 112,
+"h": 356
+},
+"rete": {
+"y0": 112,
+"h": 356
+},
+"ultima_risorsa": {
+"y0": 112,
+"h": 356
+},
+"veleno": {
+"y0": 112,
+"h": 356
+},
+"postura": {
+"y0": 112,
+"h": 356
+},
+"rotella": {
+"y0": 112,
+"h": 356
+},
+"tenere": {
+"y0": 146,
+"h": 390
+},
+"calibrato": {
+"y0": 112,
+"h": 356
+},
+"affondo_rientro": {
+"y0": 112,
+"h": 356
+},
+"taglio_passaggio": {
+"y0": 112,
+"h": 356
+},
+"sgambetto": {
+"y0": 112,
+"h": 356
+},
+"proiezione": {
+"y0": 112,
+"h": 356
+},
+"rompiguardia": {
+"y0": 112,
+"h": 356
+},
+"passo_laterale": {
+"y0": 112,
+"h": 356
+},
+"lama_scudo": {
+"y0": 112,
+"h": 356
+},
+"respingere": {
+"y0": 112,
+"h": 356
+},
+"torsione": {
+"y0": 112,
+"h": 356
+},
+"traverso": {
+"y0": 112,
+"h": 356
+},
+"danza_guerra": {
+"y0": 146,
+"h": 390
+},
+"dardo_arcano": {
+"y0": 112,
+"h": 356
+},
+"spinta_arcana": {
+"y0": 112,
+"h": 356
+},
+"scudo_arcano": {
+"y0": 112,
+"h": 356
+},
+"passo_nebbia": {
+"y0": 112,
+"h": 356
+},
+"morsa_gelo": {
+"y0": 112,
+"h": 356
+},
+"catene": {
+"y0": 112,
+"h": 356
+},
+"fiamma": {
+"y0": 112,
+"h": 356
+},
+"vortice": {
+"y0": 112,
+"h": 356
+},
+"respiro_profondo": {
+"y0": 112,
+"h": 356
+},
+"riposo_tattico": {
+"y0": 112,
+"h": 356
+},
+"meditazione_rituale": {
+"y0": 112,
+"h": 356
+},
+"gestione_del_fiato": {
+"y0": 112,
+"h": 356
+},
+"istinto_di_sopravvivenza": {
+"y0": 112,
+"h": 356
+},
+"riciclo_arcano": {
+"y0": 112,
+"h": 356
+},
+"raccogliere_le_forze": {
+"y0": 112,
+"h": 356
+},
+"disciplina_del_duellante": {
+"y0": 112,
+"h": 356
+},
+"cerchio_della_vita": {
+"y0": 112,
+"h": 356
+},
+"secondo_respiro": {
+"y0": 112,
+"h": 356
+},
+"tecnica_del_logoramento": {
+"y0": 112,
+"h": 356
+},
+"preghiera_del_rientro": {
+"y0": 112,
+"h": 356
+},
+"preparazione_del_ritorno": {
+"y0": 112,
+"h": 356
+}
+}
+}
