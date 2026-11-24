@@ -112,13 +112,13 @@ def carte():
             elenco = "attacchi " + ", ".join(str(x) for x in contro)
             # più attacchi copre, più alto deve essere il dado
             cond = {"min": 4} if n >= 9 else ({"min": 3} if n >= 6 else {})
-        effetto_txt = ("immobilizzi: 1 ferita (2 con un 5+), 2 svantaggi e due dadi storditi"
-                       if imm else "proietti: 1 ferita + un terzo del dado, lo lanci di 1 (2 con 5+); con un dado verde rotola e dimezza")
+        effetto_txt = ("immobilizzi: 1 ferita (2 con 5+), 2 svantaggi, 2 dadi storditi"
+                       if imm else "proietti di 1 (2 con 5+): 1 ferita + un terzo del dado; ukemi con un verde")
         soglia = (" Dado %d+." % cond["min"]) if cond else ""
         sl = {"id": "tecnica", "nome": nome, "tipo": "reazione", "dadi": [["verde", "viola"] if imm else ["blu", "viola"]],
               "cond": cond, "effetto": "tecnica", "genere": "immobilizzazione" if imm else "proiezione",
               "contro": contro, "quando": "mischia",
-              "testo": "Reazione contro %s.%s Annulli l'attacco e %s. Dado dispari: irimi, pari: tenkan." % (elenco, soglia, effetto_txt)}
+              "testo": "Contro %s.%s Annulli l'attacco e %s. Dispari irimi, pari tenkan." % (elenco, soglia, effetto_txt)}
         costo = 1 + (n + 2) // 4
         out.append({"id": "tec_" + k.lower(), "nome": "%s %s" % (k, nome), "categoria": "tecnica", "costo": costo,
                     "testo": jp, "slot": [sl]})
