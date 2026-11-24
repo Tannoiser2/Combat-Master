@@ -90,7 +90,11 @@ func _ricalcola() -> void:
 		_rect_slot[sl["id"]] = Rect2(6, y, W - 12, h)
 		y += h + 4
 	if modo == "catalogo":
-		_rect_btn["aggiungi"] = Rect2(10, y + 2, W - 20, 30)
+		if Illustrazioni.ha(tok["id"]):
+			_rect_btn["aggiungi"] = Rect2(10, y + 2, W - 104, 30)
+			_rect_btn["vedi"] = Rect2(W - 88, y + 2, 78, 30)
+		else:
+			_rect_btn["aggiungi"] = Rect2(10, y + 2, W - 20, 30)
 		y += 36
 	if modo == "scheda" and not tok.has("caratteristica"):
 		_rect_btn["rimuovi"] = Rect2(W - 30, 8, 22, 22)
@@ -260,7 +264,11 @@ func _draw() -> void:
 		var c := Color("#3a2a1c") if not disattivo else Color("#8f8576")
 		draw_style_box(Disegno.stile(c, Disegno.ORO if not disattivo else Color("#6d655b"), 6, 2), r)
 		Disegno.icona(self, "piu", Rect2(r.position.x + 8, r.position.y + 7, 16, 16), Color.WHITE, 2.5)
-		Disegno.testo(self, Vector2(r.position.x + 30, r.position.y + 21), "Aggiungi alla scheda", 15, Color.WHITE, Disegno.font_titolo(), r.size.x - 36)
+		Disegno.testo(self, Vector2(r.position.x + 30, r.position.y + 21), "Aggiungi alla scheda" if r.size.x > 200 else "Aggiungi", 15, Color.WHITE, Disegno.font_titolo(), r.size.x - 36)
+	if _rect_btn.has("vedi"):
+		var rv: Rect2 = _rect_btn["vedi"]
+		draw_style_box(Disegno.stile(Color("#4a3a26"), Disegno.ORO, 6, 2), rv)
+		Disegno.testo(self, Vector2(rv.position.x + 14, rv.position.y + 21), "Carta", 15, Color.WHITE, Disegno.font_titolo(), rv.size.x - 16)
 
 func _disegna_spazio(sl: Dictionary) -> void:
 	var r: Rect2 = _rect_slot[sl["id"]]
@@ -527,7 +535,7 @@ func _clic(p: Vector2) -> void:
 						carta_premuta.emit(tok["id"])
 				"rimuovi":
 					rimuovi.emit(tok["id"])
-				"dettaglio":
+				"dettaglio", "vedi":
 					dettaglio.emit(tok["id"])
 				"meno":
 					livello.emit(tok["id"], -1)

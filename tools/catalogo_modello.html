@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Catalogo dei token</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Alegreya:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* VOICE: la bottega di un'arena fantasy, sobria e precisa: un catalogo da consultare.
+   IDEA: il tavolo di gioco con le carte token sparse, come nell'officina del gioco.
+   PICTURE: la griglia di carte stesse, con gli spazi per i dadi colorati.
+   COLOUR and TYPE: legno scuro, oro brunito, carte di pergamena; Cinzel e Alegreya, i font del gioco.
+   LAYOUT: filtri in una colonna fissa a sinistra (sopra su schermo stretto), carte a destra. */
+:root{color-scheme:light dark;--bg:light-dark(#e9dfc9,#1d1813);--panel:light-dark(#f6efe0,#2a221b);--ink:light-dark(#2b2118,#efe4cf);--soft:light-dark(#6d5c48,#b5a58c);--gold:light-dark(#9a6b12,#d9a440);--line:light-dark(#cdbd9e,#4a3d30);--card:#f3ead6;--cink:#2b2118;--csoft:#6d5c48}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Alegreya,Georgia,serif;overflow-x:clip}
+h1{font:700 clamp(30px,4vw,46px)/1.05 Cinzel,serif;margin:0;color:var(--gold);text-wrap:balance}
+.top{padding:28px max(4vw,16px) 18px;display:flex;flex-wrap:wrap;gap:8px 24px;align-items:end;justify-content:space-between;border-bottom:1px solid var(--line)}
+.top p{margin:4px 0 0;color:var(--soft);max-width:60ch}
+.conta{font:600 18px Alegreya,serif;white-space:nowrap}.conta b{font:700 30px Cinzel,serif;color:var(--gold)}
+.wrap{display:grid;grid-template-columns:300px minmax(0,1fr);gap:24px;padding:20px max(4vw,16px) 48px;max-width:1500px;margin:auto}
+aside{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.gr{margin-bottom:14px}.gr h3{font:600 14px Cinzel,serif;margin:0 0 6px;color:var(--gold)}
+.gr small{display:block;color:var(--soft);font-size:13px;margin:-2px 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:15px Alegreya,serif;min-height:36px;padding:4px 11px;border-radius:18px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed=true]{background:var(--gold);border-color:var(--gold);color:#1d1813}
+.chip:focus-visible,input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.chip .n{font-size:13px;opacity:.7}
+.pip{width:14px;height:14px;border-radius:3px;border:1px solid #0006;display:inline-block;flex:none}
+input[type=search],select{width:100%;font:16px Alegreya,serif;min-height:44px;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--gold);min-height:32px}
+.riga{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.azz{width:100%;min-height:44px;font:600 15px Cinzel,serif;border-radius:8px;border:1px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer}
+.carte{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;align-content:start}
+.c{background:var(--card);color:var(--cink);border-radius:10px;box-shadow:0 2px 0 #0002,0 6px 18px #0003;overflow:hidden;display:flex;flex-direction:column;animation:in .25s ease both}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+@media(prefers-reduced-motion:reduce){.c{animation:none}}
+.ch{padding:9px 12px 8px;color:#fff;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:start}
+.ch h2{font:700 17px/1.15 Cinzel,serif;margin:0}
+.ch .cat{font-size:13px;opacity:.9;grid-column:1}
+.costo{grid-row:1/3;grid-column:2;min-width:38px;height:38px;border-radius:19px;background:#0005;border:2px solid #fff8;display:grid;place-items:center;font:700 15px Cinzel,serif;padding:0 6px;white-space:nowrap}
+.cb{padding:10px 12px 12px;display:grid;gap:8px;font-size:15px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:var(--csoft);font-size:14px}
+.pass{background:#e2d4b4;border-radius:6px;padding:4px 8px;font-size:14px}
+.s{border:1px solid #cdbd9e;border-radius:8px;padding:7px 9px;background:#faf4e6}
+.sh{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.sh b{font:600 15px Alegreya,serif}
+.tag{font:600 12px Alegreya,serif;padding:1px 7px;border-radius:9px;color:#fff;white-space:nowrap}
+.sb{display:flex;gap:9px;margin-top:5px;align-items:flex-start}
+.slot{display:flex;gap:4px;flex:none;padding-top:2px}
+.foro{width:26px;height:26px;border-radius:5px;border:2px solid #6d5c48;background:#e7dcc4;overflow:hidden;display:flex;flex-direction:column}
+.foro i{flex:1}
+.sb p{margin:0;line-height:1.35;flex:1}.hx{flex:none}
+.vuoto{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--soft);font-size:18px}
+.apri{display:none}
+@media(max-width:760px){.wrap{grid-template-columns:minmax(0,1fr)}aside{position:static;max-height:none}aside.chiuso .corpo{display:none}.apri{display:block;margin-bottom:10px}}
+.vista{display:flex;gap:6px}.vista button{flex:1}
+.carte.ill{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.ci{display:block;border:0;padding:0;background:none;cursor:zoom-in;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.45);transition:transform .15s}
+.ci:hover,.ci:focus-visible{transform:translateY(-2px);outline:2px solid #c9a24a}
+.ci img{display:block;width:100%;height:auto;aspect-ratio:336/800}
+.vedi{margin-top:6px;width:100%;font:inherit;font-size:13px;padding:6px;border-radius:6px;border:1px solid #c9a24a;background:#3a2a1c;color:#fff;cursor:pointer}
+#lb{position:fixed;inset:0;background:rgba(10,7,4,.86);display:none;align-items:center;justify-content:center;gap:18px;z-index:50;padding:16px}
+#lb.on{display:flex}#lb img{max-height:92vh;max-width:min(92vw,420px);border-radius:10px;box-shadow:0 8px 30px #000}
+#lb .x{position:absolute;top:12px;right:14px;font:inherit;font-size:15px;padding:8px 14px;border-radius:8px;border:1px solid #c9a24a;background:#3a2a1c;color:#fff;cursor:pointer}
+#lb .nav{font:inherit;font-size:15px;padding:10px 14px;border-radius:8px;border:1px solid #c9a24a;background:#3a2a1c;color:#fff;cursor:pointer}
+</style></head><body>
+<header class="top"><div><h1>Catalogo dei token</h1><p>Tutti i token di Combat Master, con i dadi che danno e gli spazi dove si mettono. Ogni combattente sceglie una scheda per ognuna delle quattro caratteristiche (Forza, Destrezza, Tempra, Mente), poi il resto. Filtra per tipo, effetto, colore, condizione e costo. L'esagono oro indica il lato pieno: -1, -2, -3 sui lati più lontani.</p></div>
+<div class="conta"><b id="nTok">0</b> token &middot; <span id="nSl">0</span> spazi</div></header>
+<div class="wrap">
+<aside id="pan" class="chiuso">
+<button class="azz apri" id="apri" aria-expanded="false">Mostra i filtri</button>
+<div class="corpo">
+<div class="gr"><input type="search" id="q" placeholder="Cerca nel nome o nel testo" aria-label="Cerca"></div>
+<div class="gr"><h3>Vista</h3><div class="vista"><button class="chip" data-g="vista" data-v="ill" aria-pressed="true">Carte illustrate</button><button class="chip" data-g="vista" data-v="schede" aria-pressed="false">Schede di testo</button></div></div>
+<div class="gr"><h3>Ordina</h3><select id="ord" aria-label="Ordina"><option value="cat">Per categoria</option><option value="nome">Per nome</option><option value="costo">Per costo, dal minore</option><option value="costo-">Per costo, dal maggiore</option><option value="colore">Per colore</option></select></div>
+<div class="gr"><h3>Categoria</h3><div class="chips" id="fCat"></div></div>
+<div class="gr"><h3>Colore del dado</h3><small>Quale rapporto con il colore:</small>
+<div class="chips" id="fModo" style="margin-bottom:8px"></div><div class="chips" id="fCol"></div></div>
+<div class="gr"><h3>Tipo di spazio</h3><div class="chips" id="fTipo"></div></div>
+<div class="gr"><h3>Effetto</h3><div id="fEff"></div></div>
+<div class="gr"><h3>Condizione sul dado</h3><div class="chips" id="fCond"></div></div>
+<div class="gr"><h3>Proprietà</h3><div class="chips" id="fProp"></div></div>
+<div class="gr"><h3>Costo massimo: <span id="cv"></span></h3><input type="range" id="costo" min="0" max="20" step="1" aria-label="Costo massimo"></div>
+<button class="azz" id="reset">Azzera i filtri</button>
+</div></aside>
+<main class="carte" id="carte" aria-live="polite"></main>
+</div>
+<div id="lb" role="dialog" aria-modal="true" aria-label="Carta illustrata"><button class="nav" id="lbP">Precedente</button><img id="lbI" alt=""><button class="nav" id="lbN">Successiva</button><button class="x" id="lbX">Chiudi</button></div>
+<script>
+{
+const D=__DATI__;
+const COL=D.colori, CATN=Object.fromEntries(D.categorie.map(c=>[c.id,c.nome]));CATN.base='Azioni di base';
+const CATC={base:'#5b5046',attributo:'#8a6a3a',oggetto:'#6f6534',arma:'#8e3a2c',armatura:'#4d6b8a',mossa:'#a33a3a',talento:'#3f7a55',magia:'#5b4a9a',segreto:'#3d3550'};
+const CATO=['base','attributo','arma','mossa','armatura','oggetto','talento','magia','segreto'];
+const NCAR={rosso:'Forza',blu:'Destrezza',verde:'Tempra',viola:'Mente'};
+const scuro=h=>{const n=parseInt(h.slice(1),16);const f=x=>Math.round(x*0.68);return `rgb(${f(n>>16)},${f((n>>8)&255)},${f(n&255)})`};
+const TIPI={azione:['Azione','#7a5a2a'],libera:['Libera','#3f7a55'],reazione:['Reazione','#355f93'],supporto_attacco:['Supporto al colpo','#a3483a'],supporto_difesa:['Supporto alla difesa','#4d6b8a'],segreto:['Segreto','#5a3f7a'],contatore:['Contatore','#6f6534']};
+const EFF={attacco:'Attacco',supp_danno:'Più danni',assalto:'Assalto',contrattacco:'Contrattacco',stordisci:'Stordire',disarma:'Disarmare',
+ para:'Parata',schiva:'Schivata',supp_difesa:'Più difesa',cura:'Cura',
+ movimento:'Movimento',ruota:'Rotazione',passo_ombra:"Passo d'ombra",
+ sblocca:'Sbloccare dadi',pesca:'Pescare dal mucchio',scambia:'Scambiare dadi',rovescia:'Rovesciare un dado',ritocca:'Ritoccare il valore',elimina:'Eliminare dadi',rimetti:'Rimettere in mano',concentrazione:'Concentrazione',eco:'Eco',congela:'Congelare',
+ segreto:'Segreto',contatore:'Contatore',accumula:'Accumulo',varco:'Cercare il varco',leggi:'Leggere il colpo',recupera:"Recuperare dall'Attesa",prepara_attesa:'Preparare dadi in Attesa',
+ guardia:'Guardia sull\'esagono',gira_guardia:'Spostare la guardia',ritocca_guardia:'Rafforzare la guardia',scarta:'Passo laterale',gira_nemico:'Far girare il nemico'};
+const GRUPPI=[['Offesa',['attacco','supp_danno','assalto','contrattacco','stordisci','disarma']],['Difesa',['guardia','ritocca_guardia','gira_guardia','para','schiva','scarta','supp_difesa','cura']],['Movimento',['movimento','ruota','passo_ombra','gira_nemico']],['La sfera',['varco','leggi']],['Gestione dei dadi',['sblocca','recupera','prepara_attesa','pesca','scambia','rovescia','ritocca','elimina','rimetti','concentrazione','eco','congela']],['Altro',['segreto','contatore','accumula']]];
+const COND={nessuna:'Nessuna',min:'Dado alto',max:'Dado basso',coppia:'Coppia',scala:'Scala',valori:'Valori precisi',somma:'Somma di dadi',pari:'Pari',dispari:'Dispari',vs_attacco:"Contro il dado d'attacco"};
+const PROP={esagono:["Con l'esagono",s=>!!s.esagono],guardia_p:['Lascia una guardia',s=>s.effetto==='guardia'||s.guardia],mira:['Colpo mirato',s=>s.esagono==='mira'],poi:['Movimento obbligato',s=>!!s.poi],spinge:['Sposta il nemico',s=>s.spingi||s.spingi_lato||s.attira||s.respingi||s.gira],lancia:['Lancio (urto)',s=>s.lancia],sbilancia:['Lo fa girare',s=>s.gira||s.effetto==='gira_nemico'],rompi:['Rompe le guardie',s=>s.rompi_guardia],distanza:['A distanza',s=>(s.gittata||0)>0||(s.portata||0)>1],non_schivabile:['Non schivabile',s=>s.non_schivabile],ignora_armatura:["Ignora l'armatura",s=>s.ignora_armatura],anche_retro:['Anche alle spalle',s=>s.anche_retro||s.bonus_spalle],catena:['Catena',s=>s.catena],spingi:['Spinta',s=>s.spingi],area:['Ad area',s=>s.area],azzardo:['Azzardo',s=>s.azzardo],piu_dadi:['Più dadi nello spazio',s=>(s.dadi||[]).length>1||(s.capienza||0)>1],consuma:['Consuma il dado',s=>s.elimina_dado],carica:['Si carica',s=>s.carica||s.soglia||s.accumulo_attacco||s.accumulo_difesa],passivo:['Effetto permanente',(s,t)=>t.passivo&&Object.keys(t.passivo).length]};
+const condDi=s=>{const k=Object.keys(s.cond||{});if(!k.length)return['nessuna'];return k.map(x=>x.startsWith('somma')?'somma':x)};
+const costoMin=t=>t.livelli?t.livelli[0].costo:(t.costo||0);
+const prod=t=>{const r={};if(t.colore&&t.livelli)r[t.colore]=t.livelli.map(l=>l.dadi);if(t.produce)for(const[k,v]of Object.entries(t.produce))r[k]=[v];if(t.passivo&&t.passivo.bianco)r.bianco=[t.passivo.bianco];return r};
+const usa=t=>new Set(t.slot.flatMap(s=>(s.dadi||[]).flat()));
+const PASSN={armatura:'Armatura',movimento:'Movimento',iniziativa:'Iniziativa',vita:'Vita',ritmo:'Ritmo',recupero:'Recupero',conserva:'Conserva',temerario:'Temerario',riciclo:'Riciclo',bianco:'Dado bianco',berserker:'Berserker',tiro:'Tiro'};
+const n=v=>Number.isInteger(+v)?+v:v;
+const CO=['rosso','blu','verde','viola','bianco','nessuno'];
+const colPrinc=t=>{const p=Object.keys(prod(t));if(p.length)return p[0];const c={};t.slot.forEach(s=>(s.dadi||[]).flat().forEach(x=>c[x]=(c[x]||0)+1));const k=Object.keys(c).sort((a,b)=>c[b]-c[a]);return k[0]||'nessuno'};
+const LATO=['Davanti','Avanti a sinistra','Dietro a sinistra','Dietro','Dietro a destra','Avanti a destra'];
+const esag=s=>{if(!s.esagono)return'';const pts=[0,1,2,3,4,5].map(i=>{const a=Math.PI/3*i;return[18+15*Math.cos(a),18+15*Math.sin(a)]});
+ const cols=['#c28a12','#c9852f','#a07a52','#8c8070'];let l='';for(let k=0;k<6;k++){const a=(-90-60*k)*Math.PI/180,a1=a-Math.PI/6,a2=a+Math.PI/6;const sc=Math.min(k,6-k);
+ l+=`<line x1="${18+15*Math.cos(a1)}" y1="${18+15*Math.sin(a1)}" x2="${18+15*Math.cos(a2)}" y2="${18+15*Math.sin(a2)}" stroke="${cols[sc]}" stroke-width="${sc?3.2-0.5*sc:5}" stroke-linecap="round"/>`}
+ const c=s.esagono==='mira'?'<path d="M18 24V12M14 16l4-5 4 5" stroke="#2b2118" stroke-width="2" fill="none"/>':'<path d="M12 20a6 6 0 0 1 12 0" stroke="#2b2118" stroke-width="2" fill="none"/>';
+ return `<svg class="hx" viewBox="0 0 36 36" width="36" height="36" role="img" aria-label="${s.esagono==='mira'?'Colpo mirato':'Guardia'} sull'esagono"><polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="#0000000f"/>${l}${c}</svg>`};
+const S={q:'',cat:new Set(),col:new Set(),modo:'tutti',tipo:new Set(),eff:new Set(),cond:new Set(),prop:new Set(),costo:20,ord:'cat'};
+const MAXC=Math.max(...D.token.map(costoMin));const rg=document.getElementById('costo');rg.max=MAXC;S.costo=MAXC;rg.value=MAXC;
+const chip=(grp,id,html)=>`<button class="chip" data-g="${grp}" data-v="${id}" aria-pressed="false">${html}</button>`;
+const contaPer=f=>D.token.filter(f).length;
+document.getElementById('fCat').innerHTML=CATO.map(c=>chip('cat',c,`${CATN[c]} <span class="n">${contaPer(t=>t.categoria===c)}</span>`)).join('');
+document.getElementById('fModo').innerHTML=[['tutti','Lo dà o lo usa'],['produce','Lo dà'],['usa','Lo usa']].map(([v,l])=>`<button class="chip" data-g="modo" data-v="${v}" aria-pressed="${v==='tutti'}">${l}</button>`).join('');
+document.getElementById('fCol').innerHTML=Object.entries(COL).map(([k,c])=>chip('col',k,`<span class="pip" style="background:${c.hex}"></span>${k[0].toUpperCase()+k.slice(1)} <span class="n">${c.nome}</span>`)).join('');
+document.getElementById('fTipo').innerHTML=Object.entries(TIPI).map(([k,[l]])=>chip('tipo',k,l)).join('');
+const presenti=new Set(D.token.flatMap(t=>t.slot.map(s=>s.effetto)));
+document.getElementById('fEff').innerHTML=GRUPPI.map(([g,es])=>`<small style="margin-top:6px">${g}</small><div class="chips">${es.filter(e=>presenti.has(e)).map(e=>chip('eff',e,EFF[e])).join('')}</div>`).join('');
+document.getElementById('fCond').innerHTML=Object.entries(COND).map(([k,l])=>chip('cond',k,l)).join('');
+document.getElementById('fProp').innerHTML=Object.entries(PROP).map(([k,[l]])=>chip('prop',k,l)).join('');
+const passaSlot=(t,s)=>(!S.tipo.size||S.tipo.has(s.tipo))&&(!S.eff.size||S.eff.has(s.effetto))&&(!S.cond.size||condDi(s).some(c=>S.cond.has(c)))&&(!S.prop.size||[...S.prop].every(p=>PROP[p][1](s,t)));
+const filtroSlot=()=>S.tipo.size||S.eff.size||S.cond.size||S.prop.size;
+function passaTok(t){
+ if(S.cat.size&&!S.cat.has(t.categoria))return false;
+ if(costoMin(t)>S.costo)return false;
+ if(S.col.size){const p=Object.keys(prod(t)),u=usa(t);const ok=[...S.col].some(c=>(S.modo!=='usa'&&p.includes(c))||(S.modo!=='produce'&&u.has(c)));if(!ok)return false}
+ if(S.q){const q=S.q.toLowerCase();const txt=[t.nome,t.testo||'',...t.slot.map(s=>s.nome+' '+s.testo)].join(' ').toLowerCase();if(!txt.includes(q))return false}
+ if(filtroSlot()&&!t.slot.some(s=>passaSlot(t,s)))return false;
+ return true}
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const foro=cols=>`<span class="foro" title="${cols.map(c=>c).join(', ')}">${cols.length>=4?'<i style="background:linear-gradient(90deg,#c8372d,#2f6fd0,#2f9a52,#8a4fc4)"></i>':cols.map(c=>`<i style="background:${COL[c]?.hex||'#999'}"></i>`).join('')}</span>`;
+function carta(t){
+ const cc=t.caratteristica?scuro(COL[t.caratteristica].hex):(CATC[t.categoria]||'#555');
+ const costo=t.livelli?t.livelli.map(l=>l.costo).join('/'):n(t.costo||0);
+ const p=prod(t);
+ const dadi=Object.entries(p).map(([c,vs])=>`<span class="pip" style="background:${COL[c].hex}"></span>${vs.map(n).join('/')} ${c}`).join(' &nbsp; ');
+ const pas=t.passivo&&Object.keys(t.passivo).filter(k=>k!=='bianco').length?`<div class="pass">Sempre attivo: ${Object.entries(t.passivo).filter(([k])=>k!=='bianco').map(([k,v])=>`${PASSN[k]||k} ${v>0&&!['temerario','berserker','riciclo'].includes(k)?'+':''}${['temerario','berserker','riciclo'].includes(k)?'':n(v)}`).join(', ')}</div>`:'';
+ const fs=filtroSlot();
+ const sl=t.slot.map(s=>{const [tl,tc]=TIPI[s.tipo]||[s.tipo,'#666'];const dim=fs&&!passaSlot(t,s);
+  return `<div class="s" style="${dim?'opacity:.45':''}"><div class="sh"><b>${esc(s.nome)}</b><span class="tag" style="background:${tc}">${tl}</span></div><div class="sb"><span class="slot">${(s.dadi||[]).map(foro).join('')}</span><p>${esc(s.testo)}</p>${esag(s)}</div></div>`}).join('');
+ return `<article class="c" data-id="${t.id}"><div class="ch" style="background:${cc}"><h2>${esc(t.nome)}</h2><span class="cat">${t.caratteristica?'Caratteristica: '+NCAR[t.caratteristica]:(CATN[t.categoria]||t.categoria)}</span><span class="costo" title="Costo in punti">${costo}</span></div>
+ <div class="cb">${dadi?`<div class="meta">Dà al mucchio: ${dadi}</div>`:''}${t.testo?`<div class="meta">${esc(t.testo)}</div>`:''}${pas}${sl}<button class="vedi" data-carta="${t.id}">Vedi la carta illustrata</button></div></article>`}
+function disegna(){
+ let L=D.token.filter(passaTok);
+ const ci=c=>CATO.indexOf(c);
+ L.sort(S.ord==='nome'?(a,b)=>a.nome.localeCompare(b.nome,'it'):S.ord==='costo'?(a,b)=>costoMin(a)-costoMin(b)||a.nome.localeCompare(b.nome,'it'):S.ord==='costo-'?(a,b)=>costoMin(b)-costoMin(a)||a.nome.localeCompare(b.nome,'it'):S.ord==='colore'?(a,b)=>(CO.indexOf(colPrinc(a))-CO.indexOf(colPrinc(b)))||ci(a.categoria)-ci(b.categoria)||a.nome.localeCompare(b.nome,'it'):(a,b)=>ci(a.categoria)-ci(b.categoria)||CO.indexOf(a.caratteristica||'nessuno')-CO.indexOf(b.caratteristica||'nessuno')||costoMin(a)-costoMin(b));
+ document.getElementById('carte').innerHTML=L.length?L.map(carta).join(''):'<div class="vuoto">Nessun token con questi filtri. Prova ad allargarne qualcuno.</div>';
+ document.getElementById('nTok').textContent=L.length;
+ document.getElementById('nSl').textContent=L.reduce((a,t)=>a+(filtroSlot()?t.slot.filter(s=>passaSlot(t,s)).length:t.slot.length),0);
+ document.getElementById('cv').textContent=S.costo;
+ try{localStorage.setItem('cm_filtri',JSON.stringify({...S,cat:[...S.cat],col:[...S.col],tipo:[...S.tipo],eff:[...S.eff],cond:[...S.cond],prop:[...S.prop]}))}catch(e){}}
+function sincronizza(){document.querySelectorAll('.chip:not([data-g=vista])').forEach(b=>{const g=b.dataset.g,v=b.dataset.v;b.setAttribute('aria-pressed',g==='modo'?S.modo===v:S[g].has(v))});
+ document.getElementById('q').value=S.q;document.getElementById('ord').value=S.ord;rg.value=S.costo}
+document.addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b||b.dataset.g==='vista')return;const g=b.dataset.g,v=b.dataset.v;
+ if(g==='modo')S.modo=v;else S[g].has(v)?S[g].delete(v):S[g].add(v);sincronizza();disegna()});
+document.getElementById('q').addEventListener('input',e=>{S.q=e.target.value.trim();disegna()});
+document.getElementById('ord').addEventListener('change',e=>{S.ord=e.target.value;disegna()});
+rg.addEventListener('input',e=>{S.costo=+e.target.value;disegna()});
+document.getElementById('reset').addEventListener('click',()=>{for(const k of['cat','col','tipo','eff','cond','prop'])S[k].clear();S.q='';S.modo='tutti';S.costo=MAXC;S.ord='cat';sincronizza();disegna()});
+const pan=document.getElementById('pan'),ap=document.getElementById('apri');
+ap.addEventListener('click',()=>{const c=pan.classList.toggle('chiuso');ap.textContent=c?'Mostra i filtri':'Nascondi i filtri';ap.setAttribute('aria-expanded',!c)});
+try{const m=JSON.parse(localStorage.getItem('cm_filtri')||'null');if(m){for(const k of['cat','col','tipo','eff','cond','prop'])S[k]=new Set(m[k]||[]);S.q=m.q||'';S.modo=m.modo||'tutti';S.ord=m.ord||'cat';S.costo=Math.min(m.costo??MAXC,MAXC)}}catch(e){}
+sincronizza();disegna();
+let VISTA="ill";try{VISTA=localStorage.getItem("cm_vista")||"ill"}catch(e){}
+let LISTA=[],POS=0;
+function apri(id){POS=LISTA.indexOf(id);mostra()}
+function mostra(){const id=LISTA[POS];const t=D.token.find(x=>x.id===id);const i=document.getElementById("lbI");i.src="carte/"+id+".webp";i.alt="Carta illustrata: "+t.nome;document.getElementById("lb").classList.add("on")}
+function chiudi(){document.getElementById("lb").classList.remove("on")}
+document.getElementById("lbX").onclick=chiudi;
+document.getElementById("lbP").onclick=e=>{e.stopPropagation();POS=(POS-1+LISTA.length)%LISTA.length;mostra()};
+document.getElementById("lbN").onclick=e=>{e.stopPropagation();POS=(POS+1)%LISTA.length;mostra()};
+document.getElementById("lb").addEventListener("click",e=>{if(e.target.id==="lb"||e.target.id==="lbI")chiudi()});
+document.addEventListener("keydown",e=>{if(!document.getElementById("lb").classList.contains("on"))return;if(e.key==="Escape")chiudi();if(e.key==="ArrowRight")document.getElementById("lbN").click();if(e.key==="ArrowLeft")document.getElementById("lbP").click()});
+document.addEventListener("click",e=>{const v=e.target.closest("[data-g=vista]");if(v){VISTA=v.dataset.v;try{localStorage.setItem("cm_vista",VISTA)}catch(x){}disegna();return}const c=e.target.closest("[data-carta]");if(c)apri(c.dataset.carta)});
+const _disegna=disegna;disegna=function(){_disegna();document.querySelectorAll("[data-g=vista]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===VISTA));const box=document.getElementById("carte");LISTA=[...box.querySelectorAll("[data-id]")].map(a=>a.dataset.id);if(VISTA==="ill"&&LISTA.length){box.classList.add("ill");box.innerHTML=LISTA.map(id=>{const t=D.token.find(x=>x.id===id);return `<button class="ci" data-carta="${id}" title="${esc(t.nome)}"><img loading="lazy" src="carte/${id}.webp" alt="${esc(t.nome)}"></button>`}).join("")}else box.classList.remove("ill")};
+disegna();
+}
+</script></body></html>

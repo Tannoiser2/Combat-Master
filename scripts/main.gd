@@ -485,6 +485,7 @@ func _off_aggiorna() -> void:
 					al_posto += Motore.costo_token(cat[id], int(pg_corrente["token"][id]))
 		carta.disattivo = gia or costo - al_posto + Motore.costo_token(t, 1) > budget
 		carta.carta_premuta.connect(_off_aggiungi)
+		carta.dettaglio.connect(_mostra_carta_illustrata)
 		_off_catalogo.add_child(carta)
 	var ordine := ["base", "attributo", "arma", "mossa", "armatura", "oggetto", "talento", "magia", "segreto"]
 	var ids: Array = pg_corrente["token"].keys()
@@ -1130,6 +1131,44 @@ func _adatta_lato(p: int) -> void:
 	lato["vh"] = lato["vassoio"].custom_minimum_size.y
 
 ## La carta a grandezza piena, per leggerla con calma (si gioca anche da qui).
+func _immagine_carta(tex: Texture2D, quota: float) -> TextureRect:
+	var h := clampf(pagina.size.y * quota, 260.0, 760.0)
+	var tr := TextureRect.new()
+	tr.texture = tex
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tr.custom_minimum_size = Vector2(h * 336.0 / 800.0, h)
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return tr
+
+## Solo la carta illustrata, a tutta altezza (dal catalogo dell'Officina).
+func _mostra_carta_illustrata(id: String) -> void:
+	var tex := Illustrazioni.carta(id)
+	if tex == null:
+		return
+	if is_instance_valid(_dettaglio):
+		_dettaglio.queue_free()
+	_dettaglio = Control.new()
+	_dettaglio.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_dettaglio.z_index = 40
+	pagina.add_child(_dettaglio)
+	var fondo := ColorRect.new()
+	fondo.color = Color(0, 0, 0, 0.7)
+	fondo.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fondo.gui_input.connect(func(e): if e is InputEventMouseButton and e.pressed: _chiudi_dettaglio())
+	_dettaglio.add_child(fondo)
+	var cc := CenterContainer.new()
+	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dettaglio.add_child(cc)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 10)
+	cc.add_child(v)
+	v.add_child(_immagine_carta(tex, 0.84))
+	var b := _bottone("Chiudi", _chiudi_dettaglio, 160)
+	b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(b)
+
 func _mostra_dettaglio(p: int, id: String) -> void:
 	if is_instance_valid(_dettaglio):
 		_dettaglio.queue_free()
@@ -1162,7 +1201,15 @@ func _mostra_dettaglio(p: int, id: String) -> void:
 	var spazio := Control.new()
 	spazio.custom_minimum_size = carta.size * 1.25
 	spazio.add_child(carta)
-	v.add_child(spazio)
+	var riga := HBoxContainer.new()
+	riga.add_theme_constant_override("separation", 14)
+	riga.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_child(riga)
+	# la carta illustrata accanto a quella giocabile (non per i segreti ancora coperti)
+	var tex := Illustrazioni.carta(id)
+	if tex != null and not carta.coperta:
+		riga.add_child(_immagine_carta(tex, 0.78))
+	riga.add_child(spazio)
 	carta.slot_premuto.connect(func(t, sid):
 		_chiudi_dettaglio()
 		if _umano_decide() == p:
