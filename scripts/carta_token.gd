@@ -114,6 +114,12 @@ func _sc() -> float:
 func _cols_c(n: int) -> int:
 	return mini(n, 3)
 
+## Lato della miniatura dell'azione nella versione compatta (0 se l'azione non ha illustrazione).
+func _mini(sl: Dictionary) -> float:
+	if Illustrazioni.azione(tok["id"], sl["id"]) == null:
+		return 0.0
+	return round(30.0 * _k())
+
 func _ricalcola_compatta() -> void:
 	var k := _k()
 	var y := 22.0 * k
@@ -124,10 +130,11 @@ func _ricalcola_compatta() -> void:
 		for sl in tok.get("slot", []):
 			var n: int = _alloggi(sl).size()
 			var sw := _cols_c(n) * (_sc() + 2) + 6
-			var tw := larg - 14 - sw - (22.0 * k if sl.has("esagono") else 0.0)
+			var mi := _mini(sl)
+			var tw := larg - 14 - sw - (22.0 * k if sl.has("esagono") else 0.0) - (mi + 3.0 if mi > 0 else 0.0)
 			var th := _alt_testo(_testo_compatto(sl), tw)
 			var hs := _sc() + 6 if n <= 3 else _sc() * 2 + 8
-			var h := maxf(hs, 15.0 * k + th + 4)
+			var h := maxf(maxf(hs, mi + 6), 15.0 * k + th + 4)
 			_rect_slot[sl["id"]] = Rect2(3, y, larg - 6, h)
 			y += h + 2
 		_h = y + 2
@@ -156,7 +163,9 @@ func _rect_sock(sl: Dictionary, r: Rect2, i: int) -> Rect2:
 	if compatta:
 		var c := _cols_c(n)
 		var q := _sc()
-		return Rect2(r.position.x + 4 + (i % c) * (q + 2), r.position.y + 3 + (i / c) * (q + 2), q, q)
+		var mi := _mini(sl)
+		var ox := mi + 3.0 if mi > 0 else 0.0
+		return Rect2(r.position.x + 4 + ox + (i % c) * (q + 2), r.position.y + 3 + (i / c) * (q + 2), q, q)
 	var cols := mini(n, 4)
 	return Rect2(r.position.x + 6 + (i % cols) * (SOCK + 4) + (i / cols) * 6, r.position.y + 26 + (i / cols) * 6, SOCK, SOCK)
 
@@ -429,6 +438,11 @@ func _disegna_spazio_c(sl: Dictionary) -> void:
 		bordo = Color("#b07d1f")
 		spess = 2
 	draw_style_box(Disegno.stile(bg, bordo, 4, spess), r)
+	var mi := _mini(sl)
+	if mi > 0:
+		var mr := Rect2(r.position.x + 3, r.position.y + 3, mi, mi)
+		draw_texture_rect(Illustrazioni.azione(tok["id"], sl["id"]), mr, false, Color(1, 1, 1, 0.55) if (pieno or disarmato) else Color.WHITE)
+		draw_rect(mr, Color(0.36, 0.25, 0.16), false, 1.0)
 	var all := _alloggi(sl)
 	for i in all.size():
 		Disegno.alloggio(self, _rect_sock(sl, r, i), all[i])
@@ -438,7 +452,7 @@ func _disegna_spazio_c(sl: Dictionary) -> void:
 		var d := motore.dado(giocatore, occ[i])
 		Disegno.dado(self, _rect_sock(sl, r, i), d["col"], d["v"], "usato")
 	var k := _k()
-	var x0 := r.position.x + 4 + _cols_c(all.size()) * (_sc() + 2) + 2
+	var x0 := r.position.x + 4 + (mi + 3.0 if mi > 0 else 0.0) + _cols_c(all.size()) * (_sc() + 2) + 2
 	var tipo: Array = TIPI_C.get(sl["tipo"], ["AZIONE", "#5a4630"])
 	var tag: String = "AZZARDO" if sl.get("azzardo", false) else tipo[0]
 	var tagc := Color("#9a3324") if sl.get("azzardo", false) else Color(tipo[1])
