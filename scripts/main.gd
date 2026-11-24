@@ -2125,6 +2125,8 @@ func _mostra_fine() -> void:
 	centro.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pagina.add_child(centro)
 	_fine = centro
+	if arena != null and m.s["vinc"] >= 0:
+		arena.fine_duello(m.s["vinc"])
 	var pan := _pannello(centro)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 12)

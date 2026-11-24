@@ -30,6 +30,7 @@ var _frecce: Array = []        # [Vector3 centro, dir]
 
 var _coda: Array = []
 var _occupato := false
+var _n_colpi := 0
 
 var _tocchi := {}
 var _trascinato := false
@@ -271,6 +272,27 @@ func _crea_figura(i: int) -> void:
 			maxd = st["dadi"][c]
 			dom = c
 	var veste := Disegno.colore(dom).darkened(0.2)
+	var modello := _modello_combattente(colp, veste)
+	if modello != null:
+		corpo.add_child(modello)
+	else:
+		_figura_semplice(corpo, veste, toks, colp)
+	var nome := Label3D.new()
+	nome.text = g["nome"]
+	nome.font = Disegno.font_titolo()
+	nome.font_size = 52
+	nome.pixel_size = 0.006
+	nome.outline_size = 14
+	nome.modulate = colp.lightened(0.35)
+	nome.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	nome.no_depth_test = true
+	nome.position = Vector3(0, 1.85 + 0.32 * i, 0)
+	nome.name = "Nome"
+	radice.add_child(nome)
+	figure.append(radice)
+
+## Figura disegnata con forme semplici (se manca il modello animato).
+func _figura_semplice(corpo: Node3D, veste: Color, toks: Dictionary, colp: Color) -> void:
 	var busto := CapsuleMesh.new()
 	busto.radius = 0.22
 	busto.height = 0.95
@@ -361,19 +383,75 @@ func _crea_figura(i: int) -> void:
 		pugno.radius = 0.09
 		pugno.height = 0.18
 		_mesh(pugno, _mat(Color("#d9b48f")), Vector3(0.3, 0.7, -0.25), corpo)
-	var nome := Label3D.new()
-	nome.text = g["nome"]
-	nome.font = Disegno.font_titolo()
-	nome.font_size = 52
-	nome.pixel_size = 0.006
-	nome.outline_size = 14
-	nome.modulate = colp.lightened(0.35)
-	nome.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	nome.no_depth_test = true
-	nome.position = Vector3(0, 1.85 + 0.32 * i, 0)
-	nome.name = "Nome"
-	radice.add_child(nome)
-	figure.append(radice)
+
+const MODELLO := "res://assets/modelli/combattente.glb"
+const SCALA_MODELLO := 0.78
+
+## Il combattente animato (manichino Mixamo): tuta del colore della caratteristica dominante,
+## giunture del colore del giocatore. Guarda verso -Z come le pedine.
+func _modello_combattente(colp: Color, veste: Color) -> Node3D:
+	if not ResourceLoader.exists(MODELLO):
+		return null
+	var sc: PackedScene = load(MODELLO)
+	var mod: Node3D = sc.instantiate()
+	mod.name = "Modello"
+	mod.scale = Vector3.ONE * SCALA_MODELLO
+	mod.rotation.y = PI
+	for mi in mod.find_children("*", "MeshInstance3D", true, false):
+		var mesh: Mesh = mi.mesh
+		for k in mesh.get_surface_count():
+			var nome_mat := String(mesh.surface_get_material(k).resource_name) if mesh.surface_get_material(k) != null else ""
+			var c := colp.darkened(0.15) if nome_mat.contains("Joints") else veste
+			mi.set_surface_override_material(k, _mat(c, 0.55, 0.1))
+	var ap := _player(mod)
+	if ap != null:
+		if ap.has_animation("idle"):
+			ap.get_animation("idle").loop_mode = Animation.LOOP_LINEAR
+		ap.play("idle")
+	return mod
+
+func _player(n: Node) -> AnimationPlayer:
+	var lista := n.find_children("*", "AnimationPlayer", true, false)
+	return lista[0] if not lista.is_empty() else null
+
+## AnimationPlayer della figura p (null se è la figura semplice).
+func _ap(p: int) -> AnimationPlayer:
+	if p < 0 or p >= figure.size():
+		return null
+	var mod := figure[p].get_node_or_null("Corpo/Modello")
+	return _player(mod) if mod != null else null
+
+## Fa partire un'animazione e poi torna in guardia; restituisce la durata reale.
+func clip(p: int, nome: String, velocita := 1.0, poi := "idle") -> float:
+	var ap := _ap(p)
+	if ap == null or not ap.has_animation(nome):
+		return 0.0
+	ap.play(nome, 0.12, velocita)
+	if poi != "":
+		ap.queue(poi)
+	return ap.get_animation(nome).length / maxf(velocita, 0.01)
+
+## Quale passo animare: avanti, indietro, di lato o una rotazione sul posto.
+func _clip_passo(d: Vector3, ry: float, giro: float) -> String:
+	d.y = 0
+	if d.length() < 0.05:
+		return "gira_sinistra" if giro > 0 else "gira_destra"
+	var avanti := Vector3(-sin(ry), 0, -cos(ry))
+	var destra := Vector3(cos(ry), 0, -sin(ry))
+	var fa := d.normalized().dot(avanti)
+	var fd := d.normalized().dot(destra)
+	if absf(fa) >= absf(fd):
+		return "passo_avanti" if fa > 0 else "passo_indietro"
+	return "passo_destra" if fd > 0 else "passo_sinistra"
+
+## Fine del duello: il vincitore esulta, lo sconfitto (se ancora in piedi) si arrende.
+func fine_duello(vincitore: int) -> void:
+	for i in figure.size():
+		if m.s["g"][i]["vita"] > 0:
+			clip(i, "vittoria" if i == vincitore else "sconfitta", 1.0, "")
+
+func ha_modello(p: int) -> bool:
+	return _ap(p) != null
 
 ## Mette le figure dove dice lo stato (senza animazione).
 func mostra_nomi(si: bool) -> void:
@@ -389,8 +467,13 @@ func sincronizza() -> void:
 		corpo.rotation = Vector3.ZERO
 		corpo.position = Vector3.ZERO
 		if g["vita"] <= 0:
-			corpo.rotation.x = -PI / 2.2
-			corpo.position.y = 0.25
+			var ap := _ap(i)
+			if ap != null and ap.has_animation("ko"):
+				ap.play("ko")
+				ap.seek(ap.get_animation("ko").length, true)
+			else:
+				corpo.rotation.x = -PI / 2.2
+				corpo.position.y = 0.25
 	aggiorna_guardie()
 
 ## Le guardie si vedono come muretti dorati sul lato protetto, alti quanto il loro valore.
@@ -556,14 +639,22 @@ func _anima(e: Dictionary) -> Tween:
 			if per.is_empty():
 				return null
 			var tw := create_tween()
-			var dur := 0.2 if e["t"] == "muovi" else 0.12
+			var anim := ha_modello(p)
+			var dur := (0.5 if anim else 0.2) if e["t"] == "muovi" else (0.3 if anim else 0.12)
 			var rot_prec := f.rotation.y
+			var pos_prec := f.position
+			if anim and e["t"] == "spinto":
+				clip(p, "colpito_corpo")
 			for st in per:
 				var pos := mondo(Vector2i(st.x, st.y))
 				var ry := angolo_y(st.z) if e["t"] == "muovi" else f.rotation.y
 				ry = rot_prec + wrapf(ry - rot_prec, -PI, PI)
+				if anim and e["t"] == "muovi":
+					var nome := _clip_passo(pos - pos_prec, rot_prec, ry - rot_prec)
+					tw.tween_callback(func(): clip(p, nome, 1.6))
 				rot_prec = ry
-				tw.tween_property(f, "position", pos, dur)
+				pos_prec = pos
+				tw.tween_property(f, "position", pos, dur).set_trans(Tween.TRANS_SINE)
 				tw.parallel().tween_property(f, "rotation:y", ry, dur)
 			return tw
 		"salto":
@@ -579,6 +670,15 @@ func _anima(e: Dictionary) -> Tween:
 			var v := (b.position - f.position)
 			v.y = 0
 			var tw := create_tween()
+			if ha_modello(p):
+				# il colpo cambia a ogni attacco: jab, diretto, montante, calcio
+				_n_colpi += 1
+				var nome: String = ["jab", "cross", "montante", "calcio"][_n_colpi % 4]
+				if int(e.get("dist", 1)) > 2:
+					nome = "jab"
+				var durata := clip(p, nome, 1.3)
+				tw.tween_interval(minf(durata * 0.55, 0.6))
+				return tw
 			if int(e.get("dist", 1)) <= 2:
 				var avanti := f.global_transform.basis.inverse() * (v.normalized() * 0.5)
 				tw.tween_property(corpo, "position", avanti, 0.12).set_trans(Tween.TRANS_QUAD)
@@ -604,6 +704,11 @@ func _anima(e: Dictionary) -> Tween:
 			var n: int = e["n"]
 			_testo(f.position + Vector3(0, 1.6, 0), ("-%d" % n) if n > 0 else "nessun danno", Color("#ff5a40") if n > 0 else Color("#d8d0c0"))
 			var tw := create_tween()
+			if ha_modello(p):
+				if n > 0:
+					clip(p, "colpito_testa" if n >= 4 else "colpito_corpo", 1.2)
+				tw.tween_interval(0.45)
+				return tw
 			if n > 0:
 				for k in 3:
 					tw.tween_property(corpo, "position:x", 0.08, 0.04)
@@ -614,12 +719,18 @@ func _anima(e: Dictionary) -> Tween:
 		"schiva":
 			_testo(f.position + Vector3(0, 1.6, 0), "Schivata!", Color("#8cc8ff"))
 			var tw := create_tween()
+			if ha_modello(p):
+				clip(p, "schivata", 1.4)
+				tw.tween_interval(0.45)
+				return tw
 			tw.tween_property(corpo, "position:x", -0.35, 0.12)
 			tw.tween_property(corpo, "position:x", 0.0, 0.2)
 			return tw
 		"para":
 			_testo(f.position + Vector3(0, 1.6, 0), "Parata", Disegno.ORO)
 			var tw := create_tween()
+			if ha_modello(p):
+				clip(p, "parata", 1.3)
 			tw.tween_interval(0.35)
 			return tw
 		"blocco":
@@ -644,6 +755,9 @@ func _anima(e: Dictionary) -> Tween:
 			return tw
 		"ko":
 			var tw := create_tween()
+			if ha_modello(p):
+				tw.tween_interval(clip(p, "ko", 1.0, ""))
+				return tw
 			tw.tween_property(corpo, "rotation:x", -PI / 2.2, 0.6).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 			tw.parallel().tween_property(corpo, "position:y", 0.25, 0.6)
 			return tw
