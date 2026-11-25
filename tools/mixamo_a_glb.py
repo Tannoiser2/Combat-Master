@@ -157,6 +157,25 @@ def veste_pelle(arm, pelle, facce=60000, lato_tex=2048):
     corpo.name = "Pelle"
 
 
+# misure del manichino Y Bot, a cui si riferiscono le animazioni scaricate
+YBOT_ANCHE = 99.79   # altezza di riposo dell'osso Hips, in centimetri
+YBOT_ALTEZZA = 1.805  # altezza della figura, in metri
+
+
+def adatta_anche(action, riposo, k):
+    """Le animazioni del manichino danno le anche come scarto dal suo riposo (99,79 cm).
+    Una pelle riggata da Mixamo ha un altro riposo e un'altra statura: si riporta l'altezza
+    assoluta e la si scala con la statura, così i piedi restano sul pavimento."""
+    for fc in _fcurves(action):
+        if fc.data_path.endswith('location') and 'Hips' in fc.data_path:
+            i = fc.array_index
+            for kp in fc.keyframe_points:
+                for pt in (kp.co, kp.handle_left, kp.handle_right):
+                    ass = pt[1] + (YBOT_ANCHE if i == 1 else 0.0)
+                    pt[1] = ass * k - (riposo[i])
+            fc.update()
+
+
 def _fcurves(action):
     # Blender 4.4+ usa le "slotted actions": le curve stanno nei layer/strip/channelbag
     if hasattr(action, "fcurves") and len(action.fcurves):
@@ -171,10 +190,24 @@ def _fcurves(action):
 
 def main(cartella, uscita, pelle=None):
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    base = importa(os.path.join(cartella, "ybot.fbx"))
+    # una pelle già riggata da Mixamo (FBX "T-pose, with skin") prende il posto del manichino
+    riggata = bool(pelle) and pelle.lower().endswith(".fbx")
+    base = importa(pelle if riggata else os.path.join(cartella, "ybot.fbx"))
     arm = next(o for o in base if o.type == "ARMATURE")
     arm.name = "Combattente"
-    if pelle:
+    adatta = None
+    if riggata:
+        import mathutils
+        alt = max((o.matrix_world @ mathutils.Vector(c)).z for o in base if o.type == "MESH" for c in o.bound_box)
+        adatta = (tuple(arm.data.bones["mixamorig:Hips"].head_local), alt / YBOT_ALTEZZA)
+        print("pelle riggata: statura", round(alt, 3), "riposo anche", [round(x, 2) for x in adatta[0]])
+        for o in base:
+            if o.type == "MESH":
+                o.name = "Pelle"
+                for img in bpy.data.images:
+                    if img.size[0] > 2048:
+                        img.scale(2048, 2048)
+    elif pelle:
         veste_pelle(arm, pelle)
     if arm.animation_data and arm.animation_data.action:
         vecchia = arm.animation_data.action
@@ -198,6 +231,8 @@ def main(cartella, uscita, pelle=None):
             fissa(act)
         else:
             sul_posto(act, nome in CON_DERIVA)
+        if adatta:
+            adatta_anche(act, *adatta)
         for o in nuovi:
             bpy.data.objects.remove(o, do_unlink=True)
         azioni.append(act)
@@ -218,7 +253,8 @@ def main(cartella, uscita, pelle=None):
     bpy.ops.export_scene.gltf(filepath=uscita, export_format="GLB", export_animations=True,
                               export_animation_mode="NLA_TRACKS", export_force_sampling=True,
                               export_optimize_animation_size=True, export_skins=True,
-                              export_yup=True, export_apply=False)
+                              export_yup=True, export_apply=False,
+                              export_image_format="NONE")  # la texture sta nel jpg accanto
     print("esportato", uscita, len(azioni), "animazioni")
 
 
