@@ -90,6 +90,7 @@ static func mondo(h: Vector2i) -> Vector3:
 const CIELO := "res://assets/scena/cielo.jpg"
 const SABBIA := preload("res://shaders/sabbia.gdshader")
 const ACQUA := preload("res://shaders/acqua.gdshader")
+const PANORAMA := preload("res://shaders/panorama.gdshader")
 
 ## altezza in metri di un livello del terreno
 const ALT := 0.55
@@ -251,7 +252,7 @@ func costruisci(motore: Motore) -> void:
 	# terreno attorno e torce
 	var suolo := MeshInstance3D.new()
 	var pm := CylinderMesh.new()
-	pm.top_radius = (R + 5) * 2.4
+	pm.top_radius = R * 1.62 + 6.0
 	pm.bottom_radius = pm.top_radius
 	pm.height = 0.1
 	pm.radial_segments = 48
@@ -266,10 +267,27 @@ func costruisci(motore: Motore) -> void:
 	for i in 8:
 		var a := TAU * i / 8.0 + 0.2
 		_torcia(Vector3(cos(a), 0, sin(a)) * (R * 1.62 + 1.6))
+	# fondale vicino: la città del panorama attorno all'arena, ingrandita
+	if ResourceLoader.exists(CIELO):
+		var fondo := MeshInstance3D.new()
+		var sf := SphereMesh.new()
+		sf.radius = R * 1.62 + 26.0
+		sf.height = sf.radius * 2.0
+		sf.radial_segments = 64
+		sf.rings = 32
+		fondo.mesh = sf
+		var mf := ShaderMaterial.new()
+		mf.shader = PANORAMA
+		mf.set_shader_parameter("panorama", load(CIELO))
+		mf.set_shader_parameter("centro", Vector3(0, -2.5, 0))
+		fondo.material_override = mf
+		fondo.position = Vector3(0, -2.5, 0)
+		fondo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_tessere.add_child(fondo)
 	# alberi del deserto attorno all'arena (alberi faretra, fotografici)
 	for i in 9:
 		var a := TAU * i / 9.0 + 0.55 + rng.randf_range(-0.15, 0.15)
-		var dist := R * 1.62 + 4.0 + rng.randf_range(0.0, 5.0)
+		var dist := R * 1.62 + 2.5 + rng.randf_range(0.0, 3.0)
 		_albero(_tessere, Vector3(cos(a), -0.3, sin(a)) * dist, rng.randf_range(2.6, 3.8), 1 + i % 2, rng.randf() * TAU)
 	for i in 2:
 		_crea_figura(i)
@@ -331,6 +349,14 @@ func _crea_oggetto(h: Vector2i, tipo: String) -> void:
 			acqua.material_override = ma
 			acqua.position.y = 0.54
 			n.add_child(acqua)
+		"albero" when m.s["ogg"][h].has("parte"):
+			# chioma di un albero grande: lo disegna il suo tronco
+			n.queue_free()
+			return
+		"albero" when m.s["ogg"][h].has("grande") and _albero_scena(n, "albero_esa7" + String(m.s["ogg"][h]["grande"]), 3.0 * SQ3 * S * 1.45):
+			pass
+		"albero" when _albero_scena(n, "albero_esa1", SQ3 * S * 1.05):
+			pass
 		"albero" when _albero(n, Vector3.ZERO, 3.0 if (h.x + h.y) % 2 == 0 else 2.4, 1 if (h.x + h.y) % 2 == 0 else 2):
 			pass
 		"albero":
@@ -440,6 +466,35 @@ func _spruzzo(da: Vector3, a: Vector3, acqua: bool) -> void:
 		tw.tween_callback(mi.queue_free)
 
 var _alberi_cache := {}
+
+## Albero dei modelli della scena (texture a parte), largo l metri: quello da un esagono o quello
+## grande che copre sette esagoni.
+func _albero_scena(genitore: Node3D, nome: String, l: float) -> bool:
+	var file := "res://assets/scena/%s.glb" % nome
+	if not ResourceLoader.exists(file):
+		return false
+	if not _alberi_cache.has(file):
+		var mt := StandardMaterial3D.new()
+		var tex := "res://assets/scena/%s.jpg" % nome
+		if ResourceLoader.exists(tex):
+			mt.albedo_texture = load(tex)
+		mt.roughness = 0.9
+		_alberi_cache[file] = [load(file), mt]
+	var n: Node3D = _alberi_cache[file][0].instantiate()
+	var aabb := AABB()
+	var prima := true
+	for mi in n.find_children("*", "MeshInstance3D", true, false):
+		mi.material_override = _alberi_cache[file][1]
+		var b: AABB = mi.get_aabb()
+		aabb = b if prima else aabb.merge(b)
+		prima = false
+	if prima:
+		return false
+	var k := l / maxf(maxf(aabb.size.x, aabb.size.z), 0.01)
+	n.scale = Vector3.ONE * k
+	n.rotation.y = randf() * TAU
+	genitore.add_child(n)
+	return true
 
 ## Albero faretra fotografico (modelli Poly Haven, CC0), alto h metri. false se il modello manca.
 func _albero(genitore: Node3D, pos: Vector3, h: float, quale := 1, rot := 0.0) -> bool:

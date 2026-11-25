@@ -148,6 +148,12 @@ func nuova_partita(pg0: Dictionary, pg1: Dictionary, arena_id: String, seme: int
 	for o in ar.get("oggetti", []):
 		var tipo := String(o[2])
 		ogg[Vector2i(int(o[0]), int(o[1]))] = {"tipo": tipo, "cariche": 3 if tipo in ["pietre", "braciere"] else 0}
+	# alberi grandi: il tronco al centro e la chioma sui sei esagoni attorno, tutti occupati
+	for o in ar.get("alberi_grandi", []):
+		var c := Vector2i(int(o[0]), int(o[1]))
+		ogg[c] = {"tipo": "albero", "cariche": 0, "grande": String(o[2])}
+		for dd in DIRS:
+			ogg[c + dd] = {"tipo": "albero", "cariche": 0, "parte": c}
 	var sabbia := {}
 	for o in ar.get("sabbia", []):
 		sabbia[Vector2i(int(o[0]), int(o[1]))] = true
