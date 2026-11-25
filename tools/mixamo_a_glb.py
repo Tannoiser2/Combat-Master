@@ -35,7 +35,9 @@ VERTICALE = {"salto", "salto_mortale", "salto_indietro", "sali", "scendi", "calc
 # clip in cui lo spostamento delle anche resta (la caduta all'indietro); nelle altre si toglie
 CON_DERIVA = {"caduta"}
 # clip tenute ferme su una posa: la guardia di Mixamo saltella come un pugile, qui si sta fermi
-FERME = {"idle": 12}
+FERME = {}
+# l'attesa tra una mossa e l'altra: si guarda attorno senza saltellare (Unarmed Idle Looking di Mixamo)
+FILE_CLIP = {"idle": "riposo"}
 # clip in cui le anche restano ferme in orizzontale: il volo lo fa il gioco, verso l'esagono giusto
 FISSE = {"proiezione", "proiettato"}
 # clip che si ripetono in loop in Godot
@@ -260,7 +262,7 @@ def main(cartella, uscita, pelle=None, statura=None):
     arm.animation_data_create()
     azioni = []
     for nome in ANIMAZIONI:
-        p = os.path.join(cartella, nome + ".fbx")
+        p = os.path.join(cartella, FILE_CLIP.get(nome, nome) + ".fbx") if os.path.exists(os.path.join(cartella, FILE_CLIP.get(nome, nome) + ".fbx")) else os.path.join(cartella, nome + ".fbx")
         if not os.path.exists(p):
             print("manca", nome)
             continue

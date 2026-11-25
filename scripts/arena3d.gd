@@ -50,19 +50,31 @@ func _ready() -> void:
 	add_child(_effetti)
 	var env := WorldEnvironment.new()
 	var e := Environment.new()
-	e.background_mode = Environment.BG_COLOR
-	e.background_color = Color("#120e0b")
+	# cielo a 360 gradi: la città di cupole nel deserto (panorama equirettangolare)
+	if ResourceLoader.exists(CIELO):
+		var cielo := Sky.new()
+		var pm := PanoramaSkyMaterial.new()
+		pm.panorama = load(CIELO)
+		pm.energy_multiplier = 0.85
+		cielo.sky_material = pm
+		e.background_mode = Environment.BG_SKY
+		e.sky = cielo
+	else:
+		e.background_mode = Environment.BG_COLOR
+		e.background_color = Color("#120e0b")
+	# luce d'ambiente propria, morbida: il cielo si vede ma non brucia i colori
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	e.ambient_light_color = Color("#8a7a68")
+	e.ambient_light_color = Color("#9a8a74")
 	e.ambient_light_energy = 0.55
 	e.fog_enabled = true
-	e.fog_light_color = Color("#1d1612")
-	e.fog_density = 0.012
+	e.fog_light_color = Color("#c9b08a")
+	e.fog_density = 0.006
+	e.fog_sky_affect = 0.0
 	env.environment = e
 	add_child(env)
 	var sole := DirectionalLight3D.new()
 	sole.rotation_degrees = Vector3(-55, -35, 0)
-	sole.light_energy = 1.05
+	sole.light_energy = 0.9
 	sole.light_color = Color("#ffe6c4")
 	sole.shadow_enabled = true
 	sole.directional_shadow_max_distance = 40
@@ -74,6 +86,10 @@ func _ready() -> void:
 
 static func mondo(h: Vector2i) -> Vector3:
 	return Vector3(1.5 * h.x * S, 0, SQ3 * (h.y + h.x * 0.5) * S)
+
+const CIELO := "res://assets/scena/cielo.jpg"
+const SABBIA := preload("res://shaders/sabbia.gdshader")
+const ACQUA := preload("res://shaders/acqua.gdshader")
 
 ## altezza in metri di un livello del terreno
 const ALT := 0.55
@@ -120,15 +136,18 @@ func costruisci(motore: Motore) -> void:
 	mesh_o.bottom_radius = 0.86 * S
 	mesh_o.height = 1.7
 	mesh_o.radial_segments = 6
+	# esagoni di pietra con sabbia portata dal vento (shader); quelli di sabbia ne sono coperti
 	var pietre := []
 	for i in 4:
-		var mt := StandardMaterial3D.new()
-		mt.albedo_color = Color("#8b7d6b").darkened(0.08 * i).lerp(Color("#7a6a52"), 0.25 * (i % 2))
-		mt.roughness = 0.95
+		var mt := ShaderMaterial.new()
+		mt.shader = SABBIA
+		mt.set_shader_parameter("tinta", -0.6 + 0.4 * i)
+		mt.set_shader_parameter("quanta_sabbia", 0.35 + 0.05 * i)
 		pietre.append(mt)
-	var mat_sabbia := StandardMaterial3D.new()
-	mat_sabbia.albedo_color = Color("#a99b80")
-	mat_sabbia.roughness = 1.0
+	var mat_sabbia := ShaderMaterial.new()
+	mat_sabbia.shader = SABBIA
+	mat_sabbia.set_shader_parameter("quanta_sabbia", 0.95)
+	mat_sabbia.set_shader_parameter("increspature", 0.9)
 	var mat_alto := StandardMaterial3D.new()
 	mat_alto.albedo_color = Color("#8c785c")
 	mat_alto.roughness = 0.95
@@ -142,7 +161,7 @@ func costruisci(motore: Motore) -> void:
 	mat_f.albedo_color = Color("#3a2016")
 	mat_f.emission_enabled = true
 	mat_f.emission = Color("#ff6a1a")
-	mat_f.emission_energy_multiplier = 1.6
+	mat_f.emission_energy_multiplier = 0.7
 	for q in range(-R, R + 1):
 		for r in range(-R, R + 1):
 			var h := Vector2i(q, r)
@@ -154,7 +173,10 @@ func costruisci(motore: Motore) -> void:
 			t.rotation.y = deg_to_rad(30)
 			t.position = mondo(h) + Vector3(0, -0.15 - rng.randf() * 0.03, 0)
 			t.material_override = pietre[rng.randi() % pietre.size()]
-			if lv == 1:
+			if lv == 1 and not m.s.get("ogg", {}).has(h) and _colonna("bassa", mondo(h), ALT + 0.02, 1.75, rng.randf() * TAU):
+				# rocchio basso: un livello, ci si sale con un passo
+				pass
+			elif lv == 1:
 				# piattaforma o roccia: un prisma esagonale alto un livello
 				var pm1 := CylinderMesh.new()
 				pm1.top_radius = 0.95 * S
@@ -165,6 +187,9 @@ func costruisci(motore: Motore) -> void:
 				t.mesh = pm1
 				t.position = mondo(h) + Vector3(0, ALT - (0.3 + ALT) / 2.0 - rng.randf() * 0.03, 0)
 				t.material_override = mat_alto
+			elif lv >= 2 and _colonna("media", mondo(h), ALT * lv + 0.02, 1.5, rng.randf() * TAU):
+				# rocchio alto: ci si sale solo con un salto
+				pass
 			elif lv >= 2:
 				# rocchio di colonna spezzata: ci si sale solo con un salto
 				var pm2 := CylinderMesh.new()
@@ -187,7 +212,9 @@ func costruisci(motore: Motore) -> void:
 				t.material_override = mat_f
 				_braciere(h)
 			_tessere.add_child(t)
-			if m.s.get("bassi", {}).has(h):
+			if m.s.get("bassi", {}).has(h) and _colonna("bassa", mondo(h) + Vector3(0, -0.05, 0), 0.6, 1.3, rng.randf() * TAU, rng.randf_range(-0.12, 0.12)):
+				pass
+			elif m.s.get("bassi", {}).has(h):
 				# macerie basse: un muretto di pietre che si scavalca con un salto
 				for k in 3:
 					var bm := BoxMesh.new()
@@ -198,6 +225,8 @@ func costruisci(motore: Motore) -> void:
 					bo.rotation = Vector3(rng.randf_range(-0.15, 0.15), rng.randf() * TAU, rng.randf_range(-0.15, 0.15))
 					bo.position = mondo(h) + Vector3(rng.randf_range(-0.35, 0.35), bm.size.y / 2.0 + (0.25 if k == 2 else 0.0), rng.randf_range(-0.35, 0.35))
 					_tessere.add_child(bo)
+			elif m.s["ost"].has(h) and _colonna("alta", mondo(h), 2.7, 1.0, rng.randf() * TAU):
+				pass
 			elif m.s["ost"].has(h):
 				var o := MeshInstance3D.new()
 				o.mesh = mesh_o
@@ -222,15 +251,16 @@ func costruisci(motore: Motore) -> void:
 	# terreno attorno e torce
 	var suolo := MeshInstance3D.new()
 	var pm := CylinderMesh.new()
-	pm.top_radius = (R + 5) * 1.8
+	pm.top_radius = (R + 5) * 6.0
 	pm.bottom_radius = pm.top_radius
 	pm.height = 0.1
 	pm.radial_segments = 48
 	suolo.mesh = pm
 	suolo.position = Vector3(0, -0.36, 0)
-	var ms := StandardMaterial3D.new()
-	ms.albedo_color = Color("#2b2119")
-	ms.roughness = 1.0
+	var ms := ShaderMaterial.new()
+	ms.shader = SABBIA
+	ms.set_shader_parameter("quanta_sabbia", 0.9)
+	ms.set_shader_parameter("colore_sabbia", Color("#a8875c"))
 	suolo.material_override = ms
 	_tessere.add_child(suolo)
 	for i in 8:
@@ -291,8 +321,8 @@ func _crea_oggetto(h: Vector2i, tipo: String) -> void:
 			am.height = 0.04
 			var acqua := MeshInstance3D.new()
 			acqua.mesh = am
-			var ma := _mat(Color("#3f7fa0"), 0.15)
-			ma.metallic_specular = 0.8
+			var ma := ShaderMaterial.new()
+			ma.shader = ACQUA
 			acqua.material_override = ma
 			acqua.position.y = 0.54
 			n.add_child(acqua)
@@ -349,11 +379,8 @@ func _crea_oggetto(h: Vector2i, tipo: String) -> void:
 			mf.emission_energy_multiplier = 2.5
 			mf.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 			fiamma.material_override = mf
-			fiamma.position.y = 1.1
-			n.add_child(fiamma)
-			var tw := fiamma.create_tween().set_loops()
-			tw.tween_property(fiamma, "scale", Vector3(1.1, 1.3, 1.1), 0.45)
-			tw.tween_property(fiamma, "scale", Vector3(0.9, 0.85, 0.9), 0.55)
+			fiamma.queue_free()
+			_fuoco(Vector3(0, 0.95, 0), 0.9, n)
 			var luce := OmniLight3D.new()
 			luce.light_color = Color("#ff9a40")
 			luce.light_energy = 0.9
@@ -405,24 +432,111 @@ func _spruzzo(da: Vector3, a: Vector3, acqua: bool) -> void:
 		tw.parallel().tween_property(mt, "albedo_color:a", 0.0, 0.45)
 		tw.tween_callback(mi.queue_free)
 
+var _colonne_cache := {}
+
+## Colonna di pietra scolpita (modelli GLB in tre altezze), alta h e larga l (in metri).
+## Restituisce false se il modello manca, così si usa la forma semplice.
+func _colonna(tipo: String, pos: Vector3, h: float, l: float, rot := 0.0, incl := 0.0) -> bool:
+	var file := "res://assets/scena/colonna_%s.glb" % tipo
+	if not ResourceLoader.exists(file):
+		return false
+	if not _colonne_cache.has(tipo):
+		var mt := StandardMaterial3D.new()
+		var tex := "res://assets/scena/colonna_%s.jpg" % tipo
+		if ResourceLoader.exists(tex):
+			mt.albedo_texture = load(tex)
+		mt.roughness = 0.9
+		_colonne_cache[tipo] = [load(file), mt]
+	var sc: PackedScene = _colonne_cache[tipo][0]
+	var n: Node3D = sc.instantiate()
+	# misure del modello: si scala alla larghezza e all'altezza volute
+	var aabb := AABB()
+	var prima := true
+	for mi in n.find_children("*", "MeshInstance3D", true, false):
+		mi.material_override = _colonne_cache[tipo][1]
+		var b: AABB = mi.get_aabb()
+		aabb = b if prima else aabb.merge(b)
+		prima = false
+	if prima:
+		return false
+	var lar := maxf(aabb.size.x, aabb.size.z)
+	n.scale = Vector3(l / lar, h / aabb.size.y, l / lar)
+	n.position = pos
+	n.rotation = Vector3(incl, rot, 0)
+	_tessere.add_child(n)
+	return true
+
+## Fuoco a particelle: lingue che salgono e sfumano dal giallo al rosso, con qualche scintilla.
+func _fuoco(pos: Vector3, scala := 1.0, genitore: Node3D = null) -> CPUParticles3D:
+	var p := CPUParticles3D.new()
+	p.amount = int(28 * scala) + 6
+	p.lifetime = 0.8
+	p.preprocess = 0.8
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	p.emission_sphere_radius = 0.18 * scala
+	p.direction = Vector3.UP
+	p.spread = 12.0
+	p.gravity = Vector3(0, 1.2, 0)
+	p.initial_velocity_min = 0.4 * scala
+	p.initial_velocity_max = 0.9 * scala
+	p.scale_amount_min = 0.35 * scala
+	p.scale_amount_max = 0.7 * scala
+	var curva := Curve.new()
+	curva.add_point(Vector2(0, 0.6))
+	curva.add_point(Vector2(0.3, 1.0))
+	curva.add_point(Vector2(1, 0.0))
+	p.scale_amount_curve = curva
+	var gr := Gradient.new()
+	gr.set_color(0, Color(1.0, 0.9, 0.5, 0.9))
+	gr.add_point(0.35, Color(1.0, 0.55, 0.15, 0.8))
+	gr.set_color(gr.get_point_count() - 1, Color(0.6, 0.1, 0.05, 0.0))
+	p.color_ramp = gr
+	var q := QuadMesh.new()
+	q.size = Vector2(0.5, 0.5)
+	var mt := StandardMaterial3D.new()
+	mt.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mt.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mt.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	mt.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	mt.vertex_color_use_as_albedo = true
+	mt.albedo_texture = _tex_fiamma()
+	q.material = mt
+	p.mesh = q
+	p.position = pos
+	(genitore if genitore != null else _tessere).add_child(p)
+	return p
+
+var _fiamma_tex: Texture2D = null
+
+## Macchia morbida e radiale per le particelle di fuoco (generata una volta sola).
+func _tex_fiamma() -> Texture2D:
+	if _fiamma_tex != null:
+		return _fiamma_tex
+	var g := Gradient.new()
+	g.set_color(0, Color(1, 1, 1, 1))
+	g.set_color(1, Color(1, 1, 1, 0))
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.fill = GradientTexture2D.FILL_RADIAL
+	gt.fill_from = Vector2(0.5, 0.5)
+	gt.fill_to = Vector2(0.5, 0.0)
+	gt.width = 64
+	gt.height = 64
+	_fiamma_tex = gt
+	return gt
+
 func _braciere(h: Vector2i) -> void:
-	var f := MeshInstance3D.new()
-	var sm := SphereMesh.new()
-	sm.radius = 0.22
-	sm.height = 0.5
-	f.mesh = sm
-	var mf := StandardMaterial3D.new()
-	mf.albedo_color = Color("#ffb040")
-	mf.emission_enabled = true
-	mf.emission = Color("#ff7a20")
-	mf.emission_energy_multiplier = 3.0
-	mf.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	f.material_override = mf
-	f.position = posizione(h) + Vector3(0, 0.2, 0)
-	_tessere.add_child(f)
-	var tw := f.create_tween().set_loops()
-	tw.tween_property(f, "scale", Vector3(1.15, 1.35, 1.15), 0.5)
-	tw.tween_property(f, "scale", Vector3(0.9, 0.85, 0.9), 0.6)
+	# braci a terra: fuoco a particelle e una luce che tremola
+	_fuoco(posizione(h) + Vector3(0, 0.05, 0), 1.3)
+	var luce := OmniLight3D.new()
+	luce.light_color = Color("#ff8a30")
+	luce.light_energy = 0.8
+	luce.omni_range = 3.5
+	luce.position = posizione(h) + Vector3(0, 0.8, 0)
+	_tessere.add_child(luce)
+	var tl := luce.create_tween().set_loops()
+	tl.tween_property(luce, "light_energy", 1.1, 0.23)
+	tl.tween_property(luce, "light_energy", 0.7, 0.31)
 
 func _torcia(p: Vector3) -> void:
 	var palo := MeshInstance3D.new()
@@ -441,12 +555,8 @@ func _torcia(p: Vector3) -> void:
 	sm.radius = 0.2
 	sm.height = 0.45
 	fi.mesh = sm
-	var mf := StandardMaterial3D.new()
-	mf.albedo_color = Color("#ffc060")
-	mf.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	fi.material_override = mf
-	fi.position = p + Vector3(0, 2.0, 0)
-	_tessere.add_child(fi)
+	fi.queue_free()
+	_fuoco(p + Vector3(0, 1.95, 0), 0.7)
 	var l := OmniLight3D.new()
 	l.light_color = Color("#ff9a40")
 	l.light_energy = 1.6
