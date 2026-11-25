@@ -188,7 +188,7 @@ def _fcurves(action):
     return out
 
 
-def main(cartella, uscita, pelle=None):
+def main(cartella, uscita, pelle=None, statura=None):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     # una pelle già riggata da Mixamo (FBX "T-pose, with skin") prende il posto del manichino
     riggata = bool(pelle) and pelle.lower().endswith(".fbx")
@@ -199,6 +199,10 @@ def main(cartella, uscita, pelle=None):
     if riggata:
         import mathutils
         alt = max((o.matrix_world @ mathutils.Vector(c)).z for o in base if o.type == "MESH" for c in o.bound_box)
+        # statura voluta (quarto argomento, in metri): Mixamo riscala i modelli a piacere
+        # (la scala dell'armatura ingrandisce anche gli spostamenti delle anche: k resta sulla statura originale)
+        if statura:
+            arm.scale = arm.scale * (statura / alt)
         adatta = (tuple(arm.data.bones["mixamorig:Hips"].head_local), alt / YBOT_ALTEZZA)
         print("pelle riggata: statura", round(alt, 3), "riposo anche", [round(x, 2) for x in adatta[0]])
         for o in base:
@@ -260,4 +264,4 @@ def main(cartella, uscita, pelle=None):
 
 if __name__ == "__main__":
     args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:]
-    main(args[0], args[1], args[2] if len(args) > 2 else None)
+    main(args[0], args[1], args[2] if len(args) > 2 else None, float(args[3]) if len(args) > 3 else None)
