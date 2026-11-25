@@ -31,6 +31,7 @@ var _frecce: Array = []        # [Vector3 centro, dir]
 var _coda: Array = []
 var _occupato := false
 var _n_colpi := 0
+var _ogg_nodi := {}   # esagono -> nodo dell'oggetto di scena
 var _colpo := {}   # colpo dichiarato che aspetta l'esito: {att, dif, clip, para}
 
 var _tocchi := {}
@@ -124,6 +125,9 @@ func costruisci(motore: Motore) -> void:
 		mt.albedo_color = Color("#8b7d6b").darkened(0.08 * i).lerp(Color("#7a6a52"), 0.25 * (i % 2))
 		mt.roughness = 0.95
 		pietre.append(mt)
+	var mat_sabbia := StandardMaterial3D.new()
+	mat_sabbia.albedo_color = Color("#a99b80")
+	mat_sabbia.roughness = 1.0
 	var mat_alto := StandardMaterial3D.new()
 	mat_alto.albedo_color = Color("#8c785c")
 	mat_alto.roughness = 0.95
@@ -176,6 +180,8 @@ func costruisci(motore: Motore) -> void:
 				base.position = mondo(h) + Vector3(0, -0.16, 0)
 				base.material_override = pietre[0]
 				_tessere.add_child(base)
+			if m.s.get("sabbia", {}).has(h) and lv == 0:
+				t.material_override = mat_sabbia
 			if m.s["per"].has(h):
 				t.material_override = mat_f
 				_braciere(h)
@@ -209,6 +215,9 @@ func costruisci(motore: Motore) -> void:
 				cap.position = mondo(h) + Vector3(0, 1.75, 0)
 				cap.material_override = pietre[0]
 				_tessere.add_child(cap)
+	_ogg_nodi.clear()
+	for h in m.s.get("ogg", {}):
+		_crea_oggetto(h, String(m.s["ogg"][h]["tipo"]))
 	# terreno attorno e torce
 	var suolo := MeshInstance3D.new()
 	var pm := CylinderMesh.new()
@@ -232,6 +241,169 @@ func costruisci(motore: Motore) -> void:
 	distanza = 9.0 + R * 1.3
 	_aggiorna_cam()
 
+## Oggetti di scena: ognuno ha un uso in combattimento (vedi le azioni di scena nel motore).
+func _crea_oggetto(h: Vector2i, tipo: String) -> void:
+	var n := Node3D.new()
+	var base := mondo(h) + Vector3(0, ALT * (m.altezza(h) - (1 if tipo == "cassa" else 0)), 0)
+	n.position = base
+	n.rotation.y = randf() * TAU if tipo != "cassa" else deg_to_rad(30)
+	match tipo:
+		"cassa":
+			var bm := BoxMesh.new()
+			bm.size = Vector3(1.05, ALT, 1.05)
+			var c := MeshInstance3D.new()
+			c.mesh = bm
+			c.material_override = _mat(Color("#7a5634"), 0.9)
+			c.position.y = ALT / 2.0
+			n.add_child(c)
+			for k in 2:
+				var listello := BoxMesh.new()
+				listello.size = Vector3(1.08, 0.08, 0.12)
+				var l := MeshInstance3D.new()
+				l.mesh = listello
+				l.material_override = _mat(Color("#4e3520"), 0.9)
+				l.position = Vector3(0, ALT * (0.25 + 0.5 * k), 0.5)
+				n.add_child(l)
+		"pietre":
+			for k in 5:
+				var sm := SphereMesh.new()
+				sm.radius = randf_range(0.1, 0.16)
+				sm.height = sm.radius * 1.6
+				var pi := MeshInstance3D.new()
+				pi.mesh = sm
+				pi.material_override = _mat(Color("#77706a").darkened(randf() * 0.2), 1.0)
+				pi.position = Vector3(randf_range(-0.3, 0.3), sm.radius * 0.6, randf_range(-0.3, 0.3))
+				n.add_child(pi)
+		"fontana":
+			var cm := CylinderMesh.new()
+			cm.top_radius = 0.72
+			cm.bottom_radius = 0.78
+			cm.height = 0.55
+			var v := MeshInstance3D.new()
+			v.mesh = cm
+			v.material_override = _mat(Color("#8a8070"), 0.9)
+			v.position.y = 0.27
+			n.add_child(v)
+			var am := CylinderMesh.new()
+			am.top_radius = 0.62
+			am.bottom_radius = 0.62
+			am.height = 0.04
+			var acqua := MeshInstance3D.new()
+			acqua.mesh = am
+			var ma := _mat(Color("#3f7fa0"), 0.15)
+			ma.metallic_specular = 0.8
+			acqua.material_override = ma
+			acqua.position.y = 0.54
+			n.add_child(acqua)
+		"albero":
+			var tm := CylinderMesh.new()
+			tm.top_radius = 0.12
+			tm.bottom_radius = 0.2
+			tm.height = 2.2
+			var tronco := MeshInstance3D.new()
+			tronco.mesh = tm
+			tronco.material_override = _mat(Color("#4a3322"), 1.0)
+			tronco.position.y = 1.1
+			n.add_child(tronco)
+			for k in 3:
+				var fm := SphereMesh.new()
+				fm.radius = randf_range(0.55, 0.75)
+				fm.height = fm.radius * 1.7
+				var fo := MeshInstance3D.new()
+				fo.mesh = fm
+				fo.material_override = _mat(Color("#3f5a2c").lightened(randf() * 0.1), 1.0)
+				fo.position = Vector3(randf_range(-0.35, 0.35), 2.2 + 0.35 * k, randf_range(-0.35, 0.35))
+				n.add_child(fo)
+		"braciere":
+			for k in 3:
+				var gm := CylinderMesh.new()
+				gm.top_radius = 0.04
+				gm.bottom_radius = 0.04
+				gm.height = 0.85
+				var g := MeshInstance3D.new()
+				g.mesh = gm
+				g.material_override = _mat(Color("#2e2a26"), 0.6, 0.6)
+				var a := TAU * k / 3.0
+				g.position = Vector3(cos(a) * 0.25, 0.4, sin(a) * 0.25)
+				g.rotation = Vector3(sin(a) * 0.25, 0, -cos(a) * 0.25)
+				n.add_child(g)
+			var cm2 := CylinderMesh.new()
+			cm2.top_radius = 0.42
+			cm2.bottom_radius = 0.22
+			cm2.height = 0.22
+			var conca := MeshInstance3D.new()
+			conca.mesh = cm2
+			conca.material_override = _mat(Color("#3a332c"), 0.5, 0.7)
+			conca.position.y = 0.85
+			n.add_child(conca)
+			var fl := SphereMesh.new()
+			fl.radius = 0.28
+			fl.height = 0.6
+			var fiamma := MeshInstance3D.new()
+			fiamma.mesh = fl
+			var mf := StandardMaterial3D.new()
+			mf.albedo_color = Color("#ffb040")
+			mf.emission_enabled = true
+			mf.emission = Color("#ff7a20")
+			mf.emission_energy_multiplier = 2.5
+			mf.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			fiamma.material_override = mf
+			fiamma.position.y = 1.1
+			n.add_child(fiamma)
+			var tw := fiamma.create_tween().set_loops()
+			tw.tween_property(fiamma, "scale", Vector3(1.1, 1.3, 1.1), 0.45)
+			tw.tween_property(fiamma, "scale", Vector3(0.9, 0.85, 0.9), 0.55)
+			var luce := OmniLight3D.new()
+			luce.light_color = Color("#ff9a40")
+			luce.light_energy = 0.9
+			luce.omni_range = 4.0
+			luce.position.y = 1.3
+			n.add_child(luce)
+	_tessere.add_child(n)
+	_ogg_nodi[h] = n
+
+## Proiettile ad arco (pietra o tizzone) da una figura all'altra.
+func _proiettile(da: Vector3, a: Vector3, tizzone: bool, tw: Tween) -> void:
+	var sm := SphereMesh.new()
+	sm.radius = 0.12
+	sm.height = 0.22
+	var mi := MeshInstance3D.new()
+	mi.mesh = sm
+	if tizzone:
+		var mf := _mat(Color("#ff8a30"))
+		mf.emission_enabled = true
+		mf.emission = Color("#ff6a1a")
+		mf.emission_energy_multiplier = 2.0
+		mi.material_override = mf
+	else:
+		mi.material_override = _mat(Color("#77706a"), 1.0)
+	mi.position = da
+	mi.visible = false
+	_effetti.add_child(mi)
+	tw.tween_callback(func(): mi.visible = true)
+	tw.tween_method(func(t: float): mi.position = da.lerp(a, t) + Vector3(0, sin(PI * t) * 1.2, 0), 0.0, 1.0, 0.45)
+	tw.tween_callback(mi.queue_free)
+
+## Spruzzo di sabbia o d'acqua verso il volto del nemico.
+func _spruzzo(da: Vector3, a: Vector3, acqua: bool) -> void:
+	for k in 10:
+		var sm := SphereMesh.new()
+		sm.radius = 0.05
+		sm.height = 0.1
+		var mi := MeshInstance3D.new()
+		mi.mesh = sm
+		var mt := _mat(Color("#4f9ac0") if acqua else Color("#c9a86a"), 0.5)
+		mt.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mi.material_override = mt
+		mi.position = da
+		_effetti.add_child(mi)
+		var fine := a + Vector3(randf_range(-0.3, 0.3), randf_range(-0.2, 0.3), randf_range(-0.3, 0.3))
+		var tw := mi.create_tween()
+		tw.tween_interval(randf() * 0.12)
+		tw.tween_property(mi, "position", fine, 0.35)
+		tw.parallel().tween_property(mt, "albedo_color:a", 0.0, 0.45)
+		tw.tween_callback(mi.queue_free)
+
 func _braciere(h: Vector2i) -> void:
 	var f := MeshInstance3D.new()
 	var sm := SphereMesh.new()
@@ -245,7 +417,7 @@ func _braciere(h: Vector2i) -> void:
 	mf.emission_energy_multiplier = 3.0
 	mf.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	f.material_override = mf
-	f.position = mondo(h) + Vector3(0, 0.2, 0)
+	f.position = posizione(h) + Vector3(0, 0.2, 0)
 	_tessere.add_child(f)
 	var tw := f.create_tween().set_loops()
 	tw.tween_property(f, "scale", Vector3(1.15, 1.35, 1.15), 0.5)
@@ -775,6 +947,64 @@ func _anima(e: Dictionary) -> Tween:
 	var f := figure[p]
 	var corpo: Node3D = f.get_node("Corpo")
 	match e["t"]:
+		"lancio":
+			var tw := create_tween()
+			var bf := figure[int(e["bers"])]
+			var v := bf.position - f.position
+			f.rotation.y = f.rotation.y + wrapf(atan2(-v.x, -v.z) - f.rotation.y, -PI, PI)
+			if ha_modello(p):
+				clip(p, "cross", 1.3)
+			tw.tween_interval(0.2)
+			_proiettile(f.position + Vector3(0, 1.6, 0), bf.position + Vector3(0, 1.4, 0), e.get("oggetto", "") == "tizzone", tw)
+			tw.tween_callback(func():
+				if ha_modello(int(e["bers"])):
+					clip(int(e["bers"]), "colpito_testa", 1.2))
+			_testo(f.position + Vector3(0, 2.2, 0), "Pietra!" if e.get("oggetto", "") == "pietra" else "Tizzone!", Color("#ffcf8a"))
+			return tw
+		"getta":
+			var tw := create_tween()
+			var bf := figure[int(e["bers"])]
+			if ha_modello(p):
+				clip(p, "jab", 1.4)
+			tw.tween_interval(0.25)
+			tw.tween_callback(func():
+				_spruzzo(f.position + Vector3(0, 1.4, 0), bf.position + Vector3(0, 1.6, 0), e.get("acqua", false))
+				if ha_modello(int(e["bers"])):
+					clip(int(e["bers"]), "colpito_testa", 1.2))
+			_testo(bf.position + Vector3(0, 2.2, 0), "Accecato!", Color("#ffe7a8"))
+			tw.tween_interval(0.4)
+			return tw
+		"oggetto_mosso":
+			var da: Vector2i = e["da"]
+			var a: Vector2i = e["a"]
+			var nodo: Node3D = _ogg_nodi.get(da)
+			var tw := create_tween()
+			if nodo == null or da == a:
+				return null
+			_ogg_nodi.erase(da)
+			_ogg_nodi[a] = nodo
+			var dest := mondo(a) + Vector3(0, ALT * (m.altezza(a) - 1), 0)
+			tw.tween_property(nodo, "position", dest, 0.25 + 0.12 * Motore.dist(da, a)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			return tw
+		"braciere":
+			var da2: Vector2i = e["da"]
+			var nodo2: Node3D = _ogg_nodi.get(da2)
+			var tw := create_tween()
+			if nodo2 != null:
+				_ogg_nodi.erase(da2)
+				var asse := vettore_dir(Motore.dir_verso(da2, e["a"])).cross(Vector3.UP)
+				tw.tween_method(func(t: float): nodo2.transform.basis = Basis(asse.normalized(), -t * PI / 2.2), 0.0, 1.0, 0.35)
+				tw.tween_callback(func(): _braciere(e["a"]))
+				tw.tween_interval(0.5)
+				tw.tween_callback(nodo2.queue_free)
+			_testo(posizione(e["a"]) + Vector3(0, 1.6, 0), "Fuoco!", Color("#ff9a50"))
+			return tw
+		"oggetto_via":
+			var nodo3: Node3D = _ogg_nodi.get(e["pos"])
+			if nodo3 != null:
+				_ogg_nodi.erase(e["pos"])
+				nodo3.queue_free()
+			return null
 		"tecnica":
 			# tori entra e lancia, uke vola nell'esagono d'arrivo e resta a terra, poi si rialza.
 			# La spinta del lancio (evento successivo) si anima qui, insieme al volo.

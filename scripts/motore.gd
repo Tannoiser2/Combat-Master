@@ -144,6 +144,13 @@ func nuova_partita(pg0: Dictionary, pg1: Dictionary, arena_id: String, seme: int
 	var per := {}
 	for o in ar["pericoli"]:
 		per[Vector2i(int(o[0]), int(o[1]))] = true
+	var ogg := {}
+	for o in ar.get("oggetti", []):
+		var tipo := String(o[2])
+		ogg[Vector2i(int(o[0]), int(o[1]))] = {"tipo": tipo, "cariche": 3 if tipo in ["pietre", "braciere"] else 0}
+	var sabbia := {}
+	for o in ar.get("sabbia", []):
+		sabbia[Vector2i(int(o[0]), int(o[1]))] = true
 	var bassi := {}
 	for o in ar.get("bassi", []):
 		bassi[Vector2i(int(o[0]), int(o[1]))] = true
@@ -151,7 +158,11 @@ func nuova_partita(pg0: Dictionary, pg1: Dictionary, arena_id: String, seme: int
 	for o in ar.get("alture", []):
 		alt[Vector2i(int(o[0]), int(o[1]))] = int(o[2])
 	var R := int(ar["raggio"])
-	s = {"alt": alt, "bassi": bassi, "round": 0, "attivo": 0, "primo": -1, "fase": "azione", "pend": {}, "azz": {},
+	# le casse sono gradini mobili: un livello in più dove stanno
+	for h in ogg:
+		if ogg[h]["tipo"] == "cassa":
+			alt[h] = int(alt.get(h, 0)) + 1
+	s = {"alt": alt, "bassi": bassi, "ogg": ogg, "sabbia": sabbia, "round": 0, "attivo": 0, "primo": -1, "fase": "azione", "pend": {}, "azz": {},
 		"raggio": R, "ost": ost, "per": per, "arena": arena_id, "vinc": -1,
 		"log": [], "eventi": [], "g": []}
 	var partenze := [Vector2i(-(R - 3), 0), Vector2i(R - 3, 0)]
@@ -270,8 +281,14 @@ func in_arena(h: Vector2i) -> bool:
 func altezza(h: Vector2i) -> int:
 	return int(s.get("alt", {}).get(h, 0))
 
+## Oggetti che occupano l'esagono: fontane, bracieri e alberi non si attraversano; le casse sì, salendoci.
+const OGG_BLOCCANTI := ["fontana", "braciere", "albero"]
+
+func oggetto(h: Vector2i) -> String:
+	return String(s.get("ogg", {}).get(h, {}).get("tipo", ""))
+
 func libero(h: Vector2i, ignora: int = -1) -> bool:
-	if not in_arena(h) or s["ost"].has(h):
+	if not in_arena(h) or s["ost"].has(h) or oggetto(h) in OGG_BLOCCANTI:
 		return false
 	for i in s["g"].size():
 		if i != ignora and s["g"][i]["pos"] == h:
@@ -283,7 +300,7 @@ func linea_di_vista(a: Vector2i, b: Vector2i) -> bool:
 	for i in range(1, n):
 		var t := float(i) / n
 		var h := _arrotonda_cubo(lerpf(a.x + 1e-4, b.x + 1e-4, t), lerpf(a.y + 1e-4, b.y + 1e-4, t))
-		if s["ost"].has(h):
+		if s["ost"].has(h) or oggetto(h) == "albero":
 			return false
 	return true
 
@@ -576,11 +593,12 @@ static func chiave(tok: String, sid: String) -> String:
 
 func slot_del_giocatore(p: int) -> Array:
 	var out := []
-	if cat.has("base"):
-		for sl in cat["base"]["slot"]:
-			out.append(["base", sl])
+	for comune in ["base", "scena"]:
+		if cat.has(comune):
+			for sl in cat[comune]["slot"]:
+				out.append([comune, sl])
 	for tok in s["g"][p]["pg"]["token"]:
-		if tok == "base":
+		if tok == "base" or tok == "scena":
 			continue
 		if cat.has(tok):
 			for sl in cat[tok]["slot"]:
@@ -890,6 +908,27 @@ func bersagli(p: int, tok: String, sl: Dictionary, ids: Array) -> Array:
 		"guardia":
 			for l in 6:
 				out.append({"lato": l})
+		"lancia":
+			var dl := dist(g["pos"], go["pos"])
+			if dl >= 2 and dl <= 4 and vede(p) and linea_di_vista(g["pos"], go["pos"]):
+				for h in fonti(p, ["pietre", "braciere"]):
+					out.append({"bers": o, "da": h})
+		"getta":
+			if dist(g["pos"], go["pos"]) <= 2 and in_fronte(g["pos"], g["dir"], go["pos"]) and absi(altezza(g["pos"]) - altezza(go["pos"])) <= 1:
+				if s.get("sabbia", {}).has(g["pos"]):
+					out.append({"bers": o, "da": g["pos"]})
+				for h in fonti(p, ["fontana"]):
+					out.append({"bers": o, "da": h})
+		"spingi_ogg":
+			for k in 6:
+				var h: Vector2i = g["pos"] + DIRS[k]
+				var tipo := oggetto(h)
+				if tipo == "cassa" and s["g"][o]["pos"] != h:
+					var oltre: Vector2i = h + DIRS[k]
+					if (libero(oltre, o) or s["g"][o]["pos"] == oltre) and oggetto(oltre) == "":
+						out.append({"ogg": h})
+				elif tipo == "braciere" and in_arena(h + DIRS[k]) and not s["ost"].has(h + DIRS[k]):
+					out.append({"ogg": h})
 		"varco":
 			# cercare il varco: l'avversario dev'essere nel campo visivo e non troppo lontano
 			if vede(p) and dist(g["pos"], go["pos"]) <= 4:
@@ -1508,7 +1547,7 @@ static func _stesso_bersaglio(a: Dictionary, b: Dictionary) -> bool:
 func _slot(p: int, op: Dictionary) -> String:
 	var tok: String = op["tok"]
 	var sl := slot_def(tok, op["slot"])
-	if sl.is_empty() or (not s["g"][p]["pg"]["token"].has(tok) and tok != "base"):
+	if sl.is_empty() or (not s["g"][p]["pg"]["token"].has(tok) and tok != "base" and tok != "scena"):
 		return "Spazio inesistente."
 	if occupato(p, tok, sl["id"]):
 		return "%s è occupato: prima va liberato." % sl["nome"]
@@ -1767,6 +1806,43 @@ func _slot(p: int, op: Dictionary) -> String:
 			_evento({"t": "salto", "p": p, "pos": b["pos"], "dir": b["dir"]})
 			_pericolo(p)
 			_dopo_movimento(p)
+		"lancia":
+			var da: Vector2i = b["da"]
+			var tipo := oggetto(da)
+			var v0: int = int(vals[0]) if not vals.is_empty() else q
+			var dn := v0 / 2 if tipo == "pietre" else v0 / 3 + 1
+			s["ogg"][da]["cariche"] = int(s["ogg"][da]["cariche"]) - 1
+			_scrivi("%s lancia %s!" % [g["nome"], "una pietra" if tipo == "pietre" else "un tizzone ardente"])
+			_evento({"t": "lancio", "p": p, "bers": o, "da": da, "oggetto": "pietra" if tipo == "pietre" else "tizzone"})
+			if int(s["ogg"][da]["cariche"]) <= 0 and tipo == "pietre":
+				s["ogg"].erase(da)
+				_evento({"t": "oggetto_via", "pos": da})
+			_ferisci(o, dn)
+			if s["vinc"] < 0 and tipo == "braciere":
+				prendi_svantaggi(o, 1, "bruciatura")
+		"getta":
+			var da2: Vector2i = b["da"]
+			var acqua := oggetto(da2) == "fontana"
+			var v1: int = int(vals[0]) if not vals.is_empty() else q
+			_scrivi("%s getta %s negli occhi di %s!" % [g["nome"], "acqua" if acqua else "sabbia", s["g"][o]["nome"]])
+			_evento({"t": "getta", "p": p, "bers": o, "acqua": acqua})
+			var best2 := {}
+			for d in dadi_di(o, "mucchio") + dadi_di(o, "mano"):
+				if d["v"] <= v1 and (best2.is_empty() or d["v"] > best2["v"]):
+					best2 = d
+			if not best2.is_empty():
+				best2["st"] = "stordito"
+				_evento({"t": "blocco", "p": o, "n": 1})
+				_evento({"t": "dadi", "p": o})
+			prendi_svantaggi(o, 1, "accecato")
+		"spingi_ogg":
+			var h0: Vector2i = b["ogg"]
+			var k0 := dir_verso(g["pos"], h0)
+			var v2: int = int(vals[0]) if not vals.is_empty() else q
+			if oggetto(h0) == "cassa":
+				_spingi_cassa(p, h0, k0, maxi(1, v2 / 2))
+			else:
+				_rovescia_braciere(p, h0, k0)
 		"stordisci":
 			var best := {}
 			for d in dadi_di(o, "mucchio") + dadi_di(o, "mano"):
@@ -2266,6 +2342,63 @@ func _devia(dif: int, att: int) -> void:
 		_scrivi("%s para e arretra di un passo." % gd["nome"])
 		_evento({"t": "muovi", "p": dif, "percorso": [da2, Vector3i(dietro.x, dietro.y, gd["dir"])]})
 		_pericolo(dif)
+
+## Esagoni con oggetti dei tipi dati sotto i piedi o accanto a p (pietre ancora disponibili, bracieri accesi).
+func fonti(p: int, tipi: Array) -> Array:
+	var out := []
+	var pos: Vector2i = s["g"][p]["pos"]
+	for h in [pos] + DIRS.map(func(d): return pos + d):
+		var o: Dictionary = s.get("ogg", {}).get(h, {})
+		if not o.is_empty() and o["tipo"] in tipi and (not o["tipo"] in ["pietre", "braciere"] or int(o["cariche"]) > 0):
+			out.append(h)
+	return out
+
+## La cassa scivola di n esagoni; se travolge il nemico gli fa 2 danni e lo spinge di uno.
+func _spingi_cassa(p: int, h: Vector2i, k: int, n: int) -> void:
+	var o := 1 - p
+	var cur := h
+	var travolto := false
+	for i in n:
+		var nh: Vector2i = cur + DIRS[k]
+		if s["g"][o]["pos"] == nh:
+			travolto = true
+			break
+		if not libero(nh, p) or oggetto(nh) != "" or altezza(nh) > altezza(cur) - 1:
+			break
+		cur = nh
+	if cur != h:
+		var dato: Dictionary = s["ogg"][h]
+		s["ogg"].erase(h)
+		s["alt"][h] = int(s["alt"].get(h, 1)) - 1
+		if int(s["alt"][h]) <= 0:
+			s["alt"].erase(h)
+		s["ogg"][cur] = dato
+		s["alt"][cur] = int(s["alt"].get(cur, 0)) + 1
+	_scrivi("%s spinge la cassa." % s["g"][p]["nome"])
+	_evento({"t": "oggetto_mosso", "da": h, "a": cur, "tipo": "cassa"})
+	if travolto:
+		_scrivi("La cassa travolge %s!" % s["g"][o]["nome"])
+		_ferisci(o, 2)
+		if s["vinc"] < 0:
+			# la spinta parte dalla cassa: si usa un attaccante fittizio nella sua posizione
+			var salva: Vector2i = s["g"][p]["pos"]
+			s["g"][p]["pos"] = cur
+			_spingi(p, o, 1, false)
+			s["g"][p]["pos"] = salva
+
+## Il braciere rovesciato sparge le braci nell'esagono oltre: diventa fuoco; chi c'è si brucia.
+func _rovescia_braciere(p: int, h: Vector2i, k: int) -> void:
+	var o := 1 - p
+	var oltre: Vector2i = h + DIRS[k]
+	s["ogg"].erase(h)
+	s["per"][oltre] = true
+	_scrivi("%s rovescia il braciere!" % s["g"][p]["nome"])
+	_evento({"t": "braciere", "da": h, "a": oltre})
+	if s["g"][o]["pos"] == oltre:
+		_scrivi("Le braci investono %s!" % s["g"][o]["nome"])
+		_ferisci(o, 2)
+		if s["vinc"] < 0:
+			prendi_svantaggi(o, 1, "bruciatura")
 
 ## Il colpo sbilancia il difensore: si gira di n lati, offrendo il fianco o la schiena.
 func _sbilancia(att: int, dif: int, n: int) -> void:

@@ -1092,6 +1092,8 @@ func _ricostruisci_carte() -> void:
 		lato.erase("disp_min")
 		var ids: Array = m.s["g"][p]["pg"]["token"].keys()
 		ids.sort_custom(func(a, b): return _ordine_carta(a, ordine) < _ordine_carta(b, ordine))
+		if cat.has("scena"):
+			ids.push_front("scena")
 		if cat.has("base"):
 			ids.push_front("base")
 		for id in ids:

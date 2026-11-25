@@ -11,17 +11,26 @@ func controlla(cond: bool, msg: String) -> void:
 
 func piano(dati: Dictionary) -> Motore:
 	var m := Motore.new(dati)
-	m.nuova_partita({"nome": "Alfa", "token": {}}, {"nome": "Beta", "token": {}}, "cortile", 3)
+	m.nuova_partita(dati["personaggi"][0], dati["personaggi"][1], "cortile", 3)
 	m.s["ost"] = {}
 	m.s["alt"] = {}
 	m.s["per"] = {}
 	m.s["alt"] = {}
 	m.s["bassi"] = {}
+	m.s["ogg"] = {}
+	m.s["sabbia"] = {}
 	m.s["g"][0]["pos"] = Vector2i(0, 0)
 	m.s["g"][0]["dir"] = 0
 	m.s["g"][1]["pos"] = Vector2i(-3, 0)
 	m.s["g"][1]["dir"] = 0
 	return m
+
+func libera_dado(m: Motore, p: int, v: int) -> int:
+	for d in m.s["g"][p]["dadi"]:
+		d["st"] = "mucchio"
+	var d0: Dictionary = m.s["g"][p]["dadi"][0]
+	d0["v"] = v
+	return int(d0["id"])
 
 func _init() -> void:
 	var dati := Motore.carica_dati()
@@ -77,6 +86,42 @@ func _init() -> void:
 	m._devia(1, 0)
 	var pa: Vector2i = m.s["g"][0]["pos"]
 	controlla(pa != Vector2i(0, 0) and Motore.dist(pa, avanti) == 1, "la parata sposta l'attaccante di lato")
+	# oggetti di scena
+	m = piano(dati)
+	m.s["ogg"] = {Vector2i(0, 1): {"tipo": "pietre", "cariche": 3}}
+	m.s["g"][1]["pos"] = Vector2i(3, 0)
+	m.s["g"][1]["dir"] = 3
+	m.s["fase"] = "azione"
+	m.s["attivo"] = 0
+	var d0 := libera_dado(m, 0, 6)
+	v0 = m.s["g"][1]["vita"]
+	var es := m.applica(0, {"t": "slot", "tok": "scena", "slot": "lancia", "dadi": [d0], "b": {"bers": 1, "da": Vector2i(0, 1)}})
+	controlla(es == "", "lancio di una pietra: " + es)
+	controlla(int(m.s["g"][1]["vita"]) == v0 - 3, "la pietra fa metà del dado")
+	# cassa che travolge
+	m = piano(dati)
+	var cassa: Vector2i = avanti
+	m.s["ogg"] = {cassa: {"tipo": "cassa", "cariche": 0}}
+	m.s["alt"][cassa] = 1
+	m.s["g"][1]["pos"] = avanti * 3
+	m.s["fase"] = "azione"
+	m.s["attivo"] = 0
+	d0 = libera_dado(m, 0, 6)
+	v0 = m.s["g"][1]["vita"]
+	es = m.applica(0, {"t": "slot", "tok": "scena", "slot": "spingi_ogg", "dadi": [d0], "b": {"ogg": cassa}})
+	controlla(es == "", "spinta della cassa: " + es)
+	controlla(m.oggetto(avanti * 2) == "cassa" and m.altezza(avanti * 2) == 1 and m.altezza(cassa) == 0, "la cassa scivola col suo gradino")
+	controlla(int(m.s["g"][1]["vita"]) == v0 - 2, "la cassa travolge il nemico")
+	# braciere rovesciato
+	m = piano(dati)
+	m.s["ogg"] = {avanti: {"tipo": "braciere", "cariche": 3}}
+	m.s["g"][1]["pos"] = avanti * 2
+	m.s["fase"] = "azione"
+	m.s["attivo"] = 0
+	d0 = libera_dado(m, 0, 4)
+	v0 = m.s["g"][1]["vita"]
+	es = m.applica(0, {"t": "slot", "tok": "scena", "slot": "spingi_ogg", "dadi": [d0], "b": {"ogg": avanti}})
+	controlla(es == "" and m.s["per"].has(avanti * 2) and int(m.s["g"][1]["vita"]) == v0 - 2, "braciere rovesciato addosso")
 	if errori == 0:
-		print("OK: gradini, salti, contatto, cadute e parate che deviano funzionano")
+		print("OK: gradini, salti, contatto, cadute, parate che deviano e oggetti di scena funzionano")
 	quit(1 if errori > 0 else 0)

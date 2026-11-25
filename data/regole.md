@@ -123,3 +123,13 @@ Dal menu, Guarda l'IA combattere: scegli lo scenario e due combattenti (anche ca
 ## Parate che deviano
 
 Quando un attacco viene parato (azione di parata o guardia), lo slancio porta l'attaccante di fianco al difensore, girato di un lato. Se di fianco non c'è spazio, è il difensore a fare un passo indietro, fuori dalla linea del colpo.
+
+## Oggetti di scena
+
+Ogni arena ha oggetti con uno scopo. Le **Azioni di scena** sono sempre sulla scheda, accanto alle azioni di base: si usano con un dado qualsiasi, una volta per scambio ciascuna, e il dado va in Attesa.
+
+- **Lanciare**: accanto a un mucchio di pietre (3 lanci) o a un braciere, nemico in vista da 2 a 4 esagoni. Pietra: danno metà del dado. Tizzone: un terzo del dado +1 e 1 svantaggio.
+- **Sabbia o acqua negli occhi**: stando su un esagono di sabbia o accanto a una fontana, nemico davanti entro 2 (dislivello massimo 1). Stordisce il dado più alto del nemico fino al valore del tuo e gli dà 1 svantaggio.
+- **Spingere o rovesciare**: una cassa accanto scivola di metà del dado nel verso della spinta; se travolge il nemico gli fa 2 danni e lo spinge di un esagono. Un braciere accanto si rovescia: l'esagono oltre prende fuoco, e chi c'è subisce 2 danni e 1 svantaggio.
+- **Casse**: sono gradini mobili, alti un livello; ci si sale sopra.
+- **Alberi, fontane e bracieri** non si attraversano. Gli alberi bloccano la vista: riparano dai lanci.
