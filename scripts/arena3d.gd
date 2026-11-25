@@ -266,6 +266,11 @@ func costruisci(motore: Motore) -> void:
 	for i in 8:
 		var a := TAU * i / 8.0 + 0.2
 		_torcia(Vector3(cos(a), 0, sin(a)) * (R * 1.62 + 1.6))
+	# alberi del deserto attorno all'arena (alberi faretra, fotografici)
+	for i in 9:
+		var a := TAU * i / 9.0 + 0.55 + rng.randf_range(-0.15, 0.15)
+		var dist := R * 1.62 + 4.0 + rng.randf_range(0.0, 5.0)
+		_albero(_tessere, Vector3(cos(a), -0.3, sin(a)) * dist, rng.randf_range(2.6, 3.8), 1 + i % 2, rng.randf() * TAU)
 	for i in 2:
 		_crea_figura(i)
 	sincronizza()
@@ -326,6 +331,8 @@ func _crea_oggetto(h: Vector2i, tipo: String) -> void:
 			acqua.material_override = ma
 			acqua.position.y = 0.54
 			n.add_child(acqua)
+		"albero" when _albero(n, Vector3.ZERO, 3.0 if (h.x + h.y) % 2 == 0 else 2.4, 1 if (h.x + h.y) % 2 == 0 else 2):
+			pass
 		"albero":
 			var tm := CylinderMesh.new()
 			tm.top_radius = 0.12
@@ -431,6 +438,31 @@ func _spruzzo(da: Vector3, a: Vector3, acqua: bool) -> void:
 		tw.tween_property(mi, "position", fine, 0.35)
 		tw.parallel().tween_property(mt, "albedo_color:a", 0.0, 0.45)
 		tw.tween_callback(mi.queue_free)
+
+var _alberi_cache := {}
+
+## Albero faretra fotografico (modelli Poly Haven, CC0), alto h metri. false se il modello manca.
+func _albero(genitore: Node3D, pos: Vector3, h: float, quale := 1, rot := 0.0) -> bool:
+	var file := "res://assets/scena/albero_%d.glb" % quale
+	if not ResourceLoader.exists(file):
+		return false
+	if not _alberi_cache.has(file):
+		_alberi_cache[file] = load(file)
+	var n: Node3D = _alberi_cache[file].instantiate()
+	var aabb := AABB()
+	var prima := true
+	for mi in n.find_children("*", "MeshInstance3D", true, false):
+		var b: AABB = mi.transform * mi.get_aabb()
+		aabb = b if prima else aabb.merge(b)
+		prima = false
+	if prima:
+		return false
+	var k := h / maxf(aabb.size.y, 0.01)
+	n.scale = Vector3.ONE * k
+	n.position = pos - Vector3(0, aabb.position.y * k, 0)
+	n.rotation.y = rot
+	genitore.add_child(n)
+	return true
 
 var _colonne_cache := {}
 
