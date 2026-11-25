@@ -251,7 +251,7 @@ func costruisci(motore: Motore) -> void:
 	# terreno attorno e torce
 	var suolo := MeshInstance3D.new()
 	var pm := CylinderMesh.new()
-	pm.top_radius = (R + 5) * 6.0
+	pm.top_radius = (R + 5) * 2.4
 	pm.bottom_radius = pm.top_radius
 	pm.height = 0.1
 	pm.radial_segments = 48
