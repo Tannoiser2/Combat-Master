@@ -22,10 +22,13 @@ ANIMAZIONI = ["idle", "jab", "cross", "montante", "calcio", "parata", "schivata"
               "gira_sinistra", "gira_destra", "colpito_testa", "colpito_corpo",
               "ko", "rialzata", "proiezione", "proiettato", "vittoria", "sconfitta", "caduta",
               "salto", "salto_mortale", "salto_indietro", "sali", "scendi", "volo_indietro",
-              "calcio_girato", "calcio_volante", "calcio_mma", "lancia_oggetto", "spingi_oggetto"]
+              "calcio_girato", "calcio_volante", "calcio_mma", "lancia_oggetto", "spingi_oggetto",
+              "gomitata", "ginocchiata", "gancio", "immobilizza", "blocco_alto", "blocco_interno",
+              "schiva_destra", "scarto", "provoca", "urlo", "parata_forte", "respiro"]
 # parte utile delle clip lunghe (fotogrammi a 30 al secondo): la proiezione dura 6,7 s, la rialzata 8,4 s
 TAGLI = {"proiezione": (40, 118), "proiettato": (40, 118), "rialzata": (95, 190), "caduta": (20, 90),
-         "scendi": (25, 75), "volo_indietro": (1, 64), "calcio_volante": (1, 72), "spingi_oggetto": (30, 85)}
+         "scendi": (25, 75), "volo_indietro": (1, 64), "calcio_volante": (1, 72), "spingi_oggetto": (30, 85),
+         "respiro": (40, 130), "urlo": (1, 70)}
 # clip di salto: si toglie anche il dislivello tra inizio e fine (lo fa il gioco tra un esagono e l'altro),
 # resta solo l'arco del salto
 VERTICALE = {"salto", "salto_mortale", "salto_indietro", "sali", "scendi", "calcio_volante", "volo_indietro"}

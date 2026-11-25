@@ -212,7 +212,10 @@ func _process(dt: float) -> void:
 	var chi := m.chi_decide()
 	if chi >= 0 and ia[chi]:
 		_timer_ia += dt
-		if _timer_ia >= passo_ia:
+		# la risposta a un colpo in arrivo è immediata: chi attacca non resta fermo ad aspettare
+		var colpo_in_volo: bool = not m.s.get("pend", {}).is_empty() or m.s["fase"] == "reazione"
+		var soglia: float = passo_ia if not colpo_in_volo else minf(passo_ia, 0.12)
+		if _timer_ia >= soglia:
 			_timer_ia = 0.0
 			var op := IA.scegli(m, chi, rng, _pesi_lato[chi])
 			if op.is_empty():

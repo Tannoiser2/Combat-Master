@@ -1601,6 +1601,8 @@ func _slot(p: int, op: Dictionary) -> String:
 	if sl.get("una_volta", false):
 		s["g"][p]["usi"]["slot:" + chiave(tok, sl["id"])] = 1
 	_evento({"t": "dadi", "p": p})
+	# ogni azione ha la sua animazione: l'arena la sceglie dall'effetto
+	_evento({"t": "azione", "p": p, "effetto": String(sl["effetto"]), "nome": String(sl["nome"]), "tipo": String(sl.get("tipo", ""))})
 	var g: Dictionary = s["g"][p]
 	var o := 1 - p
 	match sl["effetto"]:
@@ -2070,7 +2072,7 @@ func _dichiara_attacco(p: int, sl: Dictionary, q: int, vd: int, extra: Dictionar
 		s["pend"]["imparabile"] = true
 	var latotxt := "" if l == "fronte" else (" sul fianco" if l == "fianco" else " alle spalle")
 	_scrivi("%s: %s%s, %s." % [g["nome"], sl["nome"], latotxt, plurale(impatto + bonus, "danno", "danni")])
-	_evento({"t": "attacco", "p": p, "bers": o, "dist": d, "spingi": int(sl.get("spingi", 0)), "lancia": sl.get("lancia", false), "nome": sl["nome"], "genere": String(sl.get("genere", "colpo"))})
+	_evento({"t": "attacco", "p": p, "bers": o, "dist": d, "spingi": int(sl.get("spingi", 0)), "lancia": sl.get("lancia", false), "nome": sl["nome"], "genere": String(sl.get("genere", "colpo")), "attacco_n": int(sl.get("attacco_n", 0))})
 	if s["pend"]["mischia"]:
 		_innesca(o, "attaccato_mischia")
 	if s["vinc"] < 0:
@@ -2170,7 +2172,7 @@ func _risolvi_attacco() -> void:
 		_applica_tecnica(dif, att, pe["tecnica"])
 	if s["vinc"] < 0 and pe["contro"] > 0:
 		var dn: int = maxi(0, int(pe["contro"]) - int(ga["armatura"]))
-		_evento({"t": "attacco", "p": dif, "bers": att, "dist": 1})
+		_evento({"t": "attacco", "p": dif, "bers": att, "dist": 1, "nome": "contrattacco"})
 		_ferisci(att, dn)
 	if s["vinc"] < 0 and int(pe.get("respingi", 0)) > 0:
 		_scrivi("%s respinge %s." % [gd["nome"], ga["nome"]])

@@ -31,6 +31,7 @@ var _frecce: Array = []        # [Vector3 centro, dir]
 var _coda: Array = []
 var _occupato := false
 var _n_colpi := 0
+var debug_eventi := false
 var _ogg_nodi := {}   # esagono -> nodo dell'oggetto di scena
 var _colpo := {}   # colpo dichiarato che aspetta l'esito: {att, dif, clip, para}
 
@@ -507,18 +508,6 @@ func _crea_figura(i: int) -> void:
 		freccia.position = Vector3(0, 0.03, -0.42)
 	else:
 		_figura_semplice(corpo, veste, toks, colp)
-	var nome := Label3D.new()
-	nome.text = g["nome"]
-	nome.font = Disegno.font_titolo()
-	nome.font_size = 52
-	nome.pixel_size = 0.006
-	nome.outline_size = 14
-	nome.modulate = colp.lightened(0.35)
-	nome.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	nome.no_depth_test = true
-	nome.position = Vector3(0, 2.25 + 0.32 * i, 0)
-	nome.name = "Nome"
-	radice.add_child(nome)
 	figure.append(radice)
 
 ## Figura disegnata con forme semplici (se manca il modello animato).
@@ -697,30 +686,45 @@ func clip(p: int, nome: String, velocita := 1.0, poi := "idle") -> float:
 ## comincia nel momento dell'impatto.
 ## secondi dall'inizio della clip al momento dell'impatto (a velocità 1,3)
 const IMPATTO := {"jab": 0.25, "cross": 0.3, "montante": 0.35, "calcio": 0.45, "calcio_girato": 0.75,
-	"calcio_mma": 0.55, "calcio_volante": 1.1, "proiezione": 0.55}
+	"calcio_mma": 0.55, "calcio_volante": 1.1, "proiezione": 0.55, "gomitata": 0.55, "ginocchiata": 0.55, "gancio": 0.5}
 
-func _sferra(tw: Tween, d: int, reazione: String) -> void:
+func _sferra(tw: Tween, d: int, reazione: String, testo := "", colore := Color.WHITE) -> void:
 	if _colpo.is_empty() or int(_colpo["dif"]) != d:
 		# chi è già a terra (proiettato, immobilizzato) non ripete il colpo subito
 		var ap := _ap(d)
-		var a_terra := ap != null and String(ap.current_animation) in ["proiettato", "ko", "caduta", "rialzata"]
+		var a_terra := ap != null and String(ap.current_animation) in ["proiettato", "ko", "caduta", "rialzata", "volo_indietro"]
+		if testo != "":
+			_testo(figure[d].position + Vector3(0, 2.0, 0), testo, colore)
 		if reazione != "" and not a_terra:
 			clip(d, reazione, 1.2)
 		return
 	var a: int = _colpo["att"]
 	var nome: String = _colpo["clip"]
+	var gia: bool = _colpo.get("avviato", false)
 	_colpo = {}
 	var lento := 1.0 if nome == "proiezione" else 1.3
+	if gia:
+		tw.tween_callback(func():
+			if testo != "":
+				_testo(figure[d].position + Vector3(0, 2.0, 0), testo, colore)
+			if reazione != "":
+				clip(d, reazione, 1.2))
+		tw.tween_interval(0.35)
+		tw.tween_callback(func(): _ripristina_verso(a))
+		return
 	var fa := figure[a]
 	var v := figure[d].position - fa.position
 	var verso := atan2(-v.x, -v.z)
 	verso = fa.rotation.y + wrapf(verso - fa.rotation.y, -PI, PI)
 	tw.tween_property(fa, "rotation:y", verso, 0.12)
 	tw.tween_callback(func(): clip(a, nome, lento))
-	# impatto: il momento in cui il colpo arriva, diverso per ogni mossa
+	# impatto: il momento in cui il colpo arriva, diverso per ogni mossa; la difesa e la scritta
+	# partono lì, insieme
 	tw.tween_interval(float(IMPATTO.get(nome, 0.3)))
-	if reazione != "":
-		tw.tween_callback(func():
+	tw.tween_callback(func():
+		if testo != "":
+			_testo(figure[d].position + Vector3(0, 2.0, 0), testo, colore)
+		if reazione != "":
 			clip(d, reazione, 1.2, "rialzata" if reazione == "proiettato" else "idle")
 			if reazione == "proiettato" and _ap(d) != null:
 				_ap(d).queue("idle"))
@@ -729,6 +733,56 @@ func _sferra(tw: Tween, d: int, reazione: String) -> void:
 	# finito il colpo, l'attaccante torna a guardare dove dice il gioco
 	tw.tween_interval(0.35)
 	tw.tween_callback(func(): _ripristina_verso(a))
+
+## Colpo rimasto senza esito (nessuna difesa, nessun danno annunciato): parte a vuoto.
+func _colpo_a_vuoto() -> Tween:
+	var tw := create_tween()
+	_sferra(tw, int(_colpo["dif"]), "")
+	return tw
+
+## Mossa d'attacco adatta al colpo: le prese allungano le mani, i colpi numerati hanno la loro
+## tecnica (shomen = fendente dall'alto, yokomen = di lato, tsuki = diretto), i calci si alternano.
+func _clip_attacco(e: Dictionary) -> String:
+	_n_colpi += 1
+	var nome_azione := String(e.get("nome", "")).to_lower()
+	if e.get("lancia", false):
+		return "proiezione"
+	if "gomit" in nome_azione:
+		return "gomitata"
+	if "ginocch" in nome_azione:
+		return "ginocchiata"
+	if "calci" in nome_azione or "spazzat" in nome_azione:
+		return ["calcio", "calcio_girato", "calcio_mma"][_n_colpi % 3]
+	if "contrattacco" in nome_azione:
+		return "gancio"
+	if e.get("genere", "colpo") == "presa":
+		return ["cross", "gancio"][_n_colpi % 2]
+	if int(e.get("spingi", 0)) > 0:
+		return ["calcio", "calcio_mma", "calcio_girato"][_n_colpi % 3]
+	match int(e.get("attacco_n", 0)):
+		13:
+			return "gomitata"
+		14:
+			return "gancio"
+		15:
+			return ["jab", "cross"][_n_colpi % 2]
+		16:
+			return ["calcio", "ginocchiata"][_n_colpi % 2]
+		17:
+			return ["calcio_girato", "montante"][_n_colpi % 2]
+		18:
+			return ["calcio_mma", "calcio_volante"][_n_colpi % 2]
+	return ["jab", "calcio", "cross", "gancio", "calcio_girato", "montante", "ginocchiata", "calcio_mma", "gomitata", "calcio_volante"][_n_colpi % 10]
+
+## Animazione per le azioni che non sono colpi né spostamenti.
+const CLIP_AZIONE := {
+	"stordisci": "provoca", "pesca": "urlo", "guardia": "blocco_interno", "sblocca": "respiro",
+	"recupera": "respiro", "cura": "respiro", "concentrazione": "respiro", "eco": "respiro",
+	"accumula": "urlo", "prepara_attesa": "respiro", "ritocca": "respiro", "ritocca_guardia": "blocco_alto",
+	"rimetti": "respiro", "elimina": "respiro", "gira_nemico": "schiva_destra", "rovescia": "schiva_destra",
+	"ruota": "schiva_destra", "scambia": "schiva_destra", "varco": "provoca", "disarma": "immobilizza",
+	"leggi": "blocco_alto", "gira_guardia": "blocco_interno",
+}
 
 func _ripristina_verso(a: int) -> void:
 	var fa := figure[a]
@@ -823,13 +877,21 @@ func fine_duello(vincitore: int) -> void:
 		if m.s["g"][i]["vita"] > 0:
 			clip(i, "vittoria" if i == vincitore else "sconfitta", 1.0, "")
 
+func clip_durata(p: int, nome: String) -> float:
+	var ap := _ap(p)
+	if ap == null or not ap.has_animation(nome):
+		return 0.5
+	return ap.get_animation(nome).length
+
 func ha_modello(p: int) -> bool:
 	return _ap(p) != null
 
 ## Mette le figure dove dice lo stato (senza animazione).
 func mostra_nomi(si: bool) -> void:
 	for f in figure:
-		f.get_node("Nome").visible = si
+		var n := f.get_node_or_null("Nome")
+		if n != null:
+			n.visible = si
 
 func sincronizza() -> void:
 	for i in figure.size():
@@ -991,6 +1053,23 @@ func _prossimo() -> void:
 		return
 	_occupato = true
 	var e: Dictionary = _coda.pop_front()
+	if debug_eventi:
+		print("%6d ev %s p%s %s" % [Time.get_ticks_msec(), e["t"], e.get("p", ""), e.get("effetto", e.get("n", ""))])
+	# un colpo dichiarato che non ha avuto esito parte a vuoto prima di qualunque altra mossa
+	var passo_di_tori: bool = not _colpo.is_empty() and e["t"] == "muovi" and int(e.get("p", -1)) == int(_colpo["dif"])
+	if passo_di_tori and not _colpo.get("avviato", false):
+		# irimi o tenkan: chi difende si sposta mentre il colpo arriva
+		_colpo["avviato"] = true
+		var att: int = _colpo["att"]
+		var nome_a: String = _colpo["clip"]
+		var fa := figure[att]
+		var vv := figure[int(_colpo["dif"])].position - fa.position
+		fa.rotation.y = fa.rotation.y + wrapf(atan2(-vv.x, -vv.z) - fa.rotation.y, -PI, PI)
+		clip(att, nome_a, 1.3)
+	if not _colpo.is_empty() and not passo_di_tori and not String(e["t"]) in ["para", "schiva", "danno", "tecnica", "azione", "dadi", "blocco", "vantaggi", "svantaggi", "guardia", "attitudine", "sfera", "iniziativa"]:
+		_coda.push_front(e)
+		_colpo_a_vuoto().finished.connect(_prossimo, CONNECT_ONE_SHOT)
+		return
 	var tw := _anima(e)
 	if tw == null:
 		_prossimo.call_deferred()
@@ -1022,8 +1101,8 @@ func _anima(e: Dictionary) -> Tween:
 			var tw := create_tween()
 			var bf := figure[int(e["bers"])]
 			if ha_modello(p):
-				clip(p, "jab", 1.4)
-			tw.tween_interval(0.25)
+				clip(p, "lancia_oggetto", 1.8)
+			tw.tween_interval(0.4)
 			tw.tween_callback(func():
 				_spruzzo(f.position + Vector3(0, 1.4, 0), bf.position + Vector3(0, 1.6, 0), e.get("acqua", false))
 				if ha_modello(int(e["bers"])):
@@ -1078,6 +1157,13 @@ func _anima(e: Dictionary) -> Tween:
 			var u: int = int(e["bers"])
 			var fu := figure[u]
 			var tw := create_tween()
+			if not _colpo.is_empty() and int(_colpo["att"]) == u and ha_modello(u) and not _colpo.get("avviato", false):
+				# l'attacco di uke parte, tori lo accoglie all'impatto
+				var nome_u: String = _colpo["clip"]
+				var vu := f.position - fu.position
+				tw.tween_property(fu, "rotation:y", fu.rotation.y + wrapf(atan2(-vu.x, -vu.z) - fu.rotation.y, -PI, PI), 0.1)
+				tw.tween_callback(func(): clip(u, nome_u, 1.3))
+				tw.tween_interval(float(IMPATTO.get(nome_u, 0.3)) * 0.8)
 			_colpo = {}
 			_testo(f.position + Vector3(0, 2.0, 0), String(e.get("nome", "")), Color("#ffe7a8"))
 			var arrivo := fu.position
@@ -1102,7 +1188,7 @@ func _anima(e: Dictionary) -> Tween:
 			var casa := f.position
 			tw.tween_property(f, "rotation:y", ry, 0.12)
 			tw.tween_callback(func():
-				clip(p, "proiezione" if proiez else "parata", 1.2)
+				clip(p, "proiezione" if proiez else "immobilizza", 1.2)
 				clip(u, "proiettato" if proiez else "caduta", 1.2, ""))
 			tw.parallel().tween_property(f, "position", casa + v * 0.35, 0.35)
 			# volo: uke parte a circa metà della clip e atterra nell'esagono d'arrivo
@@ -1206,15 +1292,8 @@ func _anima(e: Dictionary) -> Tween:
 			var tw := create_tween()
 			if ha_modello(p):
 				# il colpo parte quando si conosce l'esito (parata, schivata o danno), insieme alla difesa
-				_n_colpi += 1
-				var nome: String = ["jab", "calcio", "cross", "calcio_girato", "montante", "calcio_mma", "cross", "calcio_volante"][_n_colpi % 8]
-				if e.get("genere", "colpo") == "presa":
-					nome = "cross"
-				if e.get("lancia", false):
-					nome = "proiezione"
-				elif int(e.get("spingi", 0)) > 0:
-					nome = ["calcio", "calcio_mma", "calcio_girato"][_n_colpi % 3]
-				_colpo = {"att": p, "dif": int(e["bers"]), "clip": nome, "para": false}
+				var nome := _clip_attacco(e)
+				_colpo = {"att": p, "dif": int(e["bers"]), "clip": nome, "para": false, "scarto": false}
 				tw.tween_interval(0.05)
 				return tw
 			if int(e.get("dist", 1)) <= 2:
@@ -1240,19 +1319,25 @@ func _anima(e: Dictionary) -> Tween:
 			return tw
 		"danno":
 			var n: int = e["n"]
-			_testo(f.position + Vector3(0, 2.0, 0), ("-%d" % n) if n > 0 else "nessun danno", Color("#ff5a40") if n > 0 else Color("#d8d0c0"))
+			var testo_d := ("-%d" % n) if n > 0 else "nessun danno"
+			var col_d := Color("#ff5a40") if n > 0 else Color("#d8d0c0")
 			var tw := create_tween()
 			if ha_modello(p):
 				var reazione := ""
+				var parato: bool = not _colpo.is_empty() and int(_colpo["dif"]) == p and _colpo["para"]
 				if n > 0:
-					reazione = "colpito_testa" if n >= 4 else "colpito_corpo"
-				elif not _colpo.is_empty() and _colpo["para"]:
-					reazione = "parata"
+					reazione = "parata_forte" if parato else ("colpito_testa" if n >= 4 else "colpito_corpo")
+				elif parato:
+					reazione = ["parata", "blocco_alto", "blocco_interno"][_n_colpi % 3]
 				if _colpo.get("clip", "") == "proiezione" and n > 0:
 					reazione = "proiettato"
-				_sferra(tw, p, reazione)
+				if parato:
+					testo_d = "Parata, " + testo_d if n > 0 else "Parata!"
+					col_d = Disegno.ORO if n == 0 else col_d
+				_sferra(tw, p, reazione, testo_d, col_d)
 				tw.tween_interval(0.35)
 				return tw
+			_testo(f.position + Vector3(0, 2.0, 0), testo_d, col_d)
 			if n > 0:
 				for k in 3:
 					tw.tween_property(corpo, "position:x", 0.08, 0.04)
@@ -1261,25 +1346,47 @@ func _anima(e: Dictionary) -> Tween:
 			tw.tween_interval(0.35)
 			return tw
 		"schiva":
-			_testo(f.position + Vector3(0, 2.0, 0), "Schivata!", Color("#8cc8ff"))
 			var tw := create_tween()
 			if ha_modello(p):
-				_sferra(tw, p, "schivata")
+				var sc: bool = not _colpo.is_empty() and _colpo.get("scarto", false)
+				_sferra(tw, p, "scarto" if sc else ["schivata", "schiva_destra"][_n_colpi % 2], "Schivata!", Color("#8cc8ff"))
 				tw.tween_interval(0.35)
 				return tw
+			_testo(f.position + Vector3(0, 2.0, 0), "Schivata!", Color("#8cc8ff"))
 			tw.tween_property(corpo, "position:x", -0.35, 0.12)
 			tw.tween_property(corpo, "position:x", 0.0, 0.2)
 			return tw
 		"para":
+			# la parata si vede insieme al colpo, al momento dell'impatto (scritta compresa)
+			if not _colpo.is_empty() and int(_colpo["dif"]) == p:
+				_colpo["para"] = true
+				return null
 			_testo(f.position + Vector3(0, 2.0, 0), "Parata", Disegno.ORO)
 			var tw := create_tween()
 			if ha_modello(p):
-				# la parata si vede insieme al colpo, quando arriva l'esito
-				if not _colpo.is_empty() and int(_colpo["dif"]) == p:
-					_colpo["para"] = true
-				else:
-					clip(p, "parata", 1.3)
+				clip(p, ["parata", "blocco_alto", "blocco_interno"][_n_colpi % 3], 1.3)
 			tw.tween_interval(0.35)
+			return tw
+		"azione":
+			var ef := String(e.get("effetto", ""))
+			# le reazioni a un colpo in arrivo si vedono all'impatto
+			if not _colpo.is_empty() and int(_colpo["dif"]) == p:
+				if ef == "scarta":
+					_colpo["scarto"] = true
+				return null
+			if not ha_modello(p) or not CLIP_AZIONE.has(ef):
+				return null
+			var tw := create_tween()
+			var nome_c: String = CLIP_AZIONE[ef]
+			if ef == "stordisci" and ("rugg" in String(e.get("nome", "")).to_lower() or "urlo" in String(e.get("nome", "")).to_lower()):
+				nome_c = "urlo"
+			# chi provoca o colpisce a distanza guarda l'avversario
+			if ef in ["stordisci", "varco", "disarma", "gira_nemico"]:
+				var vv := figure[1 - p].position - f.position
+				tw.tween_property(f, "rotation:y", f.rotation.y + wrapf(atan2(-vv.x, -vv.z) - f.rotation.y, -PI, PI), 0.15)
+			tw.tween_callback(func(): clip(p, nome_c, 1.3))
+			tw.tween_interval(minf(1.2, clip_durata(p, nome_c) / 1.3))
+			tw.tween_callback(func(): _ripristina_verso(p))
 			return tw
 		"blocco":
 			_testo(f.position + Vector3(0, 2.1, 0), ("%d dadi bloccati" % e["n"]) if e["n"] > 1 else "dado bloccato", Color("#c79cff"))
@@ -1315,9 +1422,9 @@ func _testo(p: Vector3, t: String, c: Color) -> void:
 	var l := Label3D.new()
 	l.text = t
 	l.font = Disegno.font_titolo()
-	l.font_size = 64
-	l.pixel_size = 0.006
-	l.outline_size = 16
+	l.font_size = 48
+	l.pixel_size = 0.0045
+	l.outline_size = 12
 	l.modulate = c
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	l.no_depth_test = true
