@@ -20,9 +20,15 @@ import bpy
 ANIMAZIONI = ["idle", "jab", "cross", "montante", "calcio", "parata", "schivata",
               "passo_avanti", "passo_indietro", "passo_sinistra", "passo_destra",
               "gira_sinistra", "gira_destra", "colpito_testa", "colpito_corpo",
-              "ko", "rialzata", "proiezione", "proiettato", "vittoria", "sconfitta", "caduta"]
+              "ko", "rialzata", "proiezione", "proiettato", "vittoria", "sconfitta", "caduta",
+              "salto", "salto_mortale", "salto_indietro", "sali", "scendi", "volo_indietro",
+              "calcio_girato", "calcio_volante", "calcio_mma", "lancia_oggetto", "spingi_oggetto"]
 # parte utile delle clip lunghe (fotogrammi a 30 al secondo): la proiezione dura 6,7 s, la rialzata 8,4 s
-TAGLI = {"proiezione": (40, 118), "proiettato": (40, 118), "rialzata": (95, 190), "caduta": (20, 90)}
+TAGLI = {"proiezione": (40, 118), "proiettato": (40, 118), "rialzata": (95, 190), "caduta": (20, 90),
+         "scendi": (25, 75), "volo_indietro": (1, 64), "calcio_volante": (1, 72), "spingi_oggetto": (30, 85)}
+# clip di salto: si toglie anche il dislivello tra inizio e fine (lo fa il gioco tra un esagono e l'altro),
+# resta solo l'arco del salto
+VERTICALE = {"salto", "salto_mortale", "salto_indietro", "sali", "scendi", "calcio_volante", "volo_indietro"}
 # clip in cui lo spostamento delle anche resta (la caduta all'indietro); nelle altre si toglie
 CON_DERIVA = {"caduta"}
 # clip tenute ferme su una posa: la guardia di Mixamo saltella come un pugile, qui si sta fermi
@@ -71,6 +77,23 @@ def fissa(action):
             for k in fc.keyframe_points:
                 d = k.co[1]
                 k.co[1] = 0.0
+                k.handle_left[1] -= d
+                k.handle_right[1] -= d
+            fc.update()
+
+
+def senza_dislivello(action):
+    for fc in _fcurves(action):
+        if fc.data_path.endswith('location') and 'Hips' in fc.data_path and fc.array_index == 1:
+            kp = fc.keyframe_points
+            if len(kp) < 2:
+                continue
+            x0, y0 = kp[0].co
+            x1, y1 = kp[-1].co
+            for k in kp:
+                t = 0.0 if x1 == x0 else (k.co[0] - x0) / (x1 - x0)
+                d = (y1 - y0) * t
+                k.co[1] -= d
                 k.handle_left[1] -= d
                 k.handle_right[1] -= d
             fc.update()
@@ -251,6 +274,8 @@ def main(cartella, uscita, pelle=None, statura=None):
             fissa(act)
         else:
             sul_posto(act, nome in CON_DERIVA)
+        if nome in VERTICALE:
+            senza_dislivello(act)
         if adatta:
             adatta_anche(act, *adatta)
         for o in nuovi:
