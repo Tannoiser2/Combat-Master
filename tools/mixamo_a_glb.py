@@ -25,6 +25,8 @@ ANIMAZIONI = ["idle", "jab", "cross", "montante", "calcio", "parata", "schivata"
 TAGLI = {"proiezione": (40, 118), "proiettato": (40, 118), "rialzata": (95, 190), "caduta": (20, 90)}
 # clip in cui lo spostamento delle anche resta (la caduta all'indietro); nelle altre si toglie
 CON_DERIVA = {"caduta"}
+# clip tenute ferme su una posa: la guardia di Mixamo saltella come un pugile, qui si sta fermi
+FERME = {"idle": 12}
 # clip in cui le anche restano ferme in orizzontale: il volo lo fa il gioco, verso l'esagono giusto
 FISSE = {"proiezione", "proiettato"}
 # clip che si ripetono in loop in Godot
@@ -48,6 +50,18 @@ def taglia(action, da, a):
             k.co[0] -= da - 1
             k.handle_left[0] -= da - 1
             k.handle_right[0] -= da - 1
+        fc.update()
+
+
+def ferma(action, fotogramma):
+    """Sostituisce la clip con una posa sola, tenuta per un secondo."""
+    for fc in _fcurves(action):
+        v = fc.evaluate(fotogramma)
+        kp = fc.keyframe_points
+        for i in range(len(kp) - 1, -1, -1):
+            kp.remove(kp[i])
+        kp.insert(1, v)
+        kp.insert(31, v)
         fc.update()
 
 
@@ -229,6 +243,8 @@ def main(cartella, uscita, pelle=None, statura=None):
         act = a2.animation_data.action
         act.name = nome
         act.use_fake_user = True
+        if nome in FERME:
+            ferma(act, FERME[nome])
         if nome in TAGLI:
             taglia(act, *TAGLI[nome])
         if nome in FISSE:
