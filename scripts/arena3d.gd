@@ -747,6 +747,59 @@ func _urto(p: int, e: Dictionary) -> Tween:
 		clip(p, "colpito_corpo", 1.3)
 	return tw
 
+## lunghezza in metri di un ciclo delle clip di passo di Mixamo (spostamento delle anche del manichino)
+const PASSO_LEN := {"passo_avanti": 0.92, "passo_indietro": 0.6, "passo_sinistra": 0.37, "passo_destra": 0.45}
+
+func s_vivo(p: int) -> bool:
+	return m != null and int(m.s["g"][p]["vita"]) > 0
+
+## Passi veri da un esagono all'altro: la clip giusta (avanti, indietro, di lato) ripetuta
+## tante volte quanto serve a coprire la distanza, così i piedi non scivolano.
+func _tween_passi(tw: Tween, p: int, f: Node3D, da: Vector3, a: Vector3, r0: float, r1: float, vel: float) -> void:
+	var nome := _clip_passo(a - da, r0, r1 - r0)
+	var ap := _ap(p)
+	if nome == "" or ap == null or not ap.has_animation(nome):
+		tw.tween_property(f, "position", a, 0.4)
+		return
+	var lung: float = PASSO_LEN[nome] * SCALA_MODELLO * SCALA_FIGURA
+	var d := Vector2(a.x - da.x, a.z - da.z).length()
+	var n := clampi(roundi(d / lung), 1, 2)
+	if nome != "passo_avanti":
+		vel *= 1.25
+	var durata := n * ap.get_animation(nome).length / vel
+	tw.tween_callback(func():
+		ap.play(nome, 0.1, vel)
+		for k in n - 1:
+			ap.queue(nome)
+		ap.queue("idle"))
+	tw.tween_property(f, "position", a, durata)
+	tw.parallel().tween_property(f, "rotation:y", r1, minf(durata, 0.35))
+
+## Salto acrobatico (due livelli o sopra le macerie): rincorsa, capriola in aria, atterraggio.
+func _tween_acrobazia(tw: Tween, p: int, f: Node3D, da: Vector3, a: Vector3, ry: float) -> void:
+	var corpo: Node3D = f.get_node("Corpo")
+	var alto := 0.7 + maxf(0.0, a.y - da.y) * 0.8
+	var dur := 0.9
+	tw.tween_callback(func(): clip(p, "schivata", 2.2))
+	tw.tween_property(f, "rotation:y", ry, 0.15)
+	tw.tween_method(func(t: float):
+		f.position = da.lerp(a, t) + Vector3(0, sin(PI * t) * alto, 0)
+		# capriola attorno alle anche (a circa un metro da terra)
+		var ang := -TAU * clampf((t - 0.1) / 0.8, 0.0, 1.0)
+		var c := Vector3(0, 1.0, 0)
+		corpo.rotation.x = ang
+		corpo.position = c - Basis(Vector3.RIGHT, ang) * c, 0.0, 1.0, dur)
+	tw.tween_callback(func():
+		corpo.rotation = Vector3.ZERO
+		corpo.position = Vector3.ZERO
+		clip(p, "parata", 2.0))
+	tw.tween_interval(0.2)
+
+## Volo di chi viene lanciato o cade da un rialzo: arco ampio, atterraggio sulla schiena.
+func _tween_volo(tw: Tween, f: Node3D, da: Vector3, a: Vector3, ry: float, dur: float) -> void:
+	var alto := 0.9 + maxf(0.0, da.y - a.y) * 0.3
+	tw.tween_method(func(t: float): f.position = da.lerp(a, t) + Vector3(0, sin(PI * t) * alto, 0), 0.0, 1.0, dur).set_ease(Tween.EASE_OUT)
+
 ## Quale passo animare: avanti, indietro, di lato o una rotazione sul posto.
 func _clip_passo(d: Vector3, ry: float, giro: float) -> String:
 	d.y = 0
@@ -1063,41 +1116,52 @@ func _anima(e: Dictionary) -> Tween:
 				return null
 			var tw := create_tween()
 			var anim := ha_modello(p)
-			var dur := (0.5 if anim else 0.2) if e["t"] == "muovi" else (0.3 if anim else 0.12)
+			var spinto: bool = e["t"] == "spinto"
+			var devia: bool = e.get("devia", false)
+			var vola: bool = spinto and (e.get("lancia", false) or int(e.get("caduta", 0)) > 0)
 			var rot_prec := f.rotation.y
 			var pos_prec := f.position
-			var devia: bool = e.get("devia", false)
-			if anim and e["t"] == "spinto":
-				if devia:
-					clip(p, "passo_avanti", 1.5)
-				elif not e.get("lancia", false):
-					clip(p, "colpito_corpo")
+			if anim and spinto and not devia and not vola:
+				# il colpo arriva, poi si arretra barcollando con passi veri
+				tw.tween_callback(func(): clip(p, "colpito_corpo", 1.6, ""))
+				tw.tween_interval(0.22)
+			if anim and vola:
+				tw.tween_callback(func(): clip(p, "proiettato", 1.3, ""))
 			for st in per:
 				var pos := posizione(Vector2i(st.x, st.y))
-				var ry := angolo_y(st.z) if e["t"] == "muovi" or devia else f.rotation.y
+				var ry := angolo_y(st.z) if not spinto or devia else f.rotation.y
 				ry = rot_prec + wrapf(ry - rot_prec, -PI, PI)
-				if anim and e["t"] == "muovi":
-					var nome := _clip_passo(pos - pos_prec, rot_prec, ry - rot_prec)
-					if nome != "":
-						tw.tween_callback(func(): clip(p, nome, 1.6))
-				rot_prec = ry
 				var da := pos_prec
+				var r0 := rot_prec
+				rot_prec = ry
 				pos_prec = pos
-				var dy := absf(pos.y - da.y)
+				if (pos - da).length() < 0.05:
+					# rotazione sul posto
+					tw.tween_property(f, "rotation:y", ry, 0.25 if anim else 0.12)
+					continue
+				if not anim:
+					tw.tween_property(f, "position", pos, 0.2)
+					tw.parallel().tween_property(f, "rotation:y", ry, 0.2)
+					continue
+				var dy := pos.y - da.y
 				var lungo := Vector2(pos.x - da.x, pos.z - da.z).length() > 2.0 * S
-				if dy > 0.05 or lungo:
-					# gradino, salto acrobatico o caduta: un arco invece di uno scivolamento
-					var hop := 0.25 + dy * 0.6 + (0.8 if lungo else 0.0)
-					if e.get("caduta", 0) > 0 and pos.y < da.y:
-						hop = 0.15
-					var d2 := dur * (1.8 if lungo or dy > ALT * 1.5 else 1.2)
-					if anim and (lungo or dy > ALT * 1.5) and e["t"] == "muovi":
-						tw.tween_callback(func(): clip(p, "schivata", 1.4))
-					tw.tween_method(func(t: float): f.position = da.lerp(pos, t) + Vector3(0, sin(PI * t) * hop, 0), 0.0, 1.0, d2)
-					tw.parallel().tween_property(f, "rotation:y", ry, d2)
+				if vola:
+					_tween_volo(tw, f, da, pos, ry, 0.55)
+				elif lungo or absf(dy) > ALT * 1.5:
+					_tween_acrobazia(tw, p, f, da, pos, ry)
+				elif absf(dy) > 0.05:
+					# gradino: un passo con un piccolo balzo
+					tw.tween_callback(func(): clip(p, "passo_avanti" if dy > 0 else "passo_indietro" if spinto else "passo_avanti", 1.5))
+					tw.tween_method(func(t: float): f.position = da.lerp(pos, t) + Vector3(0, sin(PI * t) * (0.3 + absf(dy) * 0.5), 0), 0.0, 1.0, 0.55)
+					tw.parallel().tween_property(f, "rotation:y", ry, 0.4)
 				else:
-					tw.tween_property(f, "position", pos, dur).set_trans(Tween.TRANS_SINE)
-					tw.parallel().tween_property(f, "rotation:y", ry, dur)
+					_tween_passi(tw, p, f, da, pos, r0, ry, 1.9 if spinto else 1.35)
+			if anim and vola:
+				tw.tween_callback(func():
+					if _ap(p) != null and s_vivo(p):
+						_ap(p).play("rialzata", 0.2, 1.3)
+						_ap(p).queue("idle"))
+				tw.tween_interval(0.6)
 			if e.get("urto", false):
 				tw.tween_callback(func(): _urto(p, e))
 				tw.tween_interval(0.45)
@@ -1118,7 +1182,7 @@ func _anima(e: Dictionary) -> Tween:
 			if ha_modello(p):
 				# il colpo parte quando si conosce l'esito (parata, schivata o danno), insieme alla difesa
 				_n_colpi += 1
-				var nome: String = ["jab", "cross", "montante", "calcio"][_n_colpi % 4]
+				var nome: String = ["jab", "calcio", "cross", "calcio", "montante"][_n_colpi % 5]
 				if e.get("genere", "colpo") == "presa":
 					nome = "cross"
 				if e.get("lancia", false):
