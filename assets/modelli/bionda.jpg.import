@@ -2,19 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://rqtkptfge6qr"
-path="res://.godot/imported/donna_Image_0.png-2df7261b0a7d0afad0c1c246249c9f0f.ctex"
+uid="uid://cfj1ria6nopsb"
+path="res://.godot/imported/bionda.jpg-b94b1b21c5822edb112863fa6b0445fc.ctex"
 metadata={
 "vram_texture": false
-}
-generator_parameters={
-"md5": "05d29cf14c835c40e207eb334695bf24"
 }
 
 [deps]
 
-source_file="res://assets/modelli/donna_Image_0.png"
-dest_files=["res://.godot/imported/donna_Image_0.png-2df7261b0a7d0afad0c1c246249c9f0f.ctex"]
+source_file="res://assets/modelli/bionda.jpg"
+dest_files=["res://.godot/imported/bionda.jpg-b94b1b21c5822edb112863fa6b0445fc.ctex"]
 
 [params]
 
@@ -26,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

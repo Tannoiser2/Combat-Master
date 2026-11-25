@@ -34,6 +34,7 @@ var _prep_scenario := 0
 var _prep_scelte := [0, 1]
 var _prep_opt: Array = []
 var _prep_desc: Array = []
+var _prep_aspetto: Array = []
 var _prep_sc_btn: Array = []
 
 # battaglia
@@ -688,6 +689,7 @@ func preparazione(modo: String) -> void:
 	v.add_child(hp)
 	_prep_opt.clear()
 	_prep_desc.clear()
+	_prep_aspetto.clear()
 	for p in 2:
 		var col := VBoxContainer.new()
 		col.custom_minimum_size = Vector2(510, 0)
@@ -708,6 +710,21 @@ func preparazione(modo: String) -> void:
 		d.custom_minimum_size = Vector2(500, 96)
 		col.add_child(d)
 		_prep_desc.append(d)
+		# aspetto del combattente in 3D
+		var ha := HBoxContainer.new()
+		ha.add_theme_constant_override("separation", 10)
+		col.add_child(ha)
+		var la := _label("Aspetto", 18)
+		la.custom_minimum_size = Vector2(110, 0)
+		ha.add_child(la)
+		var oa := OptionButton.new()
+		oa.custom_minimum_size = Vector2(380, 42)
+		oa.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		for a in Arena3D.ASPETTI:
+			oa.add_item(a["nome"])
+		oa.select(p % Arena3D.ASPETTI.size())
+		ha.add_child(oa)
+		_prep_aspetto.append(oa)
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 12)
 	v.add_child(hb)
@@ -796,6 +813,8 @@ func _prep_via() -> void:
 		b = Generatore.casuale(dati, budget, rng)
 	if a["nome"] == b["nome"]:
 		b["nome"] = b["nome"] + " (ombra)"
+	a["aspetto"] = Arena3D.ASPETTI[maxi(0, _prep_aspetto[0].selected)]["id"]
+	b["aspetto"] = Arena3D.ASPETTI[maxi(0, _prep_aspetto[1].selected)]["id"]
 	spettatore = _prep_modo == "spettatore"
 	if not spettatore:
 		allenamento = false

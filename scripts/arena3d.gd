@@ -273,7 +273,7 @@ func _crea_figura(i: int) -> void:
 			maxd = st["dadi"][c]
 			dom = c
 	var veste := Disegno.colore(dom).darkened(0.2)
-	var modello := _modello_combattente(colp, veste, i)
+	var modello := _modello_combattente(colp, veste, aspetto_di(g["pg"], i))
 	if modello != null:
 		corpo.add_child(modello)
 		# le miniature animate poggiano direttamente sul terreno, senza basetta
@@ -390,8 +390,23 @@ func _figura_semplice(corpo: Node3D, veste: Color, toks: Dictionary, colp: Color
 		pugno.height = 0.18
 		_mesh(pugno, _mat(Color("#d9b48f")), Vector3(0.3, 0.7, -0.25), corpo)
 
-## un modello per combattente: la donna (veste rossa) e l'uomo (veste blu), stesse ossa e animazioni
-const MODELLI := ["res://assets/modelli/donna.glb", "res://assets/modelli/uomo.glb"]
+## aspetti dei combattenti: modelli riggati su Mixamo, stesse ossa e animazioni.
+## Il file è res://assets/modelli/<id>.glb con la texture <id>.jpg accanto.
+const ASPETTI := [
+	{"id": "donna", "nome": "Guerriera in rosso"},
+	{"id": "uomo", "nome": "Lottatore in blu"},
+	{"id": "uomo2", "nome": "Lottatore riccio"},
+	{"id": "bionda", "nome": "Atleta bionda"},
+	{"id": "mora", "nome": "Atleta mora"},
+]
+
+## aspetto di un combattente: quello scelto, altrimenti uno diverso per lato
+static func aspetto_di(pg: Dictionary, lato: int) -> String:
+	var id := String(pg.get("aspetto", ""))
+	for a in ASPETTI:
+		if a["id"] == id:
+			return id
+	return ASPETTI[lato % 2]["id"]
 const SCALA_MODELLO := 1.12
 ## veste del secondo combattente quando il modello ha una texture (stessa mappa UV, colori diversi)
 ## la texture si carica a parte: quella incorporata nel GLB non sempre si importa nel web
@@ -399,8 +414,8 @@ const SCALA_FIGURA := 1.25
 
 ## Il combattente animato (manichino Mixamo): tuta del colore della caratteristica dominante,
 ## giunture del colore del giocatore. Guarda verso -Z come le pedine.
-func _modello_combattente(colp: Color, veste: Color, i := 0) -> Node3D:
-	var percorso: String = MODELLI[i % MODELLI.size()]
+func _modello_combattente(colp: Color, veste: Color, aspetto := "donna") -> Node3D:
+	var percorso := "res://assets/modelli/%s.glb" % aspetto
 	if not ResourceLoader.exists(percorso):
 		return null
 	var tex_veste := percorso.get_basename() + ".jpg"
