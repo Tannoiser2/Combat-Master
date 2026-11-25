@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://3b3vyj58qalr"
-path="res://.godot/imported/combattente.glb-d71f0d7e47e908cd5e8c6f62428f4262.scn"
+uid="uid://bc5q1rvv02a3o"
+path="res://.godot/imported/donna.glb-39610806d0a1afe2ef25ec7b7f968278.scn"
 
 [deps]
 
-source_file="res://assets/modelli/combattente.glb"
-dest_files=["res://.godot/imported/combattente.glb-d71f0d7e47e908cd5e8c6f62428f4262.scn"]
+source_file="res://assets/modelli/donna.glb"
+dest_files=["res://.godot/imported/donna.glb-39610806d0a1afe2ef25ec7b7f968278.scn"]
 
 [params]
 

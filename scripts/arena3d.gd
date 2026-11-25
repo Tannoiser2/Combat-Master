@@ -273,7 +273,7 @@ func _crea_figura(i: int) -> void:
 			maxd = st["dadi"][c]
 			dom = c
 	var veste := Disegno.colore(dom).darkened(0.2)
-	var modello := _modello_combattente(colp, veste)
+	var modello := _modello_combattente(colp, veste, i)
 	if modello != null:
 		corpo.add_child(modello)
 		# le miniature animate poggiano direttamente sul terreno, senza basetta
@@ -390,16 +390,21 @@ func _figura_semplice(corpo: Node3D, veste: Color, toks: Dictionary, colp: Color
 		pugno.height = 0.18
 		_mesh(pugno, _mat(Color("#d9b48f")), Vector3(0.3, 0.7, -0.25), corpo)
 
-const MODELLO := "res://assets/modelli/combattente.glb"
+## un modello per combattente: la donna (veste rossa) e l'uomo (veste blu), stesse ossa e animazioni
+const MODELLI := ["res://assets/modelli/donna.glb", "res://assets/modelli/uomo.glb"]
 const SCALA_MODELLO := 1.12
+## veste del secondo combattente quando il modello ha una texture (stessa mappa UV, colori diversi)
+## la texture si carica a parte: quella incorporata nel GLB non sempre si importa nel web
 const SCALA_FIGURA := 1.25
 
 ## Il combattente animato (manichino Mixamo): tuta del colore della caratteristica dominante,
 ## giunture del colore del giocatore. Guarda verso -Z come le pedine.
-func _modello_combattente(colp: Color, veste: Color) -> Node3D:
-	if not ResourceLoader.exists(MODELLO):
+func _modello_combattente(colp: Color, veste: Color, i := 0) -> Node3D:
+	var percorso: String = MODELLI[i % MODELLI.size()]
+	if not ResourceLoader.exists(percorso):
 		return null
-	var sc: PackedScene = load(MODELLO)
+	var tex_veste := percorso.get_basename() + ".jpg"
+	var sc: PackedScene = load(percorso)
 	var mod: Node3D = sc.instantiate()
 	mod.name = "Modello"
 	mod.scale = Vector3.ONE * SCALA_MODELLO
@@ -407,6 +412,16 @@ func _modello_combattente(colp: Color, veste: Color) -> Node3D:
 	for mi in mod.find_children("*", "MeshInstance3D", true, false):
 		var mesh: Mesh = mi.mesh
 		for k in mesh.get_surface_count():
+			var orig := mesh.surface_get_material(k) as BaseMaterial3D
+			if mi.name == "Pelle" and ResourceLoader.exists(tex_veste):
+				# personaggio con texture: resta com'è
+				var mt := orig.duplicate() as BaseMaterial3D if orig != null else StandardMaterial3D.new()
+				mt.roughness = 0.75
+				mt.metallic = 0.0
+				mt.albedo_texture = load(tex_veste)
+				mt.albedo_color = Color.WHITE
+				mi.set_surface_override_material(k, mt)
+				continue
 			var nome_mat := String(mesh.surface_get_material(k).resource_name) if mesh.surface_get_material(k) != null else ""
 			var c := colp.darkened(0.15) if nome_mat.contains("Joints") else veste
 			mi.set_surface_override_material(k, _mat(c, 0.55, 0.1))

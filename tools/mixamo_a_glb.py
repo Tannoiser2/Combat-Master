@@ -5,7 +5,10 @@ quindi dalle anche si toglie lo spostamento orizzontale complessivo di ogni clip
 (resta l'oscillazione, sparisce la deriva).
 
 Uso (Blender come modulo Python, oppure dentro Blender):
-    python3 tools/mixamo_a_glb.py CARTELLA_FBX USCITA.glb
+    python3 tools/mixamo_a_glb.py CARTELLA_FBX USCITA.glb [PELLE.glb]
+Con PELLE.glb (un personaggio statico in T-pose, per esempio generato da un'IA) il manichino
+viene sostituito: lo scheletro di Mixamo si adatta alle sue misure (braccia comprese) e la
+pelle si lega alle ossa con i pesi automatici di Blender. Le animazioni restano quelle.
 I file FBX di Mixamo non vanno nel repository: la licenza permette di usarli nel gioco,
 non di ridistribuirli da soli.
 """
@@ -79,6 +82,81 @@ def sul_posto(action, deriva=False):
             fc.update()
 
 
+def veste_pelle(arm, pelle, facce=60000, lato_tex=2048):
+    """Sostituisce le mesh del manichino con la pelle e adatta lo scheletro alle sue misure."""
+    import mathutils
+    import numpy as np
+    vecchie = [o for o in bpy.data.objects if o.type == "MESH"]
+    yv = np.array([o.matrix_world @ v.co for o in vecchie for v in o.data.vertices])
+    prima = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=pelle)
+    nuovi = [o for o in bpy.data.objects if o not in prima]
+    mesh = [o for o in nuovi if o.type == "MESH"]
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in mesh:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = mesh[0]
+    if len(mesh) > 1:
+        bpy.ops.object.join()
+    corpo = bpy.context.view_layer.objects.active
+    corpo.parent = None
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    for o in nuovi:
+        if o != corpo and o.name in bpy.data.objects:
+            bpy.data.objects.remove(o, do_unlink=True)
+    # le mesh generate hanno spesso vertici doppi lungo le cuciture: la pesatura automatica fallisce
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.remove_doubles(threshold=0.0005)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    # meno poligoni: il gioco gira anche nel browser
+    if len(corpo.data.polygons) > facce:
+        m = corpo.modifiers.new("dec", "DECIMATE")
+        m.ratio = facce / len(corpo.data.polygons)
+        bpy.ops.object.modifier_apply(modifier=m.name)
+    for img in bpy.data.images:
+        if img.size[0] > lato_tex:
+            img.scale(lato_tex, lato_tex)
+    v = np.array([corpo.matrix_world @ x.co for x in corpo.data.vertices])
+    mw = arm.matrix_world
+    def testa(n):
+        return mw @ arm.data.bones["mixamorig:" + n].head_local
+    # altezza delle spalle uguale a quella del manichino (le braccia in T sono la parte più chiara)
+    def braccia_z(pts):
+        mx = np.abs(pts[:, 0]).max()
+        return float(np.median(pts[np.abs(pts[:, 0]) > 0.6 * mx][:, 2]))
+    k = (braccia_z(yv) - yv[:, 2].min()) / (braccia_z(v) - v[:, 2].min())
+    corpo.location = (-(v[:, 0].max() + v[:, 0].min()) / 2 * k, -(v[:, 1].max() + v[:, 1].min()) / 2 * k, -v[:, 2].min() * k)
+    corpo.scale = (k, k, k)
+    bpy.ops.object.transform_apply(location=True, scale=True)
+    v = np.array([x.co for x in corpo.data.vertices])
+    # le braccia si scalano attorno alla spalla: stessa direzione delle ossa, quindi le animazioni restano valide
+    sx = testa("LeftArm").x
+    s_br = (v[:, 0].max() - sx) / (yv[:, 0].max() - sx)
+    print("pelle: scala", round(k, 3), "braccia", round(s_br, 3))
+    for o in vecchie:
+        bpy.data.objects.remove(o, do_unlink=True)
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.mode_set(mode="EDIT")
+    inv = mw.inverted()
+    eb = arm.data.edit_bones
+    for lato in ("Left", "Right"):
+        perno = eb["mixamorig:%sArm" % lato].head.copy()
+        catena = [b for b in eb if b.name == "mixamorig:%sArm" % lato or
+                  any(p.name == "mixamorig:%sArm" % lato for p in b.parent_recursive)]
+        for b in catena:
+            b.head = perno + (b.head - perno) * s_br
+            b.tail = perno + (b.tail - perno) * s_br
+    bpy.ops.object.mode_set(mode="OBJECT")
+    corpo.select_set(True)
+    arm.select_set(True)
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.parent_set(type="ARMATURE_AUTO")
+    senza = sum(1 for x in corpo.data.vertices if not x.groups)
+    print("pelle: vertici senza peso", senza, "su", len(corpo.data.vertices))
+    corpo.name = "Pelle"
+
+
 def _fcurves(action):
     # Blender 4.4+ usa le "slotted actions": le curve stanno nei layer/strip/channelbag
     if hasattr(action, "fcurves") and len(action.fcurves):
@@ -91,11 +169,13 @@ def _fcurves(action):
     return out
 
 
-def main(cartella, uscita):
+def main(cartella, uscita, pelle=None):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     base = importa(os.path.join(cartella, "ybot.fbx"))
     arm = next(o for o in base if o.type == "ARMATURE")
     arm.name = "Combattente"
+    if pelle:
+        veste_pelle(arm, pelle)
     if arm.animation_data and arm.animation_data.action:
         vecchia = arm.animation_data.action
         arm.animation_data.action = None
@@ -144,4 +224,4 @@ def main(cartella, uscita):
 
 if __name__ == "__main__":
     args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:]
-    main(args[0], args[1])
+    main(args[0], args[1], args[2] if len(args) > 2 else None)
