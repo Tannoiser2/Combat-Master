@@ -20,6 +20,7 @@ func duello(t0: Dictionary, t1: Dictionary) -> Motore:
 	m.s["fase"] = "azione"
 	m.s["attivo"] = 0
 	m.s["ost"] = {}
+	m.s["alt"] = {}
 	m.s["per"] = {}
 	for p in 2:
 		for d in m.s["g"][p]["dadi"]:

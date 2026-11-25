@@ -110,3 +110,16 @@ Vince chi porta l'avversario a 0 ferite. Dopo 30 scambi vince chi ha più ferite
 
 ## Guardare l'IA
 Dal menu, Guarda l'IA combattere: scegli lo scenario e due combattenti (anche casuali) e regola la velocità. Con Scontri a ripetizione partono sempre nuovi duelli fra avventurieri casuali.
+
+## Terreno a più livelli
+
+- Ogni esagono ha un livello: 0 il suolo, 1 una piattaforma o una roccia, 2 un rocchio di colonna spezzata.
+- Salire di un livello costa un punto movimento in più. Scendere di un livello è gratis.
+- Due livelli (su o giù) si superano solo con un **salto acrobatico**, che richiede almeno 5 punti movimento in un'azione e costa 2 punti in più.
+- Con un salto acrobatico si scavalcano anche le **macerie basse** (rovine), solo in avanti, atterrando due esagoni più in là. Le colonne intere restano muri.
+- Si colpisce a contatto solo se il dislivello è al massimo di un livello. Chi colpisce dall'alto fa **+1 danno**.
+- Spinte: un gradino più alto ferma la spinta; due livelli sono un muro (urto). Chi viene spinto giù da un rialzo **cade** e subisce una ferita per ogni livello.
+
+## Parate che deviano
+
+Quando un attacco viene parato (azione di parata o guardia), lo slancio porta l'attaccante di fianco al difensore, girato di un lato. Se di fianco non c'è spazio, è il difensore a fare un passo indietro, fuori dalla linea del colpo.

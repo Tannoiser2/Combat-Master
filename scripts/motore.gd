@@ -15,6 +15,7 @@ const CONSERVA_BASE := 1
 const RECUPERO_BASE := 1
 const DANNO_PERICOLO := 2
 const DANNO_URTO := 2
+const SALTO_MIN := 5           # punti movimento con cui si fa un salto acrobatico (due livelli o sopra un ostacolo basso)
 const ROUND_MAX := 30
 const PASSO_BASE := 2          # punti movimento dell'azione base senza dadi, una volta per scambio
 const SUPPORTI_MAX := 2        # supporti per colpo, in attacco e in difesa
@@ -143,8 +144,14 @@ func nuova_partita(pg0: Dictionary, pg1: Dictionary, arena_id: String, seme: int
 	var per := {}
 	for o in ar["pericoli"]:
 		per[Vector2i(int(o[0]), int(o[1]))] = true
+	var bassi := {}
+	for o in ar.get("bassi", []):
+		bassi[Vector2i(int(o[0]), int(o[1]))] = true
+	var alt := {}
+	for o in ar.get("alture", []):
+		alt[Vector2i(int(o[0]), int(o[1]))] = int(o[2])
 	var R := int(ar["raggio"])
-	s = {"round": 0, "attivo": 0, "primo": -1, "fase": "azione", "pend": {}, "azz": {},
+	s = {"alt": alt, "bassi": bassi, "round": 0, "attivo": 0, "primo": -1, "fase": "azione", "pend": {}, "azz": {},
 		"raggio": R, "ost": ost, "per": per, "arena": arena_id, "vinc": -1,
 		"log": [], "eventi": [], "g": []}
 	var partenze := [Vector2i(-(R - 3), 0), Vector2i(R - 3, 0)]
@@ -259,6 +266,10 @@ func _erodi_guardia(p: int, key: String, n: int) -> void:
 func in_arena(h: Vector2i) -> bool:
 	return dist(h, Vector2i.ZERO) <= int(s["raggio"])
 
+## Livello del terreno di un esagono: 0 il suolo, 1 una piattaforma o una roccia, 2 un rocchio di colonna.
+func altezza(h: Vector2i) -> int:
+	return int(s.get("alt", {}).get(h, 0))
+
 func libero(h: Vector2i, ignora: int = -1) -> bool:
 	if not in_arena(h) or s["ost"].has(h):
 		return false
@@ -315,10 +326,22 @@ func raggiungibili(p: int, mp: int) -> Dictionary:
 			continue
 		var h := Vector2i(cur.x, cur.y)
 		var vicini := [[Vector3i(cur.x, cur.y, (cur.z + 1) % 6), 1], [Vector3i(cur.x, cur.y, (cur.z + 5) % 6), 1]]
+		var ah := altezza(h)
 		for k in 6:
 			var nh: Vector2i = h + DIRS[k]
+			var base := 1 if k == cur.z else 2
 			if libero(nh, p):
-				vicini.append([Vector3i(nh.x, nh.y, cur.z), 1 if k == cur.z else 2])
+				# salire di un livello costa un punto in più; due livelli (su o giù) solo con un salto acrobatico
+				var dh := altezza(nh) - ah
+				if absi(dh) <= 1:
+					vicini.append([Vector3i(nh.x, nh.y, cur.z), base + (1 if dh == 1 else 0)])
+				elif absi(dh) == 2 and mp >= SALTO_MIN:
+					vicini.append([Vector3i(nh.x, nh.y, cur.z), base + 2])
+			elif mp >= SALTO_MIN and k == cur.z and s.get("bassi", {}).has(nh):
+				# salto acrobatico sopra un ostacolo basso, solo in avanti
+				var oltre: Vector2i = nh + DIRS[k]
+				if libero(oltre, p) and absi(altezza(oltre) - ah) <= 1:
+					vicini.append([Vector3i(oltre.x, oltre.y, cur.z), 3])
 		for v in vicini:
 			var nc: int = c + v[1]
 			if nc <= mp and (not costo.has(v[0]) or nc < costo[v[0]]):
@@ -1039,6 +1062,9 @@ func _attacco_possibile(p: int, sl: Dictionary, pos: Vector2i, dir: int) -> bool
 	var contatto := bool(regole.get("solo_contatto", false))
 	if contatto and d > 1:
 		return false
+	# da un rocchio di colonna non si arriva a chi sta in basso (e viceversa): serve scendere o saltare
+	if absi(altezza(pos) - altezza(tp)) > 1:
+		return false
 	# chi colpisce può girarsi verso un nemico sul fianco (non alle spalle) mentre sferra il colpo
 	if not in_fronte(pos, dir, tp) and not (bool(regole.get("girarsi_per_colpire", false)) and d <= (1 if contatto else 2) and lato(pos, dir, tp) == "fianco"):
 		return false
@@ -1577,6 +1603,7 @@ func _slot(p: int, op: Dictionary) -> String:
 			if sl.get("no_spinta", false):
 				s["pend"]["no_spinta"] = true
 			s["pend"]["respingi"] = int(s["pend"].get("respingi", 0)) + int(sl.get("respingi", 0))
+			s["pend"]["parato"] = true
 			_scrivi("%s: %s, -%d." % [g["nome"], sl["nome"], q])
 			_evento({"t": "para", "p": p})
 			_dopo_risposta()
@@ -2018,13 +2045,17 @@ func _risolvi_attacco() -> void:
 			_scrivi("%s ferma il colpo con la guardia: -%d." % [gd["nome"], cop[0]])
 			_evento({"t": "para", "p": dif})
 			_erodi_guardia(dif, String(cop[1]), 1)
+			pe["parato"] = true
 		var arm: int = 0 if pe["ignora"] else int(gd["armatura"])
 		# ogni tre punti fra vantaggi dell'attaccante e svantaggi del difensore: +1 danno
 		var sfera: int = (int(pe.get("vant", 0)) + int(pe.get("svant", 0))) / int(regole.get("punti_sfera", 3))
 		if sfera > 0:
 			_scrivi("La sfera è di %s: +%d danni (vantaggi %d, svantaggi %d)." % [ga["nome"], sfera, int(pe.get("vant", 0)), int(pe.get("svant", 0))])
 			_evento({"t": "sfera", "p": att, "n": sfera})
-		var tot: int = maxi(0, int(pe["danno"]) + int(pe["bonus"]) + sfera - int(pe["riduz"]))
+		var alto := 1 if altezza(ga["pos"]) > altezza(gd["pos"]) else 0
+		if alto > 0:
+			_scrivi("%s colpisce dall'alto: +1." % ga["nome"])
+		var tot: int = maxi(0, int(pe["danno"]) + int(pe["bonus"]) + sfera + alto - int(pe["riduz"]))
 		# l'armatura da sola non annulla un colpo andato a segno: almeno 1 danno passa
 		tot = maxi(mini(tot, 1), tot - arm)
 		_ferisci(dif, tot)
@@ -2070,6 +2101,9 @@ func _risolvi_attacco() -> void:
 		_spingi(dif, att, int(pe["respingi"]), false)
 	if s["vinc"] < 0 and not pe.get("poi", {}).is_empty():
 		_mossa_obbligata(att, dif, pe["poi"])
+	elif s["vinc"] < 0 and pe.get("parato", false) and not pe.has("tecnica") and int(pe.get("respingi", 0)) == 0 \
+			and regole.get("parata_devia", true):
+		_devia(dif, att)
 	if s["vinc"] >= 0:
 		return
 	if pe["ruba"] and puo_agire(dif):
@@ -2167,14 +2201,26 @@ func _spingi(att: int, dif: int, n: int, verso: bool, deviazione := 0, lancia :=
 		d = (d + 3) % 6
 	var per := [Vector3i(gd["pos"].x, gd["pos"].y, gd["dir"])]
 	var urto := false
+	var caduta := 0
 	for i in n:
 		var nh: Vector2i = gd["pos"] + DIRS[d]
-		if not libero(nh, dif):
+		var dh := altezza(nh) - altezza(gd["pos"]) if in_arena(nh) else 0
+		# un gradino più alto ferma la spinta; due livelli sono un muro
+		if not libero(nh, dif) or dh >= 2:
 			urto = not verso
 			break
+		if dh == 1:
+			break
+		if dh < 0:
+			caduta += -dh
 		gd["pos"] = nh
 		per.append(Vector3i(nh.x, nh.y, gd["dir"]))
-	_evento({"t": "spinto", "p": dif, "percorso": per, "lancia": lancia, "urto": urto, "dir": d})
+	_evento({"t": "spinto", "p": dif, "percorso": per, "lancia": lancia, "urto": urto, "dir": d, "caduta": caduta})
+	if caduta > 0:
+		_scrivi("%s cade giù dal rialzo!" % gd["nome"])
+		_ferisci(dif, caduta)
+		if s["vinc"] >= 0:
+			return
 	if urto:
 		_scrivi("%s sbatte contro un ostacolo!" % gd["nome"])
 		_ferisci(dif, DANNO_URTO + (1 if lancia else 0))
@@ -2187,6 +2233,38 @@ func _spingi(att: int, dif: int, n: int, verso: bool, deviazione := 0, lancia :=
 				_evento({"t": "blocco", "p": dif, "n": 1})
 				_evento({"t": "dadi", "p": dif})
 	if s["vinc"] < 0:
+		_pericolo(dif)
+
+## Parata che devia: lo slancio porta l'attaccante oltre, di fianco al difensore, e lo gira di un lato.
+## Se di fianco non c'è spazio è il difensore a fare un passo indietro, fuori dalla linea del colpo.
+func _devia(dif: int, att: int) -> void:
+	var gd: Dictionary = s["g"][dif]
+	var ga: Dictionary = s["g"][att]
+	if dist(gd["pos"], ga["pos"]) != 1:
+		return
+	var dv := dir_verso(gd["pos"], ga["pos"])
+	var lati := [(dv + 1) % 6, (dv + 5) % 6]
+	if rng.randi() % 2 == 1:
+		lati.reverse()
+	for k in lati:
+		var h: Vector2i = gd["pos"] + DIRS[k]
+		if libero(h, att) and altezza(h) - altezza(ga["pos"]) <= 1:
+			var da := Vector3i(ga["pos"].x, ga["pos"].y, ga["dir"])
+			ga["pos"] = h
+			# l'attaccante prosegue nel verso del colpo: si ritrova girato di un lato rispetto al difensore
+			ga["dir"] = (dir_verso(h, gd["pos"]) + (1 if k == lati[0] else 5)) % 6
+			_scrivi("%s devia il colpo: %s scivola di lato." % [gd["nome"], ga["nome"]])
+			_evento({"t": "spinto", "p": att, "percorso": [da, Vector3i(h.x, h.y, ga["dir"])], "lancia": false, "urto": false, "dir": k, "devia": true})
+			gd["dir"] = dir_verso(gd["pos"], h)
+			_evento({"t": "muovi", "p": dif, "percorso": [Vector3i(gd["pos"].x, gd["pos"].y, gd["dir"])]})
+			_pericolo(att)
+			return
+	var dietro: Vector2i = gd["pos"] + DIRS[(dv + 3) % 6]
+	if libero(dietro, dif):
+		var da2 := Vector3i(gd["pos"].x, gd["pos"].y, gd["dir"])
+		gd["pos"] = dietro
+		_scrivi("%s para e arretra di un passo." % gd["nome"])
+		_evento({"t": "muovi", "p": dif, "percorso": [da2, Vector3i(dietro.x, dietro.y, gd["dir"])]})
 		_pericolo(dif)
 
 ## Il colpo sbilancia il difensore: si gira di n lati, offrendo il fianco o la schiena.

@@ -73,6 +73,13 @@ func _ready() -> void:
 static func mondo(h: Vector2i) -> Vector3:
 	return Vector3(1.5 * h.x * S, 0, SQ3 * (h.y + h.x * 0.5) * S)
 
+## altezza in metri di un livello del terreno
+const ALT := 0.55
+
+## posizione del piano d'appoggio di un esagono, con il suo dislivello
+func posizione(h: Vector2i) -> Vector3:
+	return mondo(h) + Vector3(0, ALT * (m.altezza(h) if m != null else 0), 0)
+
 static func da_mondo(p: Vector3) -> Vector2i:
 	var q := p.x / (1.5 * S)
 	var r := p.z / (SQ3 * S) - q * 0.5
@@ -117,6 +124,12 @@ func costruisci(motore: Motore) -> void:
 		mt.albedo_color = Color("#8b7d6b").darkened(0.08 * i).lerp(Color("#7a6a52"), 0.25 * (i % 2))
 		mt.roughness = 0.95
 		pietre.append(mt)
+	var mat_alto := StandardMaterial3D.new()
+	mat_alto.albedo_color = Color("#8c785c")
+	mat_alto.roughness = 0.95
+	var mat_rocchio := StandardMaterial3D.new()
+	mat_rocchio.albedo_color = Color("#9c8e72")
+	mat_rocchio.roughness = 0.9
 	var mat_o := StandardMaterial3D.new()
 	mat_o.albedo_color = Color("#5d554c")
 	mat_o.roughness = 1.0
@@ -131,15 +144,54 @@ func costruisci(motore: Motore) -> void:
 			if Motore.dist(h, Vector2i.ZERO) > R:
 				continue
 			var t := MeshInstance3D.new()
+			var lv := m.altezza(h)
 			t.mesh = mesh_t
 			t.rotation.y = deg_to_rad(30)
 			t.position = mondo(h) + Vector3(0, -0.15 - rng.randf() * 0.03, 0)
 			t.material_override = pietre[rng.randi() % pietre.size()]
+			if lv == 1:
+				# piattaforma o roccia: un prisma esagonale alto un livello
+				var pm1 := CylinderMesh.new()
+				pm1.top_radius = 0.95 * S
+				pm1.bottom_radius = 0.99 * S
+				pm1.height = 0.3 + ALT
+				pm1.radial_segments = 6
+				pm1.rings = 1
+				t.mesh = pm1
+				t.position = mondo(h) + Vector3(0, ALT - (0.3 + ALT) / 2.0 - rng.randf() * 0.03, 0)
+				t.material_override = mat_alto
+			elif lv >= 2:
+				# rocchio di colonna spezzata: ci si sale solo con un salto
+				var pm2 := CylinderMesh.new()
+				pm2.top_radius = 0.8 * S
+				pm2.bottom_radius = 0.86 * S
+				pm2.height = 0.3 + ALT * lv
+				pm2.radial_segments = 18
+				t.mesh = pm2
+				t.position = mondo(h) + Vector3(0, ALT * lv - (0.3 + ALT * lv) / 2.0, 0)
+				t.material_override = mat_rocchio
+				var base := MeshInstance3D.new()
+				base.mesh = mesh_t
+				base.rotation.y = deg_to_rad(30)
+				base.position = mondo(h) + Vector3(0, -0.16, 0)
+				base.material_override = pietre[0]
+				_tessere.add_child(base)
 			if m.s["per"].has(h):
 				t.material_override = mat_f
 				_braciere(h)
 			_tessere.add_child(t)
-			if m.s["ost"].has(h):
+			if m.s.get("bassi", {}).has(h):
+				# macerie basse: un muretto di pietre che si scavalca con un salto
+				for k in 3:
+					var bm := BoxMesh.new()
+					bm.size = Vector3(rng.randf_range(0.5, 0.8), rng.randf_range(0.35, 0.6), rng.randf_range(0.45, 0.7))
+					var bo := MeshInstance3D.new()
+					bo.mesh = bm
+					bo.material_override = pietre[(k + 1) % pietre.size()]
+					bo.rotation = Vector3(rng.randf_range(-0.15, 0.15), rng.randf() * TAU, rng.randf_range(-0.15, 0.15))
+					bo.position = mondo(h) + Vector3(rng.randf_range(-0.35, 0.35), bm.size.y / 2.0 + (0.25 if k == 2 else 0.0), rng.randf_range(-0.35, 0.35))
+					_tessere.add_child(bo)
+			elif m.s["ost"].has(h):
 				var o := MeshInstance3D.new()
 				o.mesh = mesh_o
 				o.rotation.y = deg_to_rad(30 + rng.randf_range(-8, 8))
@@ -553,7 +605,7 @@ func mostra_nomi(si: bool) -> void:
 func sincronizza() -> void:
 	for i in figure.size():
 		var g: Dictionary = m.s["g"][i]
-		figure[i].position = mondo(g["pos"])
+		figure[i].position = posizione(g["pos"])
 		figure[i].rotation = Vector3(0, angolo_y(g["dir"]), 0)
 		var corpo: Node3D = figure[i].get_node("Corpo")
 		corpo.rotation = Vector3.ZERO
@@ -658,7 +710,7 @@ func evidenzia(esagoni: Array, c: Color) -> void:
 		mi.mesh = mesh
 		mi.material_override = mt
 		mi.rotation.y = deg_to_rad(30)
-		mi.position = mondo(h) + Vector3(0, 0.05, 0)
+		mi.position = posizione(h) + Vector3(0, 0.05, 0)
 		_evid.add_child(mi)
 
 ## Frecce di orientamento attorno a un esagono; si scelgono toccandole.
@@ -672,7 +724,7 @@ func mostra_direzioni(h: Vector2i, dirs: Array) -> void:
 	mt.emission_energy_multiplier = 0.8
 	mt.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	for d in dirs:
-		var c := mondo(h) + vettore_dir(d) * 0.62 + Vector3(0, 0.08, 0)
+		var c := posizione(h) + vettore_dir(d) * 0.62 + Vector3(0, 0.08, 0)
 		var mi := MeshInstance3D.new()
 		mi.mesh = mesh
 		mi.material_override = mt
@@ -739,7 +791,7 @@ func _anima(e: Dictionary) -> Tween:
 				if e2["t"] == "spinto" and int(e2["p"]) == u:
 					var per: Array = e2["percorso"]
 					var ult: Vector3i = per[per.size() - 1]
-					arrivo = mondo(Vector2i(ult.x, ult.y))
+					arrivo = posizione(Vector2i(ult.x, ult.y))
 					e2["gia_animato"] = true
 					break
 			if not ha_modello(p):
@@ -784,21 +836,38 @@ func _anima(e: Dictionary) -> Tween:
 			var dur := (0.5 if anim else 0.2) if e["t"] == "muovi" else (0.3 if anim else 0.12)
 			var rot_prec := f.rotation.y
 			var pos_prec := f.position
+			var devia: bool = e.get("devia", false)
 			if anim and e["t"] == "spinto":
-				if not e.get("lancia", false):
+				if devia:
+					clip(p, "passo_avanti", 1.5)
+				elif not e.get("lancia", false):
 					clip(p, "colpito_corpo")
 			for st in per:
-				var pos := mondo(Vector2i(st.x, st.y))
-				var ry := angolo_y(st.z) if e["t"] == "muovi" else f.rotation.y
+				var pos := posizione(Vector2i(st.x, st.y))
+				var ry := angolo_y(st.z) if e["t"] == "muovi" or devia else f.rotation.y
 				ry = rot_prec + wrapf(ry - rot_prec, -PI, PI)
 				if anim and e["t"] == "muovi":
 					var nome := _clip_passo(pos - pos_prec, rot_prec, ry - rot_prec)
 					if nome != "":
 						tw.tween_callback(func(): clip(p, nome, 1.6))
 				rot_prec = ry
+				var da := pos_prec
 				pos_prec = pos
-				tw.tween_property(f, "position", pos, dur).set_trans(Tween.TRANS_SINE)
-				tw.parallel().tween_property(f, "rotation:y", ry, dur)
+				var dy := absf(pos.y - da.y)
+				var lungo := Vector2(pos.x - da.x, pos.z - da.z).length() > 2.0 * S
+				if dy > 0.05 or lungo:
+					# gradino, salto acrobatico o caduta: un arco invece di uno scivolamento
+					var hop := 0.25 + dy * 0.6 + (0.8 if lungo else 0.0)
+					if e.get("caduta", 0) > 0 and pos.y < da.y:
+						hop = 0.15
+					var d2 := dur * (1.8 if lungo or dy > ALT * 1.5 else 1.2)
+					if anim and (lungo or dy > ALT * 1.5) and e["t"] == "muovi":
+						tw.tween_callback(func(): clip(p, "schivata", 1.4))
+					tw.tween_method(func(t: float): f.position = da.lerp(pos, t) + Vector3(0, sin(PI * t) * hop, 0), 0.0, 1.0, d2)
+					tw.parallel().tween_property(f, "rotation:y", ry, d2)
+				else:
+					tw.tween_property(f, "position", pos, dur).set_trans(Tween.TRANS_SINE)
+					tw.parallel().tween_property(f, "rotation:y", ry, dur)
 			if e.get("urto", false):
 				tw.tween_callback(func(): _urto(p, e))
 				tw.tween_interval(0.45)
@@ -807,7 +876,7 @@ func _anima(e: Dictionary) -> Tween:
 			var tw := create_tween()
 			tw.tween_property(f, "scale", Vector3(0.05, 1.4, 0.05), 0.18)
 			tw.tween_callback(func():
-				f.position = mondo(e["pos"])
+				f.position = posizione(e["pos"])
 				f.rotation.y = angolo_y(e["dir"]))
 			tw.tween_property(f, "scale", Vector3.ONE * SCALA_FIGURA, 0.2)
 			return tw
@@ -991,7 +1060,17 @@ func punto_suolo(sp: Vector2) -> Variant:
 	var t := -o.y / d.y
 	if t < 0:
 		return null
-	return o + d * t
+	var pt := o + d * t
+	# terreno a più livelli: si riprova alla quota dell'esagono trovato, dall'alto in basso
+	if m != null:
+		for lv: int in [2, 1]:
+			var tl: float = (ALT * lv - o.y) / d.y
+			if tl < 0:
+				continue
+			var pl: Vector3 = o + d * tl
+			if m.altezza(da_mondo(pl)) >= lv:
+				return pl
+	return pt
 
 func _unhandled_input(e: InputEvent) -> void:
 	if m == null or not visible:

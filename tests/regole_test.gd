@@ -60,6 +60,7 @@ func _init() -> void:
 	# un colpo occupa lo spazio; lo sblocco mette il dado in Attesa, il Riposo lo recupera
 	var m2 := Motore.new(dati)
 	m2.nuova_partita(dati["personaggi"][0], dati["personaggi"][1], "cortile", 3)
+	m2.s["alt"] = {}
 	m2.s["g"][0]["pos"] = Vector2i(0, 0)
 	m2.s["g"][0]["dir"] = 0
 	m2.s["g"][1]["pos"] = Vector2i(1, 0)
