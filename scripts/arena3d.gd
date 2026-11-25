@@ -149,6 +149,9 @@ func costruisci(motore: Motore) -> void:
 	mat_sabbia.shader = SABBIA
 	mat_sabbia.set_shader_parameter("quanta_sabbia", 0.95)
 	mat_sabbia.set_shader_parameter("increspature", 0.9)
+	var mat_terra := StandardMaterial3D.new()
+	mat_terra.albedo_color = Color("#5e4632")
+	mat_terra.roughness = 1.0
 	var mat_alto := StandardMaterial3D.new()
 	mat_alto.albedo_color = Color("#8c785c")
 	mat_alto.roughness = 0.95
@@ -174,7 +177,18 @@ func costruisci(motore: Motore) -> void:
 			t.rotation.y = deg_to_rad(30)
 			t.position = mondo(h) + Vector3(0, -0.15 - rng.randf() * 0.03, 0)
 			t.material_override = pietre[rng.randi() % pietre.size()]
-			if lv == 1 and not m.s.get("ogg", {}).has(h) and _colonna("bassa", mondo(h), ALT + 0.02, 1.75, rng.randf() * TAU):
+			if lv == 1 and m.s.get("radici", {}).has(h):
+				# radici dell'albero grande: un rialzo di terra battuta sotto il modello
+				var pr := CylinderMesh.new()
+				pr.top_radius = 0.97 * S
+				pr.bottom_radius = 0.99 * S
+				pr.height = 0.3 + ALT
+				pr.radial_segments = 6
+				pr.rings = 1
+				t.mesh = pr
+				t.position = mondo(h) + Vector3(0, ALT - (0.3 + ALT) / 2.0 - 0.02, 0)
+				t.material_override = mat_terra
+			elif lv == 1 and not m.s.get("ogg", {}).has(h) and _colonna("bassa", mondo(h), ALT + 0.02, 1.75, rng.randf() * TAU):
 				# rocchio basso: un livello, ci si sale con un passo
 				pass
 			elif lv == 1:
@@ -247,6 +261,7 @@ func costruisci(motore: Motore) -> void:
 				cap.material_override = pietre[0]
 				_tessere.add_child(cap)
 	_ogg_nodi.clear()
+	_chiome.clear()
 	for h in m.s.get("ogg", {}):
 		_crea_oggetto(h, String(m.s["ogg"][h]["tipo"]))
 	# terreno attorno e torce
@@ -353,9 +368,14 @@ func _crea_oggetto(h: Vector2i, tipo: String) -> void:
 			# chioma di un albero grande: lo disegna il suo tronco
 			n.queue_free()
 			return
-		"albero" when m.s["ogg"][h].has("grande") and _albero_scena(n, "albero_esa7" + String(m.s["ogg"][h]["grande"]), 3.0 * SQ3 * S * 1.45):
-			pass
-		"albero" when _albero_scena(n, "albero_esa1", SQ3 * S * 1.05):
+		"albero" when m.s["ogg"][h].has("grande") and _albero_scena(n, "albero_esa7" + String(m.s["ogg"][h]["grande"]), 3.0 * SQ3 * S * 0.97):
+			# la chioma diventa trasparente quando sotto c'è un combattente, per vederlo
+			var mt_c := (n.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D).material_override.duplicate() as StandardMaterial3D
+			mt_c.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_DEPTH_PRE_PASS
+			for mi in n.find_children("*", "MeshInstance3D", true, false):
+				mi.material_override = mt_c
+			_chiome.append([n, mt_c, mondo(h)])
+		"albero" when _albero_scena(n, "albero_esa1", SQ3 * S * 0.97):
 			pass
 		"albero" when _albero(n, Vector3.ZERO, 3.0 if (h.x + h.y) % 2 == 0 else 2.4, 1 if (h.x + h.y) % 2 == 0 else 2):
 			pass
@@ -466,9 +486,11 @@ func _spruzzo(da: Vector3, a: Vector3, acqua: bool) -> void:
 		tw.tween_callback(mi.queue_free)
 
 var _alberi_cache := {}
+var _chiome := []   # [nodo, materiale, centro] degli alberi grandi
 
-## Albero dei modelli della scena (texture a parte), largo l metri: quello da un esagono o quello
-## grande che copre sette esagoni.
+## Albero dei modelli della scena (texture a parte): la base con le radici è larga l metri
+## (un esagono, o i sette esagoni dell'albero grande); la chioma si allarga oltre.
+const BASE_ALBERI := {"albero_esa1": 0.502 / 0.904, "albero_esa7a": 0.497 / 1.002, "albero_esa7b": 0.324 / 1.001}
 func _albero_scena(genitore: Node3D, nome: String, l: float) -> bool:
 	var file := "res://assets/scena/%s.glb" % nome
 	if not ResourceLoader.exists(file):
@@ -490,7 +512,7 @@ func _albero_scena(genitore: Node3D, nome: String, l: float) -> bool:
 		prima = false
 	if prima:
 		return false
-	var k := l / maxf(maxf(aabb.size.x, aabb.size.z), 0.01)
+	var k := l / (maxf(maxf(aabb.size.x, aabb.size.z), 0.01) * float(BASE_ALBERI.get(nome, 1.0)))
 	n.scale = Vector3.ONE * k
 	n.rotation.y = randf() * TAU
 	genitore.add_child(n)
@@ -1079,6 +1101,18 @@ func clip_durata(p: int, nome: String) -> float:
 	if ap == null or not ap.has_animation(nome):
 		return 0.5
 	return ap.get_animation(nome).length
+
+func _process(dt: float) -> void:
+	# chiome degli alberi grandi: si schiariscono se sotto c'è qualcuno
+	for c in _chiome:
+		var sotto := false
+		for f in figure:
+			var d := Vector2(f.position.x - c[2].x, f.position.z - c[2].z).length()
+			if d < 4.2 * S:
+				sotto = true
+		var mt: StandardMaterial3D = c[1]
+		var a := move_toward(mt.albedo_color.a, 0.15 if sotto else 1.0, dt * 2.0)
+		mt.albedo_color.a = a
 
 func ha_modello(p: int) -> bool:
 	return _ap(p) != null

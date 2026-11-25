@@ -148,12 +148,14 @@ func nuova_partita(pg0: Dictionary, pg1: Dictionary, arena_id: String, seme: int
 	for o in ar.get("oggetti", []):
 		var tipo := String(o[2])
 		ogg[Vector2i(int(o[0]), int(o[1]))] = {"tipo": tipo, "cariche": 3 if tipo in ["pietre", "braciere"] else 0}
-	# alberi grandi: il tronco al centro e la chioma sui sei esagoni attorno, tutti occupati
+	# alberi grandi: il tronco al centro non si attraversa; le radici sui sei esagoni attorno
+	# si calpestano e sono alte un livello
+	var radici := {}
 	for o in ar.get("alberi_grandi", []):
 		var c := Vector2i(int(o[0]), int(o[1]))
 		ogg[c] = {"tipo": "albero", "cariche": 0, "grande": String(o[2])}
 		for dd in DIRS:
-			ogg[c + dd] = {"tipo": "albero", "cariche": 0, "parte": c}
+			radici[c + dd] = c
 	var sabbia := {}
 	for o in ar.get("sabbia", []):
 		sabbia[Vector2i(int(o[0]), int(o[1]))] = true
@@ -164,11 +166,13 @@ func nuova_partita(pg0: Dictionary, pg1: Dictionary, arena_id: String, seme: int
 	for o in ar.get("alture", []):
 		alt[Vector2i(int(o[0]), int(o[1]))] = int(o[2])
 	var R := int(ar["raggio"])
+	for h in radici:
+		alt[h] = 1
 	# le casse sono gradini mobili: un livello in più dove stanno
 	for h in ogg:
 		if ogg[h]["tipo"] == "cassa":
 			alt[h] = int(alt.get(h, 0)) + 1
-	s = {"alt": alt, "bassi": bassi, "ogg": ogg, "sabbia": sabbia, "round": 0, "attivo": 0, "primo": -1, "fase": "azione", "pend": {}, "azz": {},
+	s = {"alt": alt, "bassi": bassi, "ogg": ogg, "sabbia": sabbia, "radici": radici, "round": 0, "attivo": 0, "primo": -1, "fase": "azione", "pend": {}, "azz": {},
 		"raggio": R, "ost": ost, "per": per, "arena": arena_id, "vinc": -1,
 		"log": [], "eventi": [], "g": []}
 	var partenze := [Vector2i(-(R - 3), 0), Vector2i(R - 3, 0)]
