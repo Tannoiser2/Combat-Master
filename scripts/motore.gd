@@ -1,6 +1,6 @@
 class_name Motore
 extends RefCounted
-## Motore delle regole di Combat Master.
+## Motore delle regole di Arcana.
 ## I dadi girano in cerchio: per ogni azione si scelgono direttamente dal mucchio
 ## entro il Ritmo e i limiti cromatici dell'Attitudine. I dadi usati occupano i
 ## token o entrano in Attesa; il recupero li riporta nel mucchio.

@@ -1,4 +1,4 @@
-# Combat Master
+# Arcana
 
 Gioco originale di schermaglie fantasy per due combattenti, in Godot 4.7 (GL Compatibility, esportazione web).
 Ogni giocatore compone il proprio personaggio con dei **token** che mettono **dadi colorati nel mucchio** e offrono **spazi** su cui piazzarli. I dadi girano in cerchio: per ogni azione si scelgono direttamente dal mucchio entro il budget di **Ritmo** e i limiti cromatici dell'**Attitudine**; sui token restano a occupare lo spazio, lo **sblocco** li sposta in **Attesa** e il **recupero** li riporta nel mucchio.
@@ -54,4 +54,4 @@ I rapporti dell'ultimo giro sono in `docs/bilanciamento.md` e `docs/allenamento_
 | `tests/` | test, bilanciamento, allenamento, schermate |
 
 ## Pubblicazione
-Dalla scheda Actions, «Pubblica Combat Master» → *Run workflow*, oppure con un commit che contiene `[pubblica]`.
+Dalla scheda Actions, «Pubblica Arcana» → *Run workflow*, oppure con un commit che contiene `[pubblica]`.

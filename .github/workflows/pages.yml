@@ -1,4 +1,4 @@
-name: Pubblica Combat Master
+name: Pubblica Arcana
 # Pubblicazione solo su richiesta: dal pulsante "Run workflow" oppure con un commit che contiene [pubblica]
 on:
   workflow_dispatch:

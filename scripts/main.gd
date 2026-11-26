@@ -1,5 +1,5 @@
 extends Node
-## Combat Master: menu, officina dei personaggi, preparazione dello scontro e battaglia.
+## Arcana: menu, officina dei personaggi, preparazione dello scontro e battaglia.
 
 const FILE_PG := "user://personaggi.json"
 const PASSO_IA := 0.6
@@ -203,7 +203,7 @@ func menu() -> void:
 	v.add_theme_constant_override("separation", 14)
 	v.custom_minimum_size = Vector2(640, 0)
 	pan.add_child(v)
-	var t := _label("COMBAT MASTER", 56, Disegno.ORO, Disegno.font_deco())
+	var t := _label("ARCANA", 56, Disegno.ORO, Disegno.font_deco())
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
 	var st := _label("Schermaglie fantasy di dadi, token e destrezza", 20, Disegno.PERGAMENA)
