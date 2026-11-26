@@ -39,7 +39,8 @@ func _draw() -> void:
 		SferaVista.disegna_token(self, c, ri, ro, -90 - 38, -90 - 0.5, t, {}, scelto, colore)
 		SferaVista.disegna_token(self, c, ri, ro, -90 + 0.5, -90 + 38, t2, {}, scelto, colore)
 	else:
-		SferaVista.disegna_token(self, c, ri, ro, -90 - 27, -90 + 27, t, {}, scelto, colore)
+		# un'azione sola: mezzo pezzo, come sulla sfera
+		SferaVista.disegna_token(self, c, ri, ro, -90 - 19, -90 + 19, t, {}, scelto, colore)
 	if t.has("costo"):
 		var cr := Rect2(w - 44, 8, 36, 30)
 		var sc := StyleBoxFlat.new()

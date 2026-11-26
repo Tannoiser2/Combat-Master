@@ -189,7 +189,7 @@ func costruisci(motore: Motore) -> void:
 				t.mesh = pr
 				t.position = mondo(h) + Vector3(0, ALT - (0.3 + ALT) / 2.0 - 0.02, 0)
 				t.material_override = mat_terra
-			elif lv == 1 and not m.s.get("ogg", {}).has(h) and _colonna("bassa", mondo(h), ALT + 0.02, 1.75, rng.randf() * TAU):
+			elif lv == 1 and not m.s.get("ogg", {}).has(h) and _colonna("bassa", mondo(h), ALT + 0.02, SQ3 * S * 0.96, rng.randf() * TAU):
 				# rocchio basso: un livello, ci si sale con un passo
 				pass
 			elif lv == 1:
@@ -203,7 +203,7 @@ func costruisci(motore: Motore) -> void:
 				t.mesh = pm1
 				t.position = mondo(h) + Vector3(0, ALT - (0.3 + ALT) / 2.0 - rng.randf() * 0.03, 0)
 				t.material_override = mat_alto
-			elif lv >= 2 and _colonna("media", mondo(h), ALT * lv + 0.02, 1.5, rng.randf() * TAU):
+			elif lv >= 2 and _colonna("media", mondo(h), ALT * lv + 0.02, SQ3 * S * 0.96, rng.randf() * TAU):
 				# rocchio alto: ci si sale solo con un salto
 				pass
 			elif lv >= 2:
@@ -228,7 +228,7 @@ func costruisci(motore: Motore) -> void:
 				t.material_override = mat_f
 				_braciere(h)
 			_tessere.add_child(t)
-			if m.s.get("bassi", {}).has(h) and _colonna("bassa", mondo(h) + Vector3(0, -0.05, 0), 0.6, 1.3, rng.randf() * TAU, rng.randf_range(-0.12, 0.12)):
+			if m.s.get("bassi", {}).has(h) and _colonna("bassa", mondo(h) + Vector3(0, -0.05, 0), 0.6, SQ3 * S * 0.96, rng.randf() * TAU, rng.randf_range(-0.05, 0.05)):
 				pass
 			elif m.s.get("bassi", {}).has(h):
 				# macerie basse: un muretto di pietre che si scavalca con un salto
@@ -241,7 +241,7 @@ func costruisci(motore: Motore) -> void:
 					bo.rotation = Vector3(rng.randf_range(-0.15, 0.15), rng.randf() * TAU, rng.randf_range(-0.15, 0.15))
 					bo.position = mondo(h) + Vector3(rng.randf_range(-0.35, 0.35), bm.size.y / 2.0 + (0.25 if k == 2 else 0.0), rng.randf_range(-0.35, 0.35))
 					_tessere.add_child(bo)
-			elif m.s["ost"].has(h) and _colonna("alta", mondo(h), 2.7, 1.0, rng.randf() * TAU):
+			elif m.s["ost"].has(h) and _colonna("alta", mondo(h), 2.7, SQ3 * S * 0.96, rng.randf() * TAU):
 				pass
 			elif m.s["ost"].has(h):
 				var o := MeshInstance3D.new()
@@ -369,8 +369,9 @@ func _crea_oggetto(h: Vector2i, tipo: String) -> void:
 			# chioma di un albero grande: lo disegna il suo tronco
 			n.queue_free()
 			return
-		"albero" when m.s["ogg"][h].has("grande") and _albero_scena(n, "albero_esa7" + String(m.s["ogg"][h]["grande"]), 3.0 * SQ3 * S * 0.97):
-			# la chioma diventa trasparente quando sotto c'è un combattente, per vederlo
+		"albero" when m.s["ogg"][h].has("grande") and _albero_scena(n, "albero_esa7" + String(m.s["ogg"][h]["grande"]), 3.0 * SQ3 * S * 0.97, 1.4, 0.4):
+			# più alto del modello originale, così la chioma resta sopra i combattenti; radici affondate nel terreno.
+			# La chioma si schiarisce solo quando copre davvero un combattente alla vista, e mai del tutto.
 			var mt_c := (n.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D).material_override.duplicate() as StandardMaterial3D
 			mt_c.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_DEPTH_PRE_PASS
 			for mi in n.find_children("*", "MeshInstance3D", true, false):
@@ -492,7 +493,7 @@ var _chiome := []   # [nodo, materiale, centro] degli alberi grandi
 ## Albero dei modelli della scena (texture a parte): la base con le radici è larga l metri
 ## (un esagono, o i sette esagoni dell'albero grande); la chioma si allarga oltre.
 const BASE_ALBERI := {"albero_esa1": 0.502 / 0.904, "albero_esa7a": 0.497 / 1.002, "albero_esa7b": 0.324 / 1.001}
-func _albero_scena(genitore: Node3D, nome: String, l: float) -> bool:
+func _albero_scena(genitore: Node3D, nome: String, l: float, alto := 1.0, giu := 0.0) -> bool:
 	var file := "res://assets/scena/%s.glb" % nome
 	if not ResourceLoader.exists(file):
 		return false
@@ -514,7 +515,8 @@ func _albero_scena(genitore: Node3D, nome: String, l: float) -> bool:
 	if prima:
 		return false
 	var k := l / (maxf(maxf(aabb.size.x, aabb.size.z), 0.01) * float(BASE_ALBERI.get(nome, 1.0)))
-	n.scale = Vector3.ONE * k
+	n.scale = Vector3(k, k * alto, k)
+	n.position.y -= giu
 	n.rotation.y = randf() * TAU
 	genitore.add_child(n)
 	return true
@@ -1200,20 +1202,18 @@ func _process(dt: float) -> void:
 		var sotto := false
 		var cc: Vector3 = c[2]
 		var cam_p := cam.global_position
-		# nascosta anche quando sta fra la telecamera e un combattente, o la telecamera ci è dentro
-		if Vector2(cam_p.x - cc.x, cam_p.z - cc.z).length() < 7.0 * S:
-			sotto = true
+		# la chioma (una sfera schiacciata alta sopra il tronco) copre un combattente se la linea
+		# dalla telecamera al suo petto ci passa dentro
+		var chioma := cc + Vector3(0, 5.2 * S, 0)
 		for f in figure:
-			var d := Vector2(f.position.x - cc.x, f.position.z - cc.z).length()
-			if d < 4.2 * S:
-				sotto = true
-			var alto := cc + Vector3(0, 4.0 * S, 0)
-			var seg := f.position + Vector3(0, 1.0, 0) - cam_p
-			var t := clampf((alto - cam_p).dot(seg) / maxf(0.001, seg.length_squared()), 0.0, 1.0)
-			if (cam_p + seg * t).distance_to(alto) < 6.5 * S:
+			var seg := f.position + Vector3(0, 1.1, 0) - cam_p
+			var t := clampf((chioma - cam_p).dot(seg) / maxf(0.001, seg.length_squared()), 0.0, 1.0)
+			var q := cam_p + seg * t - chioma
+			q.y *= 1.6
+			if q.length() < 3.6 * S:
 				sotto = true
 		var mt: StandardMaterial3D = c[1]
-		var a := move_toward(mt.albedo_color.a, 0.15 if sotto else 1.0, dt * 2.0)
+		var a := move_toward(mt.albedo_color.a, 0.45 if sotto else 1.0, dt * 2.0)
 		mt.albedo_color.a = a
 
 func ha_modello(p: int) -> bool:

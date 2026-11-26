@@ -2425,7 +2425,23 @@ func sf_battaglia(a: Dictionary, b: Dictionary, arena_id: String, ia_: Array) ->
 	_sf_costruisci_hud()
 	_sf_aggiorna()
 
+var _sf_barra: PanelContainer
+var _sf_stati: Array = []
+
 func _sf_costruisci_hud() -> void:
+	# in alto: le ferite dei due combattenti
+	_sf_barra = _pannello(pagina)
+	_sf_barra.add_theme_stylebox_override("panel", Disegno.stile(Color(0.07, 0.055, 0.04, 0.85), Color("#6b5234"), 10, 1))
+	var hb_b := BoxContainer.new()
+	hb_b.add_theme_constant_override("separation", 10)
+	_sf_barra.add_child(hb_b)
+	_sf_stati = []
+	for i in 2:
+		var st := StatoSfera.new()
+		st.m = ms
+		st.p = i
+		hb_b.add_child(st)
+		_sf_stati.append(st)
 	_sf_pan = _pannello(pagina)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 6)
@@ -2490,6 +2506,13 @@ func _sf_layout() -> void:
 			pd.offset_bottom = 6 + vw.y * 0.11
 		arena.spostamento_v = 0.42
 		arena.spostamento_h = 0.0
+		if _sf_barra != null:
+			_sf_barra.set_anchors_preset(Control.PRESET_TOP_WIDE)
+			_sf_barra.offset_left = 6
+			_sf_barra.offset_right = -6
+			_sf_barra.offset_top = 52 + vw.y * 0.11
+			_sf_barra.offset_bottom = 52 + vw.y * 0.11 + 64
+			(_sf_barra.get_child(0) as BoxContainer).vertical = false
 	else:
 		var w := clampf(vw.x * 0.36, 380.0, 560.0)
 		_sf_pan.set_anchors_preset(Control.PRESET_LEFT_WIDE)
@@ -2506,6 +2529,14 @@ func _sf_layout() -> void:
 			pd.offset_bottom = 6 + minf(300.0, vw.y * 0.38)
 		arena.spostamento_v = 0.1
 		arena.spostamento_h = -0.18
+		if _sf_barra != null:
+			# fra il pannello della sfera e il diario, in alto
+			_sf_barra.set_anchors_preset(Control.PRESET_TOP_WIDE)
+			_sf_barra.offset_left = 18 + w
+			_sf_barra.offset_right = -(12 + minf(420.0, vw.x * 0.3))
+			_sf_barra.offset_top = 6
+			_sf_barra.offset_bottom = 6 + 124
+			(_sf_barra.get_child(0) as BoxContainer).vertical = true
 	_sf_vista.custom_minimum_size = Vector2(lato, lato)
 	_sf_info.custom_minimum_size.x = lato
 	var v := Arena3D.mondo(ms.s["g"][1]["pos"]) - Arena3D.mondo(ms.s["g"][0]["pos"])

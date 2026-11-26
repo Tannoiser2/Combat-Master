@@ -15,10 +15,11 @@ const AZ_SETTORE := {"colpo": "F", "presa": "F", "passo": "A", "scarto": "A", "p
 const TRAPPOLE := ["schivata", "irimi", "tenkan", "proiezione", "immobilizza", "contrattacco", "ukemi", "shiho", "kokyu", "juji"]
 const COLPI := ["colpo", "colpo_stordente", "spinta", "carica", "affondo"]
 const VALORE_TRAPPOLA := {"juji": 7, "shiho": 6, "kokyu": 6, "proiezione": 5, "immobilizza": 4, "contrattacco": 4, "irimi": 3, "tenkan": 3, "schivata": 2, "ukemi": 2}
-## Anello dei misti: tre posti a cavallo di due caratteristiche. Un token di un colore solo sta in uno
-## dei due posti accanto al suo colore; un misto nel suo.
-const POSTI_MISTI := {"arancio": "FA", "verde": "AP", "viola": "PF"}
-const POSTI_DEL_COLORE := {"rosso": ["arancio", "viola"], "giallo": ["arancio", "verde"], "blu": ["verde", "viola"],
+## Anello mediano: sei posti. Sopra ogni token base un posto del suo colore per un token da una azione;
+## fra due token base un posto a cavallo dei due colori, per un misto (singolo o doppio) o per un token
+## di uno dei due colori.
+const POSTI_MISTI := {"rosso": "F", "arancio": "FA", "giallo": "A", "verde": "AP", "blu": "P", "viola": "PF"}
+const POSTI_DEL_COLORE := {"rosso": ["rosso", "arancio", "viola"], "giallo": ["giallo", "arancio", "verde"], "blu": ["blu", "verde", "viola"],
 	"arancio": ["arancio"], "verde": ["verde"], "viola": ["viola"]}
 const MAX_ESTERNO := 4
 const NOMI_DADO := {"r": "rosso", "g": "giallo", "b": "blu", "n": "bianco"}
@@ -653,8 +654,9 @@ func _metti_a_terra(p: int) -> void:
 	_scrivi("%s è a terra: deve rialzarsi." % s["g"][p]["nome"])
 	_evento({"t": "a_terra", "p": p})
 
-func _in_attesa(p: int, zona: String, colore: String) -> void:
-	s["g"][p]["attesa"][zona].append(colore)
+## I dadi liberati aspettano la pausa nelle Attese dell'anello esterno.
+func _in_attesa(p: int, _zona: String, colore: String) -> void:
+	s["g"][p]["attesa"]["E"].append(colore)
 
 ## Azione di una parte di token: i token con due azioni sono due metà dello stesso pezzo d'anello,
 ## ognuna con i suoi posti, la sua freccia e il suo effetto (come i token base).
@@ -801,9 +803,13 @@ func posti_misti_liberi(g: Dictionary) -> Array:
 func posto_per(g: Dictionary, id: String) -> String:
 	var liberi := posti_misti_liberi(g)
 	for k in POSTI_DEL_COLORE.get(String(tok(id).get("col", "")), []):
-		if liberi.has(k):
+		if liberi.has(k) and posto_adatto(k, id):
 			return k
 	return ""
+
+## Nei posti di un colore solo (sopra i token base) entrano solo token da una azione.
+func posto_adatto(posto: String, id: String) -> bool:
+	return String(POSTI_MISTI[posto]).length() == 2 or not tok(id).has("seconda")
 
 func _metti_misto(g: Dictionary, id: String, in_testa := false) -> bool:
 	var posto := posto_per(g, id)
@@ -876,7 +882,7 @@ func _scegli_token(p: int, n: int) -> Array:
 		if out.size() >= n:
 			break
 		for k in POSTI_DEL_COLORE.get(String(tok(x[1]).get("col", "")), []):
-			if not presi.has(k):
+			if not presi.has(k) and posto_adatto(k, x[1]):
 				presi[k] = true
 				out.append(x[1])
 				break
@@ -1453,7 +1459,7 @@ func _risolvi_reazione(pend: Dictionary, scelta: Dictionary) -> void:
 			return
 		if resto == 0:
 			_vant(d, 1)
-		if rid - danno >= 2:
+		if rid - danno >= 3:
 			_ferisci(p, 1)
 		if s["vinc"] >= 0:
 			poi.call(resto)

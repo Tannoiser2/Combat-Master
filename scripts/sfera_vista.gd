@@ -13,9 +13,8 @@ const COL_TOKEN := {
 	"scena": Color("#8a6a3e"), "raro": Color("#b8a06a"), "esterno": Color("#b08a3a")
 }
 ## Anello dei misti: centro di ogni posto e delle Attese (sopra i token base).
-const POSTO_MISTO := {"arancio": -30.0, "verde": 90.0, "viola": 210.0}
-const ATTESA_BASE := {"F": -90.0, "A": 30.0, "P": 150.0}
-const LARGO_MISTO := 56.0
+const POSTO_MISTO := {"rosso": -90.0, "arancio": -30.0, "giallo": 30.0, "verde": 90.0, "blu": 150.0, "viola": 210.0}
+const LARGO_MISTO := 57.0
 ## Anello esterno: quattro posti in diagonale, quattro Attese ai punti cardinali.
 const POSTO_ESTERNO := [-45.0, 45.0, 135.0, 225.0]
 const ATTESA_ESTERNA := [-90.0, 0.0, 90.0, 180.0]
@@ -205,23 +204,36 @@ func posizioni_token() -> Array:
 		if not per_posto.has(posto):
 			per_posto[posto] = []
 		per_posto[posto].append(i)
+	# ogni azione è un pezzo della stessa misura: i token doppi sono due pezzi, i singoli uno,
+	# al centro del loro posto (lo spazio che avanza resta vuoto)
+	var u2 := _unita(2)
 	for posto in per_posto:
 		var parti: Array = per_posto[posto]
 		parti.sort_custom(func(a, b): return int(est[a].get("parte", 0)) < int(est[b].get("parte", 0)))
 		var c: float = POSTO_MISTO[posto]
-		var a0 := c - LARGO_MISTO / 2.0
-		var wp := LARGO_MISTO / parti.size()
+		var a0 := c - u2 * parti.size() / 2.0
 		for q in parti.size():
-			out.append({"i": parti[q], "a0": a0 + wp * q + (0.5 if q > 0 else 0.0), "a1": a0 + wp * (q + 1) - (0.5 if q < parti.size() - 1 else 0.0), "anello": 2})
+			out.append({"i": parti[q], "a0": a0 + u2 * q + (0.5 if q > 0 else 0.0), "a1": a0 + u2 * (q + 1) - (0.5 if q < parti.size() - 1 else 0.0), "anello": 2})
 	for i in senza:
 		for k in 4:
 			if not esterni.has(k):
 				esterni[k] = i
 				break
+	var u3 := _unita(3)
 	for k in esterni:
 		var c: float = POSTO_ESTERNO[k]
-		out.append({"i": esterni[k], "a0": c - LARGO_ESTERNO / 2.0, "a1": c + LARGO_ESTERNO / 2.0, "anello": 3})
+		out.append({"i": esterni[k], "a0": c - u3 / 2.0, "a1": c + u3 / 2.0, "anello": 3})
 	return out
+
+## Gradi di un pezzo da un'azione nell'anello dato: lungo quanto nell'anello mediano (metà posto).
+func _unita(anello: int) -> float:
+	var r := raggi()
+	var u := LARGO_MISTO / 2.0 - 0.5
+	if anello == 2:
+		return u
+	var mid2: float = (float(r[1]) + float(r[2])) / 2.0
+	var mid3: float = (float(r[2]) + float(r[3])) / 2.0
+	return u * mid2 / mid3
 
 ## Zona d'Attesa: settore tratteggiato con i dadi che aspettano la pausa.
 func _attesa(c: Vector2, ri: float, ro: float, a0: float, a1: float, dadi: Array) -> void:
@@ -348,9 +360,6 @@ func _draw() -> void:
 	var ri3: float = r[2] + 3
 	var ro3: float = r[3] - 2
 	var att: Dictionary = g.get("attesa", {})
-	for sett in ATTESA_BASE:
-		var am: float = ATTESA_BASE[sett]
-		_attesa(c, ri2, ro2, am - 27, am + 27, att.get(sett, []))
 	var pos := posizioni_token()
 	var occupati := {}
 	for pt in pos:
@@ -363,10 +372,12 @@ func _draw() -> void:
 			if pt["anello"] == 2 and absf((pt["a0"] + pt["a1"]) / 2.0 - am) < LARGO_MISTO / 2.0:
 				preso = true
 		if not preso:
-			var due: Array = {"arancio": ["rosso", "giallo"], "verde": ["giallo", "blu"], "viola": ["blu", "rosso"]}[posto]
-			_posto_vuoto(c, ri2, ro2, am - LARGO_MISTO / 2.0, am + LARGO_MISTO / 2.0, due, "posto libero")
+			var due: Array = {"arancio": ["rosso", "giallo"], "verde": ["giallo", "blu"], "viola": ["blu", "rosso"], "rosso": ["rosso"], "giallo": ["giallo"], "blu": ["blu"]}[posto]
+			_posto_vuoto(c, ri2, ro2, am - LARGO_MISTO / 2.0 + 0.6, am + LARGO_MISTO / 2.0 - 0.6, due, "una azione" if due.size() == 1 else "posto libero")
 	# anello esterno: Attese ai punti cardinali, quattro posti in diagonale
-	var att_e: Array = att.get("E", [])
+	var att_e: Array = []
+	for z in ["F", "A", "P", "E"]:
+		att_e.append_array(att.get(z, []))
 	for k in 4:
 		var am: float = ATTESA_ESTERNA[k]
 		var parte := []
@@ -380,7 +391,8 @@ func _draw() -> void:
 			if pt["anello"] == 3 and absf((pt["a0"] + pt["a1"]) / 2.0 - ae) < 1.0:
 				preso3 = true
 		if not preso3:
-			_posto_vuoto(c, ri3, ro3, ae - LARGO_ESTERNO / 2.0, ae + LARGO_ESTERNO / 2.0, [], "anello esterno")
+			var u3v := _unita(3)
+			_posto_vuoto(c, ri3, ro3, ae - u3v, ae + u3v, [], "anello esterno")
 	for pt in pos:
 		var e: Dictionary = est[pt["i"]]
 		var ri: float = ri2 if pt["anello"] == 2 else ri3
