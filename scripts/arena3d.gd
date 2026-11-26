@@ -115,6 +115,7 @@ static func angolo_y(d: int) -> float:
 
 func costruisci(motore: Motore) -> void:
 	m = motore
+	_giu = [false, false]
 	for c in _tessere.get_children():
 		c.queue_free()
 	for f in figure:
@@ -894,7 +895,7 @@ func _modello_combattente(colp: Color, veste: Color, aspetto := "donna") -> Node
 ## Clip in cui lo spostamento lo fa l'arena: i fianchi non devono avanzare da soli, altrimenti
 ## la figura atterra oltre l'esagono e poi "scivola" indietro quando la clip finisce.
 const CLIP_SENZA_DERIVA := ["salto", "salto_mortale", "salto_indietro", "calcio_volante", "sali", "scendi",
-	"volo_indietro", "proiettato", "caduta", "rialzata", "spingi_oggetto"]
+	"volo_indietro", "proiettato", "caduta", "rialzata", "spingi_oggetto", "colpito_corpo", "colpito_testa"]
 
 func _senza_deriva(ap: AnimationPlayer) -> void:
 	for nome in CLIP_SENZA_DERIVA:
@@ -932,9 +933,15 @@ func _ap(p: int) -> AnimationPlayer:
 	return _player(mod) if mod != null else null
 
 ## Fa partire un'animazione e poi torna in guardia; restituisce la durata reale.
+## chi è a terra (proiettato) resta disteso finché il gioco non lo fa rialzare
+var _giu := [false, false]
+const CLIP_DA_TERRA := ["rialzata", "caduta", "proiettato", "ko", "sconfitta", "volo_indietro"]
+
 func clip(p: int, nome: String, velocita := 1.0, poi := "idle") -> float:
 	var ap := _ap(p)
 	if ap == null or not ap.has_animation(nome):
+		return 0.0
+	if p >= 0 and p < 2 and _giu[p] and not nome in CLIP_DA_TERRA:
 		return 0.0
 	ap.play(nome, 0.12, velocita)
 	if poi != "":
@@ -1141,9 +1148,26 @@ func _tween_salto(tw: Tween, p: int, f: Node3D, da: Vector3, a: Vector3, r0: flo
 	tw.tween_interval(maxf(0.05, dur * (0.95 - stacco - 0.45) - 0.15))
 
 ## Volo di chi viene lanciato o cade da un rialzo: arco ampio, atterraggio sulla schiena.
-func _tween_volo(tw: Tween, f: Node3D, da: Vector3, a: Vector3, ry: float, dur: float) -> void:
+func _tween_volo(tw: Tween, f: Node3D, da: Vector3, a: Vector3, ry: float, dur: float, evita := Vector3(INF, 0, 0)) -> void:
 	var alto := 0.9 + maxf(0.0, da.y - a.y) * 0.3
-	tw.tween_method(func(t: float): f.position = da.lerp(a, t) + Vector3(0, sin(PI * t) * alto, 0), 0.0, 1.0, dur).set_ease(Tween.EASE_OUT)
+	# se la traiettoria passa troppo vicino all'avversario, si curva attorno a lui
+	var ctrl := Vector3.INF
+	if evita.x != INF:
+		var seg := Vector3(a.x - da.x, 0, a.z - da.z)
+		var q := Vector3(evita.x - da.x, 0, evita.z - da.z)
+		var t0 := clampf(q.dot(seg) / maxf(seg.length_squared(), 0.0001), 0.0, 1.0)
+		var vicino := da + seg * t0
+		var off := Vector3(vicino.x - evita.x, 0, vicino.z - evita.z)
+		if off.length() < 0.85 * S:
+			var lato := off.normalized() if off.length() > 0.01 else Vector3(-seg.z, 0, seg.x).normalized()
+			ctrl = Vector3(evita.x, (da.y + a.y) / 2.0, evita.z) + lato * 1.7 * S
+	tw.tween_method(func(t: float):
+		var base: Vector3
+		if ctrl.x != INF:
+			base = da.lerp(ctrl, t).lerp(ctrl.lerp(a, t), t)
+		else:
+			base = da.lerp(a, t)
+		f.position = base + Vector3(0, sin(PI * t) * alto, 0), 0.0, 1.0, dur).set_ease(Tween.EASE_OUT)
 
 ## Quale passo animare: avanti, indietro, di lato o una rotazione sul posto.
 func _clip_passo(d: Vector3, ry: float, giro: float) -> String:
@@ -1522,12 +1546,38 @@ func _anima(e: Dictionary) -> Tween:
 			tw.tween_method(volo, 0.0, 1.0, 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 			tw.parallel().tween_property(f, "position", casa, 0.55)
 			tw.tween_interval(0.6)
+			var resta_giu: bool = e.get("a_terra", false)
+			if resta_giu:
+				_giu[u] = true
 			tw.tween_callback(func():
-				if _ap(u) != null:
+				if _ap(u) != null and not resta_giu:
 					_ap(u).play("rialzata", 0.2, 1.3)
 					_ap(u).queue("idle")
 				_ripristina_verso(p))
 			return tw
+		"a_terra":
+			_giu[p] = true
+			# resta disteso: la clip di caduta ferma all'ultimo fotogramma, se non è già giù
+			var ap_t := _ap(p)
+			if ap_t != null and not String(ap_t.current_animation) in ["proiettato", "caduta", "volo_indietro"] and ap_t.has_animation("caduta"):
+				ap_t.play("caduta", 0.2, 1.4)
+			_testo(f.position + Vector3(0, 1.4, 0), "A terra", Color("#ffb070"))
+			return null
+		"rialza":
+			_giu[p] = false
+			var ap_r := _ap(p)
+			if ap_r == null or not ap_r.has_animation("rialzata"):
+				return null
+			var tw_r := create_tween()
+			tw_r.tween_callback(func():
+				ap_r.play("rialzata", 0.2, 1.5)
+				ap_r.queue("idle"))
+			tw_r.tween_interval(ap_r.get_animation("rialzata").length / 1.5 * 0.9)
+			tw_r.tween_callback(func(): _ripristina_verso(p))
+			return tw_r
+		"sale_esterno":
+			_testo(f.position + Vector3(0, 2.3, 0), String(e.get("nome", "")), Color("#e8d08a"))
+			return null
 		"guardia", "vantaggi", "svantaggi":
 			aggiorna_guardie()
 			# mettersi in guardia: un blocco alzato
@@ -1572,7 +1622,7 @@ func _anima(e: Dictionary) -> Tween:
 				var dy := pos.y - da.y
 				var lungo := Vector2(pos.x - da.x, pos.z - da.z).length() > 2.0 * S
 				if vola:
-					_tween_volo(tw, f, da, pos, ry, 0.55)
+					_tween_volo(tw, f, da, pos, ry, 0.55, figure[1 - p].position)
 				elif e.get("salta", false):
 					_tween_salto(tw, p, f, da, pos, r0, ry, bool(e.get("capriola", false)))
 				elif lungo or absf(dy) > ALT * 1.5:
@@ -1604,6 +1654,13 @@ func _anima(e: Dictionary) -> Tween:
 			if e.get("urto", false):
 				tw.tween_callback(func(): _urto(p, e))
 				tw.tween_interval(0.45)
+			if spinto:
+				# a fine volo o spinta ci si rigira dove dice il gioco (di solito verso chi ha lanciato)
+				var ult: Vector3i = per[per.size() - 1]
+				var ry_f := angolo_y(ult.z)
+				tw.tween_callback(func():
+					var rf := f.rotation.y + wrapf(ry_f - f.rotation.y, -PI, PI)
+					create_tween().tween_property(f, "rotation:y", rf, 0.3))
 			return tw
 		"salto":
 			var tw := create_tween()

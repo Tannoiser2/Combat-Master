@@ -1,7 +1,8 @@
 class_name SferaVista
 extends Control
-## La sfera di un combattente: al centro i dadi in mano, attorno i tre settori con le sei azioni base,
-## all'esterno i token curvi caricati dai dadi, nell'anello più esterno il token raro e quelli di scena.
+## La sfera di un combattente: al centro i dadi in mano, attorno i tre token base (sei azioni),
+## poi l'anello dei misti (tre posti a cavallo di due colori, alternati alle Attese) e l'anello
+## esterno (quattro posti, alternati a quattro Attese) che si carica con i dadi dei misti che scattano.
 ## Tutto disegnato (niente simboli Unicode). premuto() dice cosa è stato toccato.
 
 signal premuto(cosa: Dictionary)
@@ -9,8 +10,16 @@ signal premuto(cosa: Dictionary)
 const COL_TOKEN := {
 	"rosso": Color("#c8372d"), "giallo": Color("#d9a420"), "blu": Color("#2f6fd0"),
 	"arancio": Color("#d96c22"), "verde": Color("#2f9a52"), "viola": Color("#8a4fc4"),
-	"scena": Color("#8a6a3e"), "raro": Color("#b8a06a")
+	"scena": Color("#8a6a3e"), "raro": Color("#b8a06a"), "esterno": Color("#b08a3a")
 }
+## Anello dei misti: centro di ogni posto e delle Attese (sopra i token base).
+const POSTO_MISTO := {"arancio": -30.0, "verde": 90.0, "viola": 210.0}
+const ATTESA_BASE := {"F": -90.0, "A": 30.0, "P": 150.0}
+const LARGO_MISTO := 56.0
+## Anello esterno: quattro posti in diagonale, quattro Attese ai punti cardinali.
+const POSTO_ESTERNO := [-45.0, 45.0, 135.0, 225.0]
+const ATTESA_ESTERNA := [-90.0, 0.0, 90.0, 180.0]
+const LARGO_ESTERNO := 62.0
 const COL_DADO := {"r": "rosso", "g": "giallo", "b": "blu", "n": "bianco", "x": "bianco"}
 const COL_SETTORE := {"F": "rosso", "A": "giallo", "P": "blu"}
 ## Angoli in gradi (0 = destra, 90 = giù): Forza in alto, Agilità in basso a destra, Percezione in basso a sinistra.
@@ -48,7 +57,7 @@ func _R() -> float:
 
 func raggi() -> Array:
 	var R := _R()
-	return [R * 0.27, R * 0.53, R * 0.82, R * 0.995]
+	return [R * 0.25, R * 0.49, R * 0.75, R * 0.995]
 
 static func punto(c: Vector2, r: float, a_gradi: float) -> Vector2:
 	var a := deg_to_rad(a_gradi)
@@ -138,6 +147,9 @@ static func disegna_token(ci: CanvasItem, c: Vector2, ri: float, ro: float, a0: 
 		else:
 			var rq: String = String(req[i]) if i < req.size() else "x"
 			var cc: Color = Disegno.colore(COL_DADO.get(rq, "bianco")) if rq != "x" else Color(0.8, 0.75, 0.65)
+			if String(t.get("col", "")) in ["arancio", "verde", "viola"] and not t.get("entrambi", false):
+				# misto: ogni posto prende l'uno o l'altro colore
+				cc = col.lightened(0.25)
 			if rq == "n":
 				cc = Color(0.85, 0.82, 0.74)
 			var sb := StyleBoxFlat.new()
@@ -168,42 +180,86 @@ static func disegna_token(ci: CanvasItem, c: Vector2, ri: float, ro: float, a0: 
 
 # ------------------------------------------------------------------ disposizione
 
-## Posizioni dei token esterni: [{i, a0, a1}] nell'anello esterno, per colore.
+## Posizioni dei token: [{i, a0, a1, anello}]. Nei misti ogni posto ha un token (i doppi divisi in due metà);
+## nell'anello esterno quattro posti.
 func posizioni_token() -> Array:
 	var out := []
 	if m == null:
 		return out
 	var est: Array = m.s["g"][p]["esterni"]
-	# per colore, un posto per token; i token con due azioni dividono il loro posto in due metà
-	var per_col := {}
-	var scena := []
+	var per_posto := {}
+	var esterni := {}
+	var senza := []
 	for i in est.size():
-		var col: String = m.te(est[i])["col"]
-		if col == "scena":
-			scena.append(i)
+		var e: Dictionary = est[i]
+		if m.anello(e) == 3:
+			var k := int(e.get("posto", -1))
+			if k < 0 or k >= 4 or esterni.has(k):
+				senza.append(i)
+			else:
+				esterni[k] = i
 			continue
-		if not per_col.has(col):
-			per_col[col] = {}
-		var id: String = est[i]["id"]
-		if not per_col[col].has(id):
-			per_col[col][id] = []
-		per_col[col][id].append(i)
-	for col in per_col:
-		var ids: Array = per_col[col].keys()
-		var centro: float = POSTO[col]
-		var tot := 56.0
-		var w := tot / ids.size()
-		for k in ids.size():
-			var parti: Array = per_col[col][ids[k]]
-			parti.sort_custom(func(a, b): return int(est[a].get("parte", 0)) < int(est[b].get("parte", 0)))
-			var a0 := centro - tot / 2.0 + w * k + 1.0
-			var wp := (w - 2.0) / parti.size()
-			for q in parti.size():
-				out.append({"i": parti[q], "a0": a0 + wp * q + (0.4 if q > 0 else 0.0), "a1": a0 + wp * (q + 1) - (0.4 if q < parti.size() - 1 else 0.0), "anello": 2})
-	for k in scena.size():
-		var a0 := 64.0 + k * 26.0
-		out.append({"i": scena[k], "a0": a0, "a1": a0 + 24.0, "anello": 3})
+		var posto := String(e.get("posto", ""))
+		if not POSTO_MISTO.has(posto):
+			posto = "arancio"
+		if not per_posto.has(posto):
+			per_posto[posto] = []
+		per_posto[posto].append(i)
+	for posto in per_posto:
+		var parti: Array = per_posto[posto]
+		parti.sort_custom(func(a, b): return int(est[a].get("parte", 0)) < int(est[b].get("parte", 0)))
+		var c: float = POSTO_MISTO[posto]
+		var a0 := c - LARGO_MISTO / 2.0
+		var wp := LARGO_MISTO / parti.size()
+		for q in parti.size():
+			out.append({"i": parti[q], "a0": a0 + wp * q + (0.5 if q > 0 else 0.0), "a1": a0 + wp * (q + 1) - (0.5 if q < parti.size() - 1 else 0.0), "anello": 2})
+	for i in senza:
+		for k in 4:
+			if not esterni.has(k):
+				esterni[k] = i
+				break
+	for k in esterni:
+		var c: float = POSTO_ESTERNO[k]
+		out.append({"i": esterni[k], "a0": c - LARGO_ESTERNO / 2.0, "a1": c + LARGO_ESTERNO / 2.0, "anello": 3})
 	return out
+
+## Zona d'Attesa: settore tratteggiato con i dadi che aspettano la pausa.
+func _attesa(c: Vector2, ri: float, ro: float, a0: float, a1: float, dadi: Array) -> void:
+	draw_colored_polygon(settore(c, ri, ro, a0, a1), Color(0.2, 0.17, 0.14, 0.95))
+	# tratteggio diagonale: brevi segmenti dentro il settore
+	var passi := 9
+	for k in passi:
+		var a := lerpf(a0, a1, (k + 0.5) / passi)
+		draw_line(punto(c, ri + 3, a - 2.5), punto(c, ro - 3, a + 2.5), Color(0.5, 0.43, 0.34, 0.55), 2.0, true)
+	var pts := settore(c, ri, ro, a0, a1)
+	pts.append(pts[0])
+	draw_polyline(pts, Color(0.6, 0.5, 0.35, 0.7), 1.2, true)
+	testo_arco(self, c, ri + (ro - ri) * 0.78, (a0 + a1) / 2.0, absf(a1 - a0), "ATTESA", 10, Color(0.85, 0.78, 0.62, 0.8))
+	_dadi_attesa(c, (ri + ro) / 2.0 - (ro - ri) * 0.08, (a0 + a1) / 2.0, absf(a1 - a0), (ro - ri) * 0.32, dadi)
+
+func _dadi_attesa(c: Vector2, r: float, am: float, span: float, ds: float, dadi: Array) -> void:
+	var n := dadi.size()
+	if n == 0:
+		return
+	var passo := minf(rad_to_deg(ds * 1.15 / r), span * 0.85 / maxi(1, n))
+	var dd := minf(ds, deg_to_rad(passo) * r * 0.9)
+	for i in n:
+		var a := am + (i - (n - 1) / 2.0) * passo
+		var pc := punto(c, r, a)
+		Disegno.dado(self, Rect2(pc - Vector2(dd, dd) / 2.0, Vector2(dd, dd)), COL_DADO.get(String(dadi[i]), "bianco"), 0, "usato")
+
+## Posto vuoto: solo il contorno, nei colori che accetta.
+func _posto_vuoto(c: Vector2, ri: float, ro: float, a0: float, a1: float, colori: Array, testo: String) -> void:
+	draw_colored_polygon(settore(c, ri, ro, a0, a1), Color(0.12, 0.1, 0.08, 0.9))
+	var n := colori.size()
+	for k in n:
+		var b0 := lerpf(a0, a1, float(k) / n)
+		var b1 := lerpf(a0, a1, float(k + 1) / n)
+		draw_arc(c, ri + 3, deg_to_rad(b0), deg_to_rad(b1), 12, COL_TOKEN[colori[k]].darkened(0.1), 4.0, true)
+	var pts := settore(c, ri, ro, a0, a1)
+	pts.append(pts[0])
+	draw_polyline(pts, Color(0.55, 0.47, 0.35, 0.6), 1.0, true)
+	testo_arco(self, c, (ri + ro) / 2.0, (a0 + a1) / 2.0, absf(a1 - a0), testo, 10, Color(0.8, 0.74, 0.6, 0.6))
 
 func _posizioni_dadi() -> Array:
 	var out := []
@@ -253,11 +309,6 @@ func _draw() -> void:
 	var R := _R()
 	draw_circle(c, R, Color(0.07, 0.055, 0.045, 0.9))
 	draw_arc(c, r[3], 0, TAU, 96, Color(0.55, 0.45, 0.3, 0.6), 1.5, true)
-	# anello raro tratteggiato
-	for k in 48:
-		if k % 2 == 0:
-			draw_arc(c, (r[2] + r[3]) / 2.0, k * TAU / 48, (k + 0.6) * TAU / 48, 4, Color(0.75, 0.65, 0.45, 0.35), 1.5, true)
-	draw_arc(c, r[2], 0, TAU, 96, Color(0.55, 0.45, 0.3, 0.35), 1.0, true)
 	# settori e azioni base
 	if m == null:
 		return
@@ -291,19 +342,50 @@ func _draw() -> void:
 		Disegno.dado(self, x["rect"], COL_DADO[String(x["f"]["c"])], int(x["f"]["v"]), "usato", int(x["j"]) == sel_fermo)
 		if evid_fermi.has(int(x["j"])):
 			draw_rect(x["rect"].grow(3), Disegno.ORO, false, 2.0)
-	# token esterni curvi
+	# anello dei misti: Attese sopra i token base, posti a cavallo di due colori
+	var ri2: float = r[1] + 14
+	var ro2: float = r[2] - 3
+	var ri3: float = r[2] + 3
+	var ro3: float = r[3] - 2
+	var att: Dictionary = g.get("attesa", {})
+	for sett in ATTESA_BASE:
+		var am: float = ATTESA_BASE[sett]
+		_attesa(c, ri2, ro2, am - 27, am + 27, att.get(sett, []))
+	var pos := posizioni_token()
+	var occupati := {}
+	for pt in pos:
+		occupati["%d:%d" % [pt["anello"], int((pt["a0"] + pt["a1"]) / 2.0)]] = true
 	var est: Array = g["esterni"]
-	for pt in posizioni_token():
+	for posto in POSTO_MISTO:
+		var am: float = POSTO_MISTO[posto]
+		var preso := false
+		for pt in pos:
+			if pt["anello"] == 2 and absf((pt["a0"] + pt["a1"]) / 2.0 - am) < LARGO_MISTO / 2.0:
+				preso = true
+		if not preso:
+			var due: Array = {"arancio": ["rosso", "giallo"], "verde": ["giallo", "blu"], "viola": ["blu", "rosso"]}[posto]
+			_posto_vuoto(c, ri2, ro2, am - LARGO_MISTO / 2.0, am + LARGO_MISTO / 2.0, due, "posto libero")
+	# anello esterno: Attese ai punti cardinali, quattro posti in diagonale
+	var att_e: Array = att.get("E", [])
+	for k in 4:
+		var am: float = ATTESA_ESTERNA[k]
+		var parte := []
+		for j in att_e.size():
+			if j % 4 == k:
+				parte.append(att_e[j])
+		_attesa(c, ri3, ro3, am - 13, am + 13, parte)
+		var ae: float = POSTO_ESTERNO[k]
+		var preso3 := false
+		for pt in pos:
+			if pt["anello"] == 3 and absf((pt["a0"] + pt["a1"]) / 2.0 - ae) < 1.0:
+				preso3 = true
+		if not preso3:
+			_posto_vuoto(c, ri3, ro3, ae - LARGO_ESTERNO / 2.0, ae + LARGO_ESTERNO / 2.0, [], "anello esterno")
+	for pt in pos:
 		var e: Dictionary = est[pt["i"]]
-		var ri: float = r[1] + 14 if pt["anello"] == 2 else r[2] + 3
-		var ro: float = r[2] - 3 if pt["anello"] == 2 else r[3] - 2
+		var ri: float = ri2 if pt["anello"] == 2 else ri3
+		var ro: float = ro2 if pt["anello"] == 2 else ro3
 		disegna_token(self, c, ri, ro, pt["a0"], pt["a1"], m.te(e), e, evid_token.has(int(pt["i"])))
-	# token raro
-	var rr: Dictionary = g["raro"]
-	if not rr.is_empty():
-		var t: Dictionary = m.rarip[rr["id"]].duplicate()
-		t["col"] = "raro"
-		disegna_token(self, c, r[2] + 3, r[3] - 2, -146, -100, t, rr, evid_raro, "raro")
 
 # ------------------------------------------------------------------ tocco
 
@@ -346,8 +428,8 @@ func cosa_in(pos: Vector2) -> Dictionary:
 	if d >= r[1] and d <= r[3]:
 		var anello := 2 if d < r[2] else 3
 		for pt in posizioni_token():
-			if pt["anello"] == anello and a >= pt["a0"] - 1 and a <= pt["a1"] + 1:
+			var mid: float = (pt["a0"] + pt["a1"]) / 2.0
+			if pt["anello"] == anello and absf(wrapf(a - mid, -180.0, 180.0)) <= absf(pt["a1"] - pt["a0"]) / 2.0 + 1.0:
 				return {"tipo": "token", "i": pt["i"]}
-		if anello == 3 and a >= -146 and a <= -100 and not m.s["g"][p]["raro"].is_empty():
-			return {"tipo": "raro"}
+
 	return {}

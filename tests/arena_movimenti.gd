@@ -111,7 +111,7 @@ func _giro() -> void:
 						v.y = 0
 						var avanti := Vector3(-sin(f.rotation.y), 0, -cos(f.rotation.y))
 						var ang := rad_to_deg(avanti.angle_to(v.normalized()))
-						if ang > 35 and int(ms.s["g"][i]["vita"]) > 0:
+						if ang > 35 and int(ms.s["g"][i]["vita"]) > 0 and not ms.a_terra(i):
 							_segnala("a riposo non guarda l'avversario", "p%d scambio %d  %d gradi, distanza %.1f" % [i, ms.s["scambio"], int(ang), v.length() / d1])
 						var giusta: Vector3 = ar.posizione(ms.s["g"][i]["pos"])
 						if Vector2(giusta.x - f.position.x, giusta.z - f.position.z).length() > 0.1:

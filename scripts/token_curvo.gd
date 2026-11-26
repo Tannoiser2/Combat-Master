@@ -57,6 +57,10 @@ func _draw() -> void:
 			"subito":
 				modo = "Scatta subito. "
 		var testo := modo + String(t.get("testo", ""))
+		if int(t.get("anello", 2)) == 3:
+			testo = "Anello esterno, %s. %s" % ["1 dado" if t["req"].size() == 1 else "%d dadi" % t["req"].size(), testo]
+		elif t.get("entrambi", false):
+			testo += " Vuole un dado di ciascuno dei due colori."
 		if t.has("seconda"):
 			testo = String(t["nome"]) + ": " + testo + "\n" + String(t["seconda"]["nome"]) + ": " + String(t["seconda"]["testo"])
 		Disegno.testo_a_capo(self, Vector2(10, alto + 14), testo, 14 if not t.has("seconda") else 12, Disegno.PERGAMENA, w - 20, 6)

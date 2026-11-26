@@ -4,7 +4,7 @@
   "budget": 12,
   "ritmo3_punti": 2,
   "ritmo3_budget": 3,
-  "vita_base": 18,
+  "vita_base": 26,
   "pesca": 4,
   "max_vant": 5,
   "vant_per_colpo": 3,
@@ -15,8 +15,9 @@
   "fallisce_fino": 2,
   "scarto_tolleranza": 2,
   "presa_soglia_spinta": 5,
-  "soglia_raro": 4,
-  "max_scambi": 40
+  "max_scambi": 40,
+  "danno_a_terra": 1,
+  "budget_esterno": 10
  },
  "base": [
   {
@@ -80,7 +81,7 @@
    "modo": "subito",
    "eff": "colpo",
    "bonus": 2,
-   "costo": 4,
+   "costo": 2,
    "testo": "A contatto: colpo con il dado +2.",
    "seconda": {
     "nome": "Spazzata bassa",
@@ -92,7 +93,8 @@
     "modo": "subito",
     "freccia": 1,
     "testo": "A contatto: 1 ferita più un quarto del dado, 2 svantaggi, perde il dado più basso."
-   }
+   },
+   "anello": 2
   },
   {
    "id": "raffica",
@@ -107,7 +109,8 @@
    "eff": "colpo",
    "bonus": 1,
    "costo": 1,
-   "testo": "A contatto: colpo con la somma dei dadi +1. Il secondo dado può essere bianco."
+   "testo": "A contatto: colpo con la somma dei dadi +1. Il secondo dado può essere bianco.",
+   "anello": 2
   },
   {
    "id": "gomitata",
@@ -120,7 +123,7 @@
    "modo": "subito",
    "eff": "colpo_stordente",
    "bonus": 1,
-   "costo": 4,
+   "costo": 2,
    "testo": "A contatto: colpo +1; se ferisce, 2 svantaggi e perde il dado più alto.",
    "seconda": {
     "nome": "Ginocchiata",
@@ -132,7 +135,8 @@
     "modo": "subito",
     "freccia": 1,
     "testo": "A contatto: colpo con il dado +1."
-   }
+   },
+   "anello": 2
   },
   {
    "id": "spallata",
@@ -145,8 +149,9 @@
    "modo": "subito",
    "eff": "spinta",
    "bonus": 0,
-   "costo": 5,
-   "testo": "A contatto: colpo e spinta di 2 esagoni, 1 svantaggio."
+   "costo": 1,
+   "testo": "A contatto: colpo e spinta di 2 esagoni, 1 svantaggio.",
+   "anello": 2
   },
   {
    "id": "carica_toro",
@@ -160,7 +165,7 @@
    "modo": "subito",
    "eff": "carica",
    "bonus": 0,
-   "costo": 2,
+   "costo": 3,
    "testo": "Da 4 esagoni arrivi davanti a lui e colpisci con la somma.",
    "seconda": {
     "nome": "Spinta del toro",
@@ -173,7 +178,8 @@
     "modo": "subito",
     "freccia": 1,
     "testo": "A contatto: colpo con la somma e spinta di 2 esagoni, 1 svantaggio."
-   }
+   },
+   "anello": 2
   },
   {
    "id": "calcio_volante",
@@ -187,8 +193,9 @@
    "modo": "subito",
    "eff": "carica",
    "bonus": 2,
-   "costo": 2,
-   "testo": "Come la Carica, danno +2."
+   "costo": 3,
+   "testo": "Come la Carica, danno +2.",
+   "anello": 2
   },
   {
    "id": "affondo",
@@ -203,7 +210,8 @@
    "eff": "affondo",
    "bonus": 1,
    "costo": 2,
-   "testo": "Da 2 esagoni entri, colpisci con la somma +1 e arretri di 1."
+   "testo": "Da 2 esagoni entri, colpisci con la somma +1 e arretri di 1.",
+   "anello": 2
   },
   {
    "id": "sgambetto",
@@ -217,8 +225,9 @@
    "modo": "subito",
    "eff": "sgambetto",
    "bonus": 0,
-   "costo": 2,
-   "testo": "A contatto: 1 ferita più un quarto della somma, 2 svantaggi, perde il dado più basso."
+   "costo": 6,
+   "testo": "A contatto: 1 ferita più un quarto della somma, 2 svantaggi, perde il dado più basso.",
+   "anello": 2
   },
   {
    "id": "balzo",
@@ -231,7 +240,7 @@
    "modo": "subito",
    "eff": "balzo",
    "bonus": -3,
-   "costo": 4,
+   "costo": 1,
    "testo": "Salti a contatto da 3 esagoni, +1 vantaggio e colpisci con il dado -3.",
    "seconda": {
     "nome": "Passo indietro",
@@ -243,7 +252,8 @@
     "modo": "armato",
     "freccia": 1,
     "testo": "Trappola: schivi il prossimo colpo, +1 vantaggio, l'attaccante prende 1 ferita e scivola oltre."
-   }
+   },
+   "anello": 2
   },
   {
    "id": "passi_danza",
@@ -258,7 +268,8 @@
    "eff": "schivata",
    "bonus": 1,
    "costo": 1,
-   "testo": "Trappola: schivi il prossimo colpo, +1 vantaggio, l'attaccante prende 2 ferite."
+   "testo": "Trappola: schivi il prossimo colpo, +1 vantaggio, l'attaccante prende 2 ferite.",
+   "anello": 2
   },
   {
    "id": "salto_mortale",
@@ -271,8 +282,9 @@
    "modo": "subito",
    "eff": "alle_spalle",
    "bonus": -6,
-   "costo": 8,
-   "testo": "Da 3 esagoni atterri alle sue spalle e colpisci (dado -6, +2 alle spalle); si schiva solo con 5 o 6."
+   "costo": 2,
+   "testo": "Da 3 esagoni atterri alle sue spalle e colpisci (dado -6, +2 alle spalle); si schiva solo con 5 o 6.",
+   "anello": 2
   },
   {
    "id": "irimi",
@@ -286,7 +298,7 @@
    "modo": "armato",
    "eff": "irimi",
    "bonus": 0,
-   "costo": 2,
+   "costo": 3,
    "testo": "Trappola: annulli il colpo, +3 vantaggi, 1 ferita e 1 svantaggio all'attaccante; finisci al suo fianco e prendi l'iniziativa.",
    "seconda": {
     "nome": "Irimi nage",
@@ -299,7 +311,8 @@
     "modo": "armato",
     "freccia": 2,
     "testo": "Trappola: annulli il colpo, entri e lo proietti attorno a te: metà della somma meno 1."
-   }
+   },
+   "anello": 2
   },
   {
    "id": "tenkan",
@@ -313,7 +326,7 @@
    "modo": "armato",
    "eff": "tenkan",
    "bonus": 0,
-   "costo": 3,
+   "costo": 5,
    "testo": "Trappola: annulli il colpo, +1 vantaggio, 1 ferita, 1 svantaggio e un dado in meno all'attaccante; i tuoi dadi in mano +1.",
    "seconda": {
     "nome": "Tenkan e ukemi",
@@ -326,7 +339,8 @@
     "modo": "armato",
     "freccia": 1,
     "testo": "Trappola: annulli il colpo, +1 vantaggio, togli gli svantaggi e recuperi 2 ferite."
-   }
+   },
+   "anello": 2
   },
   {
    "id": "uscire_linea",
@@ -341,7 +355,8 @@
    "eff": "schivata",
    "bonus": 1,
    "costo": 1,
-   "testo": "Trappola: schivi, +1 vantaggio, l'attaccante prende 2 ferite; per due scambi i tuoi ritiri falliscono solo con 1."
+   "testo": "Trappola: schivi, +1 vantaggio, l'attaccante prende 2 ferite; per due scambi i tuoi ritiri falliscono solo con 1.",
+   "anello": 2
   },
   {
    "id": "ukemi",
@@ -356,7 +371,8 @@
    "eff": "ukemi",
    "bonus": 0,
    "costo": 1,
-   "testo": "Trappola: annulli il colpo, +1 vantaggio, togli gli svantaggi e recuperi 2 ferite."
+   "testo": "Trappola: annulli il colpo, +1 vantaggio, togli gli svantaggi e recuperi 2 ferite.",
+   "anello": 2
   },
   {
    "id": "guardia_ferrea",
@@ -369,8 +385,9 @@
    "modo": "armato",
    "eff": "guardia",
    "bonus": 0,
-   "costo": 4,
-   "testo": "Passiva: per tutto lo scambio ogni colpo fa 2 danni in meno; la prima volta l'attaccante prende 1 ferita."
+   "costo": 1,
+   "testo": "Passiva: per tutto lo scambio ogni colpo fa 2 danni in meno; la prima volta l'attaccante prende 1 ferita.",
+   "anello": 2
   },
   {
    "id": "respiro",
@@ -383,7 +400,7 @@
    "modo": "subito",
    "eff": "respiro",
    "bonus": 0,
-   "costo": 2,
+   "costo": 1,
    "testo": "Recuperi metà del dado per eccesso (massimo 3 ferite) e togli gli svantaggi.",
    "seconda": {
     "nome": "Sguardo fermo",
@@ -395,7 +412,8 @@
     "modo": "subito",
     "freccia": 1,
     "testo": "2 svantaggi al nemico e perde il dado più alto; +1 vantaggio."
-   }
+   },
+   "anello": 2
   },
   {
    "id": "provocazione",
@@ -409,7 +427,8 @@
    "eff": "provoca",
    "bonus": 0,
    "costo": 1,
-   "testo": "2 svantaggi al nemico e perde il dado più alto; +1 vantaggio."
+   "testo": "2 svantaggi al nemico e perde il dado più alto; +1 vantaggio.",
+   "anello": 2
   },
   {
    "id": "calma",
@@ -422,8 +441,9 @@
    "modo": "subito",
    "eff": "calma",
    "bonus": 0,
-   "costo": 7,
-   "testo": "Peschi 2 dadi in più dal mucchio."
+   "costo": 6,
+   "testo": "Peschi 2 dadi in più dal mucchio.",
+   "anello": 2
   },
   {
    "id": "kote_gaeshi",
@@ -437,7 +457,7 @@
    "modo": "armato",
    "eff": "proiezione",
    "bonus": 0,
-   "costo": 6,
+   "costo": 3,
    "testo": "Trappola: annulli il colpo, l'attaccante prende metà della somma e vola attorno a te, fino a 2 esagoni oltre.",
    "seconda": {
     "nome": "Kote a terra",
@@ -450,7 +470,9 @@
     "modo": "armato",
     "freccia": 1,
     "testo": "Trappola: annulli il colpo, un quarto della somma, 1 svantaggio, perde 1 dado."
-   }
+   },
+   "anello": 2,
+   "entrambi": true
   },
   {
    "id": "ikkyo",
@@ -464,8 +486,9 @@
    "modo": "armato",
    "eff": "immobilizza",
    "bonus": 0,
-   "costo": 2,
-   "testo": "Trappola: annulli il colpo, un quarto della somma in ferite, 1 svantaggio, perde 1 dado."
+   "costo": 5,
+   "testo": "Trappola: annulli il colpo, un quarto della somma in ferite, 1 svantaggio, perde 1 dado.",
+   "anello": 2
   },
   {
    "id": "kaiten_nage",
@@ -479,8 +502,10 @@
    "modo": "armato",
    "eff": "proiezione",
    "bonus": 0,
-   "costo": 4,
-   "testo": "Trappola: annulli il colpo, l'attaccante prende metà della somma e vola attorno a te, fino a 2 esagoni oltre."
+   "costo": 1,
+   "testo": "Trappola: annulli il colpo, l'attaccante prende metà della somma e vola attorno a te, fino a 2 esagoni oltre.",
+   "anello": 2,
+   "entrambi": true
   },
   {
    "id": "contrattacco",
@@ -494,36 +519,138 @@
    "modo": "armato",
    "eff": "contrattacco",
    "bonus": 0,
-   "costo": 1,
-   "testo": "Trappola: subisci il colpo meno 3 e restituisci metà della somma."
-  }
- ],
- "rari": [
+   "costo": 2,
+   "testo": "Trappola: subisci il colpo meno 3 e restituisci metà della somma.",
+   "anello": 2
+  },
   {
    "id": "tenchi_nage",
    "nome": "Tenchi nage",
-   "dadi": 2,
+   "col": "esterno",
+   "anello": 3,
+   "req": [
+    "x",
+    "x"
+   ],
+   "freccia": 1,
+   "modo": "subito",
    "eff": "tenchi",
-   "costo": 7,
-   "testo": "Metà della somma in ferite, il nemico vola di 3 esagoni e perde 2 dadi."
+   "bonus": 0,
+   "costo": 9,
+   "testo": "A contatto: metà della somma in ferite, vola di 3 esagoni, perde 1 dado ed è a terra."
   },
   {
    "id": "kiai",
    "nome": "Kiai del maestro",
-   "dadi": 1,
+   "col": "esterno",
+   "anello": 3,
+   "req": [
+    "x"
+   ],
+   "freccia": 1,
+   "modo": "subito",
    "eff": "kiai",
-   "costo": 4,
-   "testo": "Disarma tutti i token pronti del nemico, 2 svantaggi a lui e 2 vantaggi a te."
+   "bonus": 0,
+   "costo": 6,
+   "testo": "Disarma i token pronti del nemico, perde il dado più alto, 2 svantaggi a lui e 2 vantaggi a te."
   },
   {
    "id": "ritorno",
    "nome": "Ritorno al centro",
-   "dadi": 2,
+   "col": "esterno",
+   "anello": 3,
+   "req": [
+    "x",
+    "x"
+   ],
+   "freccia": 1,
+   "modo": "subito",
    "eff": "ritorno",
-   "costo": 5,
-   "testo": "Rimetti in mano 2 dadi."
+   "bonus": 0,
+   "costo": 6,
+   "testo": "Rimetti in mano 3 dadi nuovi."
+  },
+  {
+   "id": "shiho_nage",
+   "nome": "Shiho nage",
+   "col": "esterno",
+   "anello": 3,
+   "req": [
+    "x",
+    "x"
+   ],
+   "freccia": 1,
+   "modo": "armato",
+   "eff": "shiho",
+   "bonus": 0,
+   "costo": 9,
+   "testo": "Trappola: annulli il colpo, metà della somma, 1 svantaggio, lo proietti e resta a terra."
+  },
+  {
+   "id": "kokyu_nage",
+   "nome": "Kokyu nage",
+   "col": "esterno",
+   "anello": 3,
+   "req": [
+    "x",
+    "x"
+   ],
+   "freccia": 1,
+   "modo": "armato",
+   "eff": "kokyu",
+   "bonus": 0,
+   "costo": 8,
+   "testo": "Trappola: annulli il colpo, metà della somma, lo lanci di 2 esagoni e resta a terra."
+  },
+  {
+   "id": "juji_nage",
+   "nome": "Juji nage",
+   "col": "esterno",
+   "anello": 3,
+   "req": [
+    "x",
+    "x"
+   ],
+   "freccia": 1,
+   "modo": "armato",
+   "eff": "juji",
+   "bonus": 0,
+   "costo": 9,
+   "testo": "Trappola: annulli il colpo, metà della somma meno 1, perde 1 dado, lo proietti e resta a terra."
+  },
+  {
+   "id": "atemi",
+   "nome": "Atemi decisivo",
+   "col": "esterno",
+   "anello": 3,
+   "req": [
+    "x",
+    "x"
+   ],
+   "freccia": 1,
+   "modo": "subito",
+   "eff": "atemi",
+   "bonus": 0,
+   "costo": 7,
+   "testo": "Entro 2 esagoni: entri e colpisci con la somma +4; se ferisce, 2 svantaggi, perde il dado più alto e va a terra."
+  },
+  {
+   "id": "zanshin",
+   "nome": "Zanshin",
+   "col": "esterno",
+   "anello": 3,
+   "req": [
+    "x"
+   ],
+   "freccia": 1,
+   "modo": "subito",
+   "eff": "zanshin",
+   "bonus": 0,
+   "costo": 6,
+   "testo": "+2 vantaggi, recuperi 1 ferita, un dado nuovo in mano; per due scambi i ritiri falliscono solo con 1."
   }
  ],
+ "rari": [],
  "scena": [
   {
    "id": "scena_pietre",
@@ -620,7 +747,8 @@
     "calcio_girato",
     "respiro",
     "uscire_linea",
-    "contrattacco"
+    "contrattacco",
+    "kokyu_nage"
    ],
    "raro": "",
    "aspetto": "donna",
@@ -638,7 +766,8 @@
     "spallata",
     "gomitata",
     "raffica",
-    "calcio_girato"
+    "calcio_girato",
+    "atemi"
    ],
    "raro": "",
    "aspetto": "uomo2",
@@ -654,11 +783,11 @@
    "coll": [
     "balzo",
     "passi_danza",
-    "sgambetto",
     "calcio_volante",
     "uscire_linea",
     "irimi",
-    "respiro"
+    "respiro",
+    "zanshin"
    ],
    "raro": "",
    "aspetto": "snella",
@@ -674,10 +803,9 @@
    "coll": [
     "tenkan",
     "ukemi",
-    "ikkyo",
-    "provocazione",
     "irimi",
-    "respiro"
+    "respiro",
+    "shiho_nage"
    ],
    "raro": "",
    "aspetto": "uomo3",
@@ -695,7 +823,8 @@
     "kaiten_nage",
     "contrattacco",
     "respiro",
-    "ukemi"
+    "ukemi",
+    "juji_nage"
    ],
    "raro": "",
    "aspetto": "formosa",
@@ -713,7 +842,8 @@
     "passi_danza",
     "uscire_linea",
     "respiro",
-    "raffica"
+    "raffica",
+    "ritorno"
    ],
    "raro": "",
    "aspetto": "bionda",
@@ -731,9 +861,10 @@
     "provocazione",
     "irimi",
     "ikkyo",
-    "respiro"
+    "respiro",
+    "kiai"
    ],
-   "raro": "kiai",
+   "raro": "",
    "aspetto": "mora",
    "testo": "Provoca, legge e con il Kiai spegne le trappole."
   },
@@ -748,9 +879,10 @@
     "irimi",
     "contrattacco",
     "respiro",
-    "uscire_linea"
+    "uscire_linea",
+    "tenchi_nage"
    ],
-   "raro": "tenchi_nage",
+   "raro": "",
    "aspetto": "barbuto",
    "testo": "Pochi token, ma prepara il Tenchi nage."
   },
@@ -764,7 +896,8 @@
    "coll": [
     "calma",
     "guardia_ferrea",
-    "respiro"
+    "respiro",
+    "zanshin"
    ],
    "raro": "",
    "aspetto": "uomo",

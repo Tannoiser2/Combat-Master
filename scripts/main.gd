@@ -2281,10 +2281,16 @@ func sf_descrivi(pg: Dictionary) -> String:
 		return "Caratteristiche e token a caso, entro il budget."
 	var mm := _sf_motore()
 	var nomi := []
+	var nomi3 := []
 	for id in pg.get("coll", []):
 		if mm.tokp.has(id):
-			nomi.append(mm.tokp[id]["nome"])
+			if int(mm.tokp[id].get("anello", 2)) == 3:
+				nomi3.append(mm.tokp[id]["nome"])
+			else:
+				nomi.append(mm.tokp[id]["nome"])
 	var t := "Forza %d, Agilità %d, Percezione %d, Costituzione %d, Ritmo %d.\nToken: %s." % [pg["F"], pg["A"], pg["P"], pg["C"], pg["R"], ", ".join(nomi)]
+	if not nomi3.is_empty():
+		t += "\nAnello esterno: %s." % ", ".join(nomi3)
 	if String(pg.get("raro", "")) != "":
 		t += "\nRaro: %s." % mm.rarip[pg["raro"]]["nome"]
 	if pg.has("testo"):
@@ -2474,7 +2480,8 @@ func _sf_layout() -> void:
 		_sf_pan.offset_right = -6
 		_sf_pan.offset_top = -vw.y * 0.58
 		_sf_pan.offset_bottom = -6
-		lato = minf(vw.x - 40, vw.y * 0.34)
+		# la sfera occupa il pannello in basso, lasciando posto a testa, istruzioni e bottoni
+		lato = minf(vw.x - 40, vw.y * 0.58 - 240)
 		if pd != null:
 			pd.set_anchors_preset(Control.PRESET_TOP_WIDE)
 			pd.offset_left = 6
@@ -2656,7 +2663,7 @@ func _sf_premuto(cosa: Dictionary) -> void:
 			voci.append(["Annulla", func():
 				_sf_azzera()
 				_sf_aggiorna()])
-			_sf_info.text = "Dado %s da %d: scegli l'azione.%s" % [Sfera.NOMI_DADO[dd["c"]], dd["v"], "" if not azioni.is_empty() else " Nessuna azione possibile ora."]
+			_sf_info.text = "Dado %s da %d: scegli l'azione.%s%s" % [Sfera.NOMI_DADO[dd["c"]], dd["v"], "" if not azioni.is_empty() else " Nessuna azione possibile ora.", "\nSei a terra: ti rialzi con un dado qualsiasi; con un giallo o un bianco il dado prosegue e può salire." if ms.a_terra(p) else ""]
 			_sf_bottoni(voci)
 			_sf_vista.queue_redraw()
 		"azione":
@@ -2685,6 +2692,8 @@ func _sf_premuto(cosa: Dictionary) -> void:
 				_sf_azzera()
 				_sf_aggiorna()])
 			_sf_info.text = "Dado %s da %d fermo su %s.\n%s: %s" % [Sfera.NOMI_DADO[f["c"]], f["v"], b["nome"], b["faccia"], b["testo_faccia"]]
+			if voci.size() == 1 and g["mano"].is_empty():
+				_sf_info.text += "\nQuesto dado non può salire né girare: premi Passa fino alla pausa."
 			_sf_bottoni(voci)
 			_sf_vista.queue_redraw()
 		"token":
@@ -2695,7 +2704,17 @@ func _sf_premuto(cosa: Dictionary) -> void:
 				stato = " Bloccato fino alla pausa."
 			elif e["pronto"]:
 				stato = " Pronto."
-			_sf_info.text = "%s (freccia -%d): %s%s" % [t["nome"], int(t.get("freccia", 1)), t["testo"], stato]
+			var dove := ""
+			if ms.anello(e) == 3 and not String(e["id"]).begins_with("scena_"):
+				dove = " Anello esterno: lo carica il dado più alto di ogni token dei misti che scatta."
+			elif String(t["col"]) in ["arancio", "verde", "viola"]:
+				var due: String = Sfera.SETTORI_COL[t["col"]]
+				var nomi_c := {"F": "rosso", "A": "giallo", "P": "blu"}
+				if t.get("entrambi", false):
+					dove = " Vuole un dado %s e uno %s." % [nomi_c[due[0]], nomi_c[due[1]]]
+				else:
+					dove = " Ogni posto prende un dado %s o %s (o bianco)." % [nomi_c[due[0]], nomi_c[due[1]]]
+			_sf_info.text = "%s (freccia -%d): %s%s%s" % [t["nome"], int(t.get("freccia", 1)), t["testo"], dove, stato]
 		"raro":
 			var r: Dictionary = g["raro"]
 			_sf_info.text = "Token raro %s: %s Si carica con i dadi che scattano dai token esterni (4 o più)." % [ms.rarip[r["id"]]["nome"], ms.rarip[r["id"]]["testo"]]
@@ -2707,6 +2726,8 @@ func _sf_base(az: String) -> Dictionary:
 	return {"nome": az, "testo": "", "faccia": "", "testo_faccia": ""}
 
 func _sf_nome_azione(az: String) -> String:
+	if az == "rialza":
+		return "Rialzati"
 	return String(_sf_base(az)["nome"])
 
 func _sf_scegli_azione(az: String) -> void:
@@ -2742,6 +2763,11 @@ func _sf_scegli_azione(az: String) -> void:
 				arena.evidenzia(hs, Color("#5aa0d8"))
 				_sf_info.text = "Tocca l'esagono dove andare (fino a %s), oppure lascia scegliere." % plurale_es(k)
 				_sf_bottoni([["Avanza verso di lui", func(): _sf_esegui({"t": "passo", "dado": id})], ["Allontanati", func(): _sf_esegui({"t": "passo", "dado": id, "via": true})]])
+		"rialza":
+			if dd["c"] in ["g", "n"]:
+				_sf_chiedi_salita(p, dd["c"], "A", v, func(sal): _sf_esegui({"t": "rialza", "dado": id, "salita": sal}))
+			else:
+				_sf_esegui({"t": "rialza", "dado": id})
 		_:
 			_sf_esegui({"t": az, "dado": id})
 
@@ -2939,6 +2965,7 @@ func sf_officina() -> void:
 		sf_officina())
 	riga.add_child(rit)
 	var raro := OptionButton.new()
+	raro.visible = not sf["rari"].is_empty()
 	raro.add_item("Nessun token raro")
 	for r in sf["rari"]:
 		raro.add_item("Raro: %s (%d)" % [r["nome"], int(r["costo"])])
@@ -2983,7 +3010,7 @@ func _sf_off_car(k: String, d: int) -> void:
 
 func _sf_off_sommario() -> void:
 	var c := _sf_motore().conto(_off_sf)
-	var t := "Caratteristiche %d/%d  -  Budget dei token %d/%d" % [c["punti"], c["max_punti"], c["budget"], c["max_budget"]]
+	var t := "Caratteristiche %d/%d  -  Token dei misti %d/%d  -  Anello esterno %d/%d" % [c["punti"], c["max_punti"], c["budget"], c["max_budget"], c.get("budget3", 0), c.get("max_budget3", 0)]
 	if not c["problemi"].is_empty():
 		t += "\nDa sistemare: " + "; ".join(c["problemi"]) + "."
 	else:

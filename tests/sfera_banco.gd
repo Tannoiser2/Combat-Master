@@ -74,7 +74,7 @@ func _init() -> void:
 		var pct: float = 100.0 * pres[id][0] / pres[id][1]
 		print("  %-16s costo %d  presenze %5d  vittorie %.1f%%" % [id, int(costi[id]["costo"]), pres[id][1], pct])
 		if arg["aggiusta"] == "1" and pres[id][1] >= 150:
-			if pct > 52.5 and int(costi[id]["costo"]) < 8:
+			if pct > 52.5 and int(costi[id]["costo"]) < (10 if int(costi[id].get("anello", 2)) == 3 else 8):
 				costi[id]["costo"] = int(costi[id]["costo"]) + 1
 				cambi += 1
 			elif pct < 47.5 and int(costi[id]["costo"]) > 1:

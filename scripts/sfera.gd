@@ -12,9 +12,15 @@ const SETTORI_COL := {"rosso": "F", "giallo": "A", "blu": "P", "arancio": "FA", 
 const PRIMARI := {"rosso": "r", "giallo": "g", "blu": "b"}
 const SETTORE_DADO := {"r": "F", "g": "A", "b": "P"}
 const AZ_SETTORE := {"colpo": "F", "presa": "F", "passo": "A", "scarto": "A", "parata": "P", "leggi": "P"}
-const TRAPPOLE := ["schivata", "irimi", "tenkan", "proiezione", "immobilizza", "contrattacco", "ukemi"]
+const TRAPPOLE := ["schivata", "irimi", "tenkan", "proiezione", "immobilizza", "contrattacco", "ukemi", "shiho", "kokyu", "juji"]
 const COLPI := ["colpo", "colpo_stordente", "spinta", "carica", "affondo"]
-const VALORE_TRAPPOLA := {"proiezione": 5, "immobilizza": 4, "contrattacco": 4, "irimi": 3, "tenkan": 3, "schivata": 2, "ukemi": 2}
+const VALORE_TRAPPOLA := {"juji": 7, "shiho": 6, "kokyu": 6, "proiezione": 5, "immobilizza": 4, "contrattacco": 4, "irimi": 3, "tenkan": 3, "schivata": 2, "ukemi": 2}
+## Anello dei misti: tre posti a cavallo di due caratteristiche. Un token di un colore solo sta in uno
+## dei due posti accanto al suo colore; un misto nel suo.
+const POSTI_MISTI := {"arancio": "FA", "verde": "AP", "viola": "PF"}
+const POSTI_DEL_COLORE := {"rosso": ["arancio", "viola"], "giallo": ["arancio", "verde"], "blu": ["verde", "viola"],
+	"arancio": ["arancio"], "verde": ["verde"], "viola": ["viola"]}
+const MAX_ESTERNO := 4
 const NOMI_DADO := {"r": "rosso", "g": "giallo", "b": "blu", "n": "bianco"}
 const NOMI_SETTORE := {"F": "Forza", "A": "Agilità", "P": "Percezione"}
 
@@ -53,16 +59,23 @@ func conto(pg: Dictionary) -> Dictionary:
 		if v < 1 or v > 4:
 			prob.append("ogni caratteristica va da 1 a 4")
 	var spesi := 0
+	var spesi3 := 0
 	for id in pg.get("coll", []):
 		if tokp.has(id):
-			spesi += int(tokp[id]["costo"])
+			if int(tokp[id].get("anello", 2)) == 3:
+				spesi3 += int(tokp[id]["costo"])
+			else:
+				spesi += int(tokp[id]["costo"])
 	if String(pg.get("raro", "")) != "" and rarip.has(pg["raro"]):
 		spesi += int(rarip[pg["raro"]]["costo"])
 	if punti != maxp:
 		prob.append("le caratteristiche devono sommare %d (ora %d)" % [maxp, punti])
 	if spesi > maxb:
-		prob.append("i token costano %d, il budget è %d" % [spesi, maxb])
-	return {"punti": punti, "max_punti": maxp, "budget": spesi, "max_budget": maxb, "problemi": prob}
+		prob.append("i token dei misti costano %d, il budget è %d" % [spesi, maxb])
+	var maxb3 := int(reg.get("budget_esterno", 10))
+	if spesi3 > maxb3:
+		prob.append("i token dell'anello esterno costano %d, il budget è %d" % [spesi3, maxb3])
+	return {"punti": punti, "max_punti": maxp, "budget": spesi, "max_budget": maxb, "budget3": spesi3, "max_budget3": maxb3, "problemi": prob}
 
 func casuale(gen: RandomNumberGenerator, nome := "Avventuriero") -> Dictionary:
 	var R := 3 if gen.randi() % 3 == 0 else 2
@@ -76,7 +89,7 @@ func casuale(gen: RandomNumberGenerator, nome := "Avventuriero") -> Dictionary:
 			break
 	var budget := int(reg["budget"]) - (int(reg["ritmo3_budget"]) if R == 3 else 0)
 	var raro := ""
-	if gen.randf() < 0.3:
+	if gen.randf() < 0.3 and not sd["rari"].is_empty():
 		var r: Dictionary = sd["rari"][gen.randi() % sd["rari"].size()]
 		if int(r["costo"]) <= budget:
 			raro = r["id"]
@@ -90,13 +103,22 @@ func casuale(gen: RandomNumberGenerator, nome := "Avventuriero") -> Dictionary:
 		ids[i] = ids[j]
 		ids[j] = x
 	var coll := []
+	var n2 := 0
+	var n3 := 0
+	var max3 := 1 + gen.randi() % 2
+	var budget3 := int(reg.get("budget_esterno", 10))
 	for id in ids:
-		if coll.size() >= 6:
-			break
 		var c := int(tokp[id]["costo"])
-		if c <= budget:
-			coll.append(id)
+		var a3 := int(tokp[id].get("anello", 2)) == 3
+		if (a3 and (n3 >= max3 or c > budget3)) or (not a3 and (n2 >= 6 or c > budget)):
+			continue
+		coll.append(id)
+		if a3:
+			budget3 -= c
+			n3 += 1
+		else:
 			budget -= c
+			n2 += 1
 	return {"nome": nome, "F": v[0], "A": v[1], "P": v[2], "C": v[3], "R": R, "coll": coll, "raro": raro, "casuale": true}
 
 # ================================================================ partita
@@ -163,7 +185,8 @@ func nuova_sfera(pg0: Dictionary, pg1: Dictionary, arena_id: String, umani: Arra
 			"vita": vita, "vita_max": vita, "vantaggi": 0, "svantaggi": 0,
 			"pos": partenze[i], "dir": [0, 3][i], "guardie": {},
 			"mucchio": mucchio, "mano": [], "fermi": [], "esterni": [], "raro": {}, "raro_usato": false,
-			"girate": {}, "flussi": 0, "tenuto": false, "occhio": false, "zanshin": 0, "slot": 2})
+			"girate": {}, "flussi": 0, "tenuto": false, "occhio": false, "zanshin": 0, "slot": 2,
+			"a_terra": false, "attesa": {"F": [], "A": [], "P": [], "E": []}})
 	_scrivi("Inizia il duello: %s contro %s." % [s["g"][0]["nome"], s["g"][1]["nome"]])
 	_pausa()
 
@@ -525,8 +548,10 @@ func proietta(tori: int, uke: int, k: int, danno_urto := true) -> void:
 	var per := [Vector3i(partenza.x, partenza.y, gu["dir"])]
 	var arrivo := partenza
 	var urto := false
-	# dietro tori lungo lo slancio, poi di fianco se dietro è chiuso
-	var linee := [d, (d + 1) % 6, (d + 5) % 6]
+	# dietro tori lungo lo slancio, poi di fianco se dietro è chiuso; per arrivare dietro serve
+	# un fianco libero da cui girargli attorno, altrimenti uke passerebbe attraverso tori
+	var fianco_libero := libero_s(tp + DIRS[(d + 1) % 6], uke) or libero_s(tp + DIRS[(d + 5) % 6], uke)
+	var linee := [d, (d + 1) % 6, (d + 5) % 6] if fianco_libero else [(d + 1) % 6, (d + 5) % 6]
 	var trovato := false
 	for dd in linee:
 		var ultimo := Vector2i(9999, 9999)
@@ -545,11 +570,15 @@ func proietta(tori: int, uke: int, k: int, danno_urto := true) -> void:
 		# nessuno spazio attorno: resta dov'è e sbatte
 		urto = true
 	else:
-		# passa di fianco a tori, poi atterra
+		# passa di fianco a tori (dal lato libero più vicino all'arrivo), poi atterra
 		var fianco := tp + DIRS[(d + 1) % 6]
-		if libero_s(fianco, uke) and fianco != arrivo:
+		if not libero_s(fianco, uke) or dist(fianco, arrivo) > 1:
+			var altro := tp + DIRS[(d + 5) % 6]
+			if libero_s(altro, uke) and (dist(altro, arrivo) <= 1 or not libero_s(fianco, uke)):
+				fianco = altro
+		if libero_s(fianco, uke) and fianco != arrivo and fianco != partenza:
 			per.append(Vector3i(fianco.x, fianco.y, gu["dir"]))
-		per.append(Vector3i(arrivo.x, arrivo.y, gu["dir"]))
+		per.append(Vector3i(arrivo.x, arrivo.y, dir_verso(arrivo, tp)))
 	var caduta := maxi(0, altezza(partenza) - altezza(arrivo))
 	gu["pos"] = arrivo
 	gu["dir"] = dir_verso(arrivo, tp)
@@ -607,6 +636,26 @@ func spalle_al_muro(p: int) -> bool:
 func tok(id: String) -> Dictionary:
 	return tokp.get(id, {})
 
+## 2 = anello dei misti (si carica dalle azioni base), 3 = anello esterno (si carica con i dadi che salgono
+## dai token dei misti quando scattano). I token di scena stanno nell'anello esterno ma si caricano dalle azioni base.
+func anello(e: Dictionary) -> int:
+	if String(e["id"]).begins_with("scena_"):
+		return 3
+	return int(tok(e["id"]).get("anello", 2))
+
+func a_terra(p: int) -> bool:
+	return bool(s["g"][p].get("a_terra", false))
+
+func _metti_a_terra(p: int) -> void:
+	if s["vinc"] >= 0 or s["g"][p]["vita"] <= 0:
+		return
+	s["g"][p]["a_terra"] = true
+	_scrivi("%s è a terra: deve rialzarsi." % s["g"][p]["nome"])
+	_evento({"t": "a_terra", "p": p})
+
+func _in_attesa(p: int, zona: String, colore: String) -> void:
+	s["g"][p]["attesa"][zona].append(colore)
+
 ## Azione di una parte di token: i token con due azioni sono due metà dello stesso pezzo d'anello,
 ## ognuna con i suoi posti, la sua freccia e il suo effetto (come i token base).
 func te(e: Dictionary) -> Dictionary:
@@ -644,7 +693,7 @@ func _pausa() -> void:
 			# un token resta se una delle sue azioni ha dadi; le sue due metà restano insieme
 			var carichi := {}
 			for e in g["esterni"]:
-				if not String(e["id"]).begins_with("scena_"):
+				if not String(e["id"]).begins_with("scena_") and anello(e) == 2:
 					carichi[e["id"]] = int(carichi.get(e["id"], 0)) + e["dadi"].size()
 			var ids := carichi.keys().filter(func(id): return carichi[id] > 0)
 			ids.sort_custom(func(a, b): return carichi[a] > carichi[b])
@@ -658,7 +707,7 @@ func _pausa() -> void:
 				if not cand.is_empty():
 					ids.erase(cand[cand.size() - 1])
 			for e in g["esterni"]:
-				if ids.has(e["id"]):
+				if ids.has(e["id"]) or (anello(e) == 3 and not String(e["id"]).begins_with("scena_")):
 					e["bloccato"] = false
 					tenuti.append(e)
 		var pool: Array = g["mucchio"].duplicate()
@@ -680,16 +729,27 @@ func _pausa() -> void:
 		g["zanshin"] = maxi(0, int(g["zanshin"]) - 1)
 		g["occhio"] = false
 		g["tenuto"] = false
+		if g["a_terra"]:
+			g["a_terra"] = false
+			_evento({"t": "rialza", "p": p})
+		g["attesa"] = {"F": [], "A": [], "P": [], "E": []}
 		g["esterni"] = tenuti
-		if g["umano"] and slot > _n_token(tenuti) and not token_disponibili(p).is_empty():
+		# l'anello esterno: i token della collezione che non sono in gioco tornano al loro posto
+		for id in g["coll"]:
+			if int(tok(id).get("anello", 2)) == 3 and _n_esterni(g) < MAX_ESTERNO and not g["esterni"].any(func(x): return x["id"] == id):
+				var e3 := _nuovo_token(id)
+				e3["posto"] = _posto_esterno_libero(g)
+				g["esterni"].append(e3)
+		if g["umano"] and posti_da_piazzare(p) > 0 and not token_disponibili(p).is_empty():
 			s["da_piazzare"].append(p)
 		else:
-			for id in _scegli_token(p, slot - _n_token(tenuti)):
-				g["esterni"].append_array(_nuove_parti(id))
+			for id in _scegli_token(p, posti_da_piazzare(p)):
+				_metti_misto(g, id)
 		var ogg := oggetto_vicino(g["pos"])
-		if ogg != "":
+		if ogg != "" and _n_esterni(g) < MAX_ESTERNO:
 			var e := _nuovo_token("scena_" + ogg)
 			e["ogg_h"] = _casella_oggetto(g["pos"], ogg)
+			e["posto"] = _posto_esterno_libero(g)
 			g["esterni"].append(e)
 		if g["raro"].is_empty() and g["raro_id"] != "" and not g["raro_usato"]:
 			g["raro"] = {"id": g["raro_id"], "dadi": [], "pronto": false}
@@ -708,20 +768,69 @@ func _nuovo_token(id: String) -> Dictionary:
 func _n_token(lista: Array) -> int:
 	var ids := {}
 	for e in lista:
-		if not String(e["id"]).begins_with("scena_"):
+		if not String(e["id"]).begins_with("scena_") and anello(e) == 2:
 			ids[e["id"]] = true
 	return ids.size()
 
+func _n_esterni(g: Dictionary) -> int:
+	var n := 0
+	for e in g["esterni"]:
+		if anello(e) == 3:
+			n += 1
+	return n
+
+func _posto_esterno_libero(g: Dictionary) -> int:
+	var presi := {}
+	for e in g["esterni"]:
+		if anello(e) == 3:
+			presi[int(e.get("posto", -1))] = true
+	for k in MAX_ESTERNO:
+		if not presi.has(k):
+			return k
+	return 0
+
+## Posti liberi dell'anello dei misti.
+func posti_misti_liberi(g: Dictionary) -> Array:
+	var presi := {}
+	for e in g["esterni"]:
+		if anello(e) == 2 and e.has("posto"):
+			presi[e["posto"]] = true
+	return POSTI_MISTI.keys().filter(func(k): return not presi.has(k))
+
+## Il posto in cui andrebbe un token dei misti, o "" se i suoi sono tutti presi.
+func posto_per(g: Dictionary, id: String) -> String:
+	var liberi := posti_misti_liberi(g)
+	for k in POSTI_DEL_COLORE.get(String(tok(id).get("col", "")), []):
+		if liberi.has(k):
+			return k
+	return ""
+
+func _metti_misto(g: Dictionary, id: String, in_testa := false) -> bool:
+	var posto := posto_per(g, id)
+	if posto == "":
+		return false
+	var parti := _nuove_parti(id)
+	for e in parti:
+		e["posto"] = posto
+	if in_testa:
+		parti.reverse()
+		for e in parti:
+			g["esterni"].insert(0, e)
+	else:
+		g["esterni"].append_array(parti)
+	return true
+
+## Token dei misti della collezione che si possono ancora mettere in campo (c'è un posto del loro colore).
 func token_disponibili(p: int) -> Array:
 	var g: Dictionary = s["g"][p]
 	var gia := {}
 	for e in g["esterni"]:
 		gia[e["id"]] = true
-	return g["coll"].filter(func(id): return not gia.has(id))
+	return g["coll"].filter(func(id): return not gia.has(id) and int(tok(id).get("anello", 2)) == 2 and posto_per(g, id) != "")
 
 func posti_da_piazzare(p: int) -> int:
 	var g: Dictionary = s["g"][p]
-	return maxi(0, int(g["slot"]) - _n_token(g["esterni"]))
+	return maxi(0, mini(int(g["slot"]), POSTI_MISTI.size()) - _n_token(g["esterni"]))
 
 ## Il giocatore umano sceglie i token da mettere in campo alla pausa.
 func piazza(p: int, ids: Array) -> String:
@@ -733,11 +842,7 @@ func piazza(p: int, ids: Array) -> String:
 	for id in ids:
 		if n <= 0:
 			break
-		if disp.has(id):
-			var parti := _nuove_parti(id)
-			parti.reverse()
-			for e in parti:
-				g["esterni"].insert(0, e)
+		if disp.has(id) and _metti_misto(g, id, true):
 			disp.erase(id)
 			n -= 1
 	s["da_piazzare"].erase(p)
@@ -761,13 +866,32 @@ func _scegli_token(p: int, n: int) -> Array:
 			v += 0.5
 		punt.append([v, id])
 	punt.sort_custom(func(a, b): return a[0] > b[0])
+	# un token per posto: si scelgono in ordine finché i posti del loro colore sono liberi
 	var out := []
-	for x in punt.slice(0, maxi(0, n)):
-		out.append(x[1])
+	var presi := {}
+	for e in g["esterni"]:
+		if anello(e) == 2 and e.has("posto"):
+			presi[e["posto"]] = true
+	for x in punt:
+		if out.size() >= n:
+			break
+		for k in POSTI_DEL_COLORE.get(String(tok(x[1]).get("col", "")), []):
+			if not presi.has(k):
+				presi[k] = true
+				out.append(x[1])
+				break
 	return out
 
 func posti_liberi(e: Dictionary) -> Array:
-	var liberi: Array = te(e)["req"].duplicate()
+	var t0 := te(e)
+	if String(t0["col"]) in ["arancio", "verde", "viola"] and not t0.get("entrambi", false):
+		# misto: ogni posto prende un dado di uno dei suoi due colori (o bianco)
+		var n0: int = t0["req"].size() - e["dadi"].size()
+		var out0 := []
+		for i in maxi(0, n0):
+			out0.append("o")
+		return out0
+	var liberi: Array = t0["req"].duplicate()
 	for dd in e["dadi"]:
 		var c: String = dd["c"]
 		if liberi.has(c):
@@ -781,6 +905,8 @@ func posti_liberi(e: Dictionary) -> Array:
 func puo_caricare(e: Dictionary, colore: String, settore: String) -> bool:
 	if e["pronto"] or e["bloccato"]:
 		return false
+	if anello(e) == 3 and not String(e["id"]).begins_with("scena_"):
+		return false
 	var t := te(e)
 	if not settore in String(SETTORI_COL[t["col"]]):
 		return false
@@ -789,6 +915,9 @@ func puo_caricare(e: Dictionary, colore: String, settore: String) -> bool:
 		return false
 	if liberi.has("x"):
 		return true
+	if liberi.has("o"):
+		var due: String = SETTORI_COL[t["col"]]
+		return colore == "n" or (SETTORE_DADO.has(colore) and SETTORE_DADO[colore] in due)
 	var prim: String = PRIMARI.get(t["col"], "")
 	if colore == "n":
 		return prim != "" and (liberi.has(prim) or liberi.has("n"))
@@ -821,8 +950,10 @@ func massimo(e: Dictionary) -> int:
 func in_portata(e: Dictionary) -> bool:
 	var t := te(e)
 	var eff: String = t["eff"]
-	if eff in ["colpo", "colpo_stordente", "spinta", "sgambetto"]:
+	if eff in ["colpo", "colpo_stordente", "spinta", "sgambetto", "tenchi"]:
 		return contatto()
+	if eff == "atemi":
+		return distanza() <= 2
 	if eff == "affondo":
 		return distanza() <= 2
 	if eff == "carica":
@@ -837,11 +968,16 @@ func in_portata(e: Dictionary) -> bool:
 
 ## Passaggio verso l'esterno. scelta = {"tok": indice o -1 (il più vicino a riempirsi), "modo": "scala" | "ritira" | "no" | "auto"}.
 ## poi riceve true se il giocatore continua a giocare (ritiro riuscito durante la sua azione).
+var _reaz_att := -1
+
 func _sali(p: int, colore: String, settore: String, mia: bool, valore: int, scelta: Dictionary, poi: Callable) -> void:
 	var g: Dictionary = s["g"][p]
 	var cand := bersagli_salita(p, colore, settore)
 	var modo := String(scelta.get("modo", "auto"))
 	if cand.is_empty() or modo == "no":
+		_reaz_att = -1
+		if settore in ["F", "A", "P"]:
+			_in_attesa(p, settore, colore)
 		poi.call(false)
 		return
 	var idx := int(scelta.get("tok", -1))
@@ -863,6 +999,9 @@ func _sali(p: int, colore: String, settore: String, mia: bool, valore: int, scel
 		if v <= fallo:
 			_scrivi("%s ritira per salire su %s: esce %d, il dado va in Attesa." % [g["nome"], nome_t, v])
 			_evento({"t": "fallito", "p": p})
+			_reaz_att = -1
+			if settore in ["F", "A", "P"]:
+				_in_attesa(p, settore, colore)
 			poi.call(false)
 			return
 		continua = mia
@@ -871,6 +1010,8 @@ func _sali(p: int, colore: String, settore: String, mia: bool, valore: int, scel
 	else:
 		_scrivi("%s sale su %s scalando: %d." % [g["nome"], nome_t, v])
 	e["dadi"].append({"c": colore, "v": v})
+	var att_reaz := _reaz_att
+	_reaz_att = -1
 	if not posti_liberi(e).is_empty():
 		poi.call(continua)
 		return
@@ -886,6 +1027,10 @@ func _sali(p: int, colore: String, settore: String, mia: bool, valore: int, scel
 			_evento({"t": "segreto", "p": p, "nome": nome_t})
 	if te(e)["modo"] == "subito" and in_portata(e):
 		_scatta(p, e, func(): poi.call(continua))
+	elif te(e)["modo"] == "armato" and att_reaz >= 0 and te(e)["eff"] in TRAPPOLE and s["vinc"] < 0:
+		# la reazione stessa completa la trappola: scatta subito su questo attacco
+		_scrivi("%s trasforma la difesa in %s!" % [g["nome"], nome_t])
+		_trappola(p, e, 0, att_reaz, func(_r): poi.call(continua))
 	else:
 		if te(e)["modo"] == "armato":
 			_scrivi("%s arma %s." % [g["nome"], nome_t])
@@ -940,7 +1085,7 @@ func _scatta(p: int, e: Dictionary, poi: Callable) -> void:
 	_usa_oggetto(e)
 	_scrivi("%s: %s!" % [g["nome"], t["nome"]])
 	var fine := func():
-		_carica_raro(p, e, poi)
+		_sali_esterno(p, e, poi)
 	match eff:
 		"colpo", "colpo_stordente", "spinta":
 			var dopo := func(dmg: int) -> void:
@@ -1026,8 +1171,90 @@ func _scatta(p: int, e: Dictionary, poi: Callable) -> void:
 			for i in 2 + (1 if e["pot"] else 0):
 				g["mano"].append(_nuovo_dado(g["mucchio"][rng.randi() % g["mucchio"].size()]))
 			fine.call()
+		"tenchi":
+			_evento({"t": "tecnica", "p": p, "bers": o, "nome": t["nome"], "genere": "proiezione", "a_terra": true})
+			_ferisci(o, D(sm))
+			if s["vinc"] < 0:
+				s["g"][p]["tenuto"] = false
+				proietta(p, o, 3)
+				_togli_dado_caso(o)
+				_metti_a_terra(o)
+			fine.call()
+		"kiai":
+			_evento({"t": "azione", "p": p, "effetto": "stordisci", "nome": t["nome"]})
+			for x in s["g"][o]["esterni"]:
+				if x["pronto"]:
+					x["pronto"] = false
+					x["dadi"] = []
+			_svant(o, 2)
+			_vant(p, 2)
+			_togli_dado_alto(o)
+			fine.call()
+		"ritorno":
+			_evento({"t": "azione", "p": p, "effetto": "concentrazione", "nome": t["nome"]})
+			for i in 3:
+				g["mano"].append(_nuovo_dado(g["mucchio"][rng.randi() % g["mucchio"].size()]))
+			fine.call()
+		"atemi":
+			if not contatto():
+				porta_contatto(p, 2, true)
+			var dopo_a := func(dmg: int) -> void:
+				if s["vinc"] < 0 and dmg > 0:
+					_svant(o, 2)
+					_togli_dado_alto(o)
+					_metti_a_terra(o)
+				fine.call()
+			_attacco(p, sm + 4, massimo(e), t["nome"], "colpo", dopo_a)
+		"zanshin":
+			_evento({"t": "azione", "p": p, "effetto": "concentrazione", "nome": t["nome"]})
+			_vant(p, 2)
+			g["zanshin"] = 2
+			_cura(p, 1)
+			g["mano"].append(_nuovo_dado(g["mucchio"][rng.randi() % g["mucchio"].size()]))
+			fine.call()
 		_:
 			fine.call()
+
+## Quando un token dei misti scatta, il suo dado più alto sale nell'anello esterno, sul token più vicino
+## a riempirsi, scalando la freccia di quel token; gli altri dadi vanno nell'Attesa.
+func _sali_esterno(p: int, e: Dictionary, poi: Callable) -> void:
+	var g: Dictionary = s["g"][p]
+	if s["vinc"] >= 0 or anello(e) != 2 or e["dadi"].is_empty():
+		for dd in e["dadi"]:
+			_in_attesa(p, "E", String(dd["c"]))
+		poi.call()
+		return
+	var dadi: Array = e["dadi"].duplicate()
+	dadi.sort_custom(func(a, b): return int(a["v"]) > int(b["v"]))
+	var su: Dictionary = dadi[0]
+	for dd in dadi.slice(1):
+		_in_attesa(p, "E", String(dd["c"]))
+	var cand := []
+	for x in g["esterni"]:
+		if anello(x) == 3 and not String(x["id"]).begins_with("scena_") and not x["pronto"] and not x["bloccato"] and not posti_liberi(x).is_empty():
+			cand.append(x)
+	if cand.is_empty():
+		_in_attesa(p, "E", String(su["c"]))
+		poi.call()
+		return
+	cand.sort_custom(func(a, b): return posti_liberi(a).size() < posti_liberi(b).size())
+	var e3: Dictionary = cand[0]
+	var v := maxi(1, int(su["v"]) - freccia(e3))
+	e3["dadi"].append({"c": "x", "v": v})
+	var nome3: String = te(e3)["nome"]
+	_scrivi("Un %d sale nell'anello esterno, su %s." % [v, nome3])
+	_evento({"t": "sale_esterno", "p": p, "nome": nome3})
+	if not posti_liberi(e3).is_empty():
+		poi.call()
+		return
+	e3["pronto"] = true
+	if te(e3)["modo"] == "subito" and in_portata(e3):
+		_scatta(p, e3, poi)
+		return
+	if te(e3)["modo"] == "armato":
+		_scrivi("%s arma %s." % [g["nome"], nome3])
+		_evento({"t": "guardia", "p": p})
+	poi.call()
 
 func _carica_raro(p: int, e: Dictionary, poi: Callable) -> void:
 	var g: Dictionary = s["g"][p]
@@ -1095,7 +1322,9 @@ func mod_posizione(p: int) -> Array:
 	var dietro := alle_spalle_di(d, s["g"][p]["pos"])
 	if dietro:
 		extra += int(reg["danno_spalle"])
-	return [extra, not dietro]
+	if a_terra(d):
+		extra += int(reg.get("danno_a_terra", 1))
+	return [extra, not dietro and not a_terra(d)]
 
 ## Attacco di p. poi riceve il danno inflitto (-1 se annullato da una trappola).
 ## Se il difensore è umano e può reagire, il motore si ferma in fase "reazione".
@@ -1157,7 +1386,7 @@ func opzioni_reazione(d: int, pend: Dictionary = {}) -> Array:
 		var v := int(dd["v"])
 		if dd["c"] in ["b", "n"]:
 			out.append({"t": "parata", "dado": dd["id"], "riduce": D(v)})
-		if pend["scartare"] and dd["c"] in ["g", "n"] and v >= int(pend["dado_max"]) - int(reg["scarto_tolleranza"]):
+		if pend["scartare"] and not a_terra(d) and dd["c"] in ["g", "n"] and v >= int(pend["dado_max"]) - int(reg["scarto_tolleranza"]):
 			out.append({"t": "scarto", "dado": dd["id"]})
 	return out
 
@@ -1229,6 +1458,7 @@ func _risolvi_reazione(pend: Dictionary, scelta: Dictionary) -> void:
 		if s["vinc"] >= 0:
 			poi.call(resto)
 			return
+		_reaz_att = p
 		_sali(d, c, "P", false, v, salita, func(_c): poi.call(resto))
 	else:
 		_evento({"t": "schiva", "p": d})
@@ -1238,6 +1468,7 @@ func _risolvi_reazione(pend: Dictionary, scelta: Dictionary) -> void:
 		if scelta.get("gira", false) and int(n["vantaggi"]) >= 1 and not n["girate"].has("scarto"):
 			_vant(d, 1)
 			n["girate"]["scarto"] = true
+		_reaz_att = p
 		_sali(d, c, "A", false, v, salita, func(_c): poi.call(0))
 
 func _trappola(d: int, e: Dictionary, danno: int, att: int, poi: Callable) -> void:
@@ -1274,10 +1505,24 @@ func _trappola(d: int, e: Dictionary, danno: int, att: int, poi: Callable) -> vo
 				x["v"] = mini(6, int(x["v"]) + 1)
 			_togli_dado_caso(att)
 		"proiezione":
-			_evento({"t": "tecnica", "p": d, "bers": att, "nome": t["nome"], "genere": "proiezione"})
+			_evento({"t": "tecnica", "p": d, "bers": att, "nome": t["nome"], "genere": "proiezione", "a_terra": true})
 			_ferisci(att, sm)
+			n["tenuto"] = false
 			if s["vinc"] < 0:
+				_svant(att, 1)
 				proietta(d, att, 2)
+				_metti_a_terra(att)
+		"shiho", "kokyu", "juji":
+			_evento({"t": "tecnica", "p": d, "bers": att, "nome": t["nome"], "genere": "proiezione", "a_terra": true})
+			n["tenuto"] = false
+			var tot := somma(e) + int(t["bonus"]) + (2 if e["pot"] else 0)
+			_ferisci(att, maxi(1, D(tot) - (1 if eff == "juji" else 0)))
+			if s["vinc"] < 0:
+				_svant(att, 1)
+				if eff == "juji":
+					_togli_dado_caso(att)
+				proietta(d, att, 2 if eff == "kokyu" else 1)
+				_metti_a_terra(att)
 		"immobilizza":
 			_evento({"t": "tecnica", "p": d, "bers": att, "nome": t["nome"], "genere": "immobilizzazione"})
 			_ferisci(att, (sm + 1) / 2)
@@ -1294,13 +1539,7 @@ func _trappola(d: int, e: Dictionary, danno: int, att: int, poi: Callable) -> vo
 			_evento({"t": "attacco", "p": d, "bers": att, "dist": 1, "nome": "contrattacco"})
 			_ferisci(att, sm)
 	var r := inflitto
-	var dopo := func() -> void:
-		var rr: Dictionary = n["raro"]
-		if s["vinc"] < 0 and not rr.is_empty() and rr["pronto"] and rarip[rr["id"]]["eff"] == "tenchi":
-			_scatta_raro(d, func(): poi.call(r))
-		else:
-			poi.call(r)
-	_carica_raro(d, e, dopo)
+	_sali_esterno(d, e, func(): poi.call(r))
 
 # ================================================================ azioni
 
@@ -1321,6 +1560,9 @@ func azioni_dado(p: int, dd: Dictionary) -> Array:
 	var c: String = dd["c"]
 	var cont := contatto()
 	var g: Dictionary = s["g"][p]
+	if a_terra(p):
+		# a terra si può solo rialzarsi, con un dado qualsiasi
+		return ["rialza"]
 	if c in ["r", "n"] and cont:
 		out.append_array(["colpo", "presa"])
 	if c in ["g", "n"] and not g["tenuto"]:
@@ -1338,7 +1580,24 @@ func esegui(p: int, op: Dictionary) -> String:
 	var o := 1 - p
 	var t := String(op.get("t", "passa"))
 	var salita: Dictionary = op.get("salita", {"modo": "auto"})
+	if a_terra(p) and t in ["colpo", "presa", "passo", "leggi", "gira"]:
+		return "sei a terra: prima rialzati"
 	match t:
+		"rialza":
+			var i := dado_in_mano(p, int(op.get("dado", -1)))
+			if i < 0 or not a_terra(p):
+				return "per rialzarti serve un dado"
+			var dd: Dictionary = g["mano"][i]
+			g["mano"].remove_at(i)
+			g["a_terra"] = false
+			_scrivi("%s si rialza." % g["nome"])
+			_evento({"t": "rialza", "p": p})
+			if dd["c"] in ["g", "n"]:
+				# rialzarsi con l'Agilità (una ukemi): il dado prosegue e può salire, come uno scarto
+				_sali(p, dd["c"], "A", true, _valore(p, int(dd["v"])), salita, func(cont): _fine_azione(p, cont))
+			else:
+				_in_attesa(p, {"r": "F", "b": "P"}.get(String(dd["c"]), "A"), String(dd["c"]))
+				_fine_azione(p, false)
 		"passa":
 			s["finito"][p] = true
 			_scrivi("%s si ferma fino alla pausa." % g["nome"])
@@ -1521,6 +1780,14 @@ func _trappole_nemiche(p: int) -> bool:
 func ia_scegli(p: int) -> Dictionary:
 	var g: Dictionary = s["g"][p]
 	var n: Dictionary = s["g"][1 - p]
+	if a_terra(p) and not g["mano"].is_empty():
+		var basso: Dictionary = g["mano"][0]
+		for dd in g["mano"]:
+			var pref := 0 if dd["c"] in ["g", "n"] else 10
+			var pref_b := 0 if basso["c"] in ["g", "n"] else 10
+			if pref - int(dd["v"]) * 0.1 < pref_b - int(basso["v"]) * 0.1:
+				basso = dd
+		return {"t": "rialza", "dado": basso["id"]}
 	var op := []
 	var trap := _trappole_nemiche(p)
 	var cont := contatto()
