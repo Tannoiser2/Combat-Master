@@ -286,9 +286,17 @@ func _percorso(vis: Dictionary, fine: Vector2i) -> Array:
 		out.push_front(cur)
 		cur = vis[cur][1]
 	var per := []
+	var o: Vector2i = s["g"][1 - _chi_muove]["pos"]
 	for i in out.size():
 		var h: Vector2i = out[i]
-		var dd: int = dir_verso(out[i - 1], h) if i > 0 else int(s["g"][0]["dir"])
+		var dd: int = int(s["g"][_chi_muove]["dir"])
+		if i > 0:
+			# vicino all'avversario (fino a 3 esagoni) si resta in guardia verso di lui e si passa di lato
+			# o all'indietro; da lontano si guarda dove si va, e all'ultimo passo ci si gira verso di lui
+			if dist(h, o) <= 3 or i == out.size() - 1:
+				dd = dir_verso(h, o) if h != o else dd
+			else:
+				dd = dir_verso(out[i - 1], h)
 		per.append(Vector3i(h.x, h.y, dd))
 	return per
 
@@ -317,10 +325,13 @@ func gira_verso(p: int) -> void:
 		g["dir"] = nd
 		_evento({"t": "muovi", "p": p, "percorso": [Vector3i(g["pos"].x, g["pos"].y, nd)]})
 
+var _chi_muove := 0
+
 func _muovi_a(p: int, vis: Dictionary, h: Vector2i) -> void:
 	var g: Dictionary = s["g"][p]
 	if h == g["pos"]:
 		return
+	_chi_muove = p
 	var per := _percorso(vis, h)
 	per[0] = Vector3i(per[0].x, per[0].y, int(g["dir"]))
 	g["pos"] = h
@@ -374,9 +385,11 @@ func _corri_a(p: int, h: Vector2i, k: int) -> void:
 func porta_contatto(p: int, k: int, dritto := false) -> void:
 	var o: Vector2i = s["g"][1 - p]["pos"]
 	var cand := []
+	var da_qui: Vector2i = s["g"][p]["pos"]
 	for d in DIRS:
 		var h: Vector2i = o + d
-		if libero_s(h, p) and absi(altezza(h) - altezza(o)) <= 1 and dist(h, s["g"][p]["pos"]) <= k:
+		# mai oltre l'avversario: si arriva dalla propria parte, senza scavalcarlo
+		if libero_s(h, p) and absi(altezza(h) - altezza(o)) <= 1 and dist(h, da_qui) <= k and dist(h, da_qui) <= dist(o, da_qui):
 			cand.append(h)
 	if cand.is_empty():
 		avvicina(p, k)
@@ -434,8 +447,18 @@ func alle_spalle(p: int) -> void:
 			cand.append(h)
 	if cand.is_empty():
 		return
-	cand.sort_custom(func(a, b): return absi(lato_rel(o, a) - 3) < absi(lato_rel(o, b) - 3))
-	_salta_a(p, cand[0], true)
+	if contatto():
+		# a contatto si gira attorno a lui, esagono per esagono
+		aggira(p, 3)
+		return
+	# da lontano si arriva sul suo fianco, dalla propria parte, con una capriola che non lo scavalca
+	var da_qui: Vector2i = s["g"][p]["pos"]
+	var buoni := cand.filter(func(h): return dist(h, da_qui) <= dist(s["g"][o]["pos"], da_qui))
+	if buoni.is_empty():
+		buoni = cand
+	buoni.sort_custom(func(a, b): return absi(lato_rel(o, a) - 3) < absi(lato_rel(o, b) - 3))
+	_salta_a(p, buoni[0], true)
+	gira_verso(p)
 
 ## A contatto: giri attorno al nemico di k esagoni verso le sue spalle. Ritorna true se arrivi dietro.
 func aggira(p: int, k: int) -> bool:
@@ -538,6 +561,8 @@ func proietta(tori: int, uke: int, k: int, danno_urto := true) -> void:
 		_scrivi("%s finisce contro un ostacolo!" % gu["nome"])
 		_ferisci(uke, int(reg["danno_urto"]))
 	_pericolo_s(uke)
+	# tori ruota sul posto con il lancio e resta rivolto verso dove è atterrato uke
+	gira_verso(tori)
 
 func _pericolo_s(p: int) -> void:
 	if s["vinc"] < 0 and s["per"].has(s["g"][p]["pos"]):

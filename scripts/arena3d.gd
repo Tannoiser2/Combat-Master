@@ -907,10 +907,18 @@ func _senza_deriva(ap: AnimationPlayer) -> void:
 		for t in a.get_track_count():
 			if a.track_get_type(t) != Animation.TYPE_POSITION_3D or not String(a.track_get_path(t)).ends_with("Hips"):
 				continue
+			# l'asse verticale delle anche è quello con il valore più grande a riposo (l'altezza da terra):
+			# nei modelli importati da Mixamo è z, non y. Si tengono ferme le altre due, l'altezza resta.
 			var p0: Vector3 = a.track_get_key_value(t, 0)
+			var su := 0
+			for ax in 3:
+				if absf(p0[ax]) > absf(p0[su]):
+					su = ax
 			for k in a.track_get_key_count(t):
 				var v: Vector3 = a.track_get_key_value(t, k)
-				a.track_set_key_value(t, k, Vector3(p0.x, v.y, p0.z))
+				var w := p0
+				w[su] = v[su]
+				a.track_set_key_value(t, k, w)
 
 func _player(n: Node) -> AnimationPlayer:
 	var lista := n.find_children("*", "AnimationPlayer", true, false)
@@ -1036,9 +1044,13 @@ const CLIP_AZIONE := {
 }
 
 func _ripristina_verso(a: int) -> void:
+	# si torna in guardia verso l'avversario dov'è adesso (non dove lo metterà il gioco più avanti)
 	var fa := figure[a]
-	var ry := angolo_y(int(m.s["g"][a]["dir"]))
-	ry = fa.rotation.y + wrapf(ry - fa.rotation.y, -PI, PI)
+	var v := figure[1 - a].position - fa.position
+	v.y = 0
+	if v.length() < 0.05:
+		return
+	var ry := fa.rotation.y + wrapf(atan2(-v.x, -v.z) - fa.rotation.y, -PI, PI)
 	create_tween().tween_property(fa, "rotation:y", ry, 0.25)
 
 ## Chi viene spinto contro una colonna o un ostacolo si ferma nell'esagono prima e ci sbatte:
@@ -1120,8 +1132,10 @@ func _tween_salto(tw: Tween, p: int, f: Node3D, da: Vector3, a: Vector3, r0: flo
 		tw.tween_callback(func(): clip(p, nome, vel))
 		stacco = 0.28 if capriola else 0.3
 	tw.tween_interval(dur * stacco)
-	# sopra la testa dell'avversario se lo si scavalca
-	var alto := 1.6 if capriola else 0.9
+	# la clip alza già le anche: l'arco aggiunge solo lo slancio da un esagono all'altro
+	var alto := 0.45 if capriola else 0.3
+	if ap == null or not ap.has_animation(nome):
+		alto = 1.2 if capriola else 0.8
 	tw.tween_method(func(t: float): f.position = da.lerp(a, t) + Vector3(0, sin(PI * t) * alto, 0), 0.0, 1.0, dur * 0.45)
 	tw.tween_property(f, "rotation:y", ry, 0.15)
 	tw.tween_interval(maxf(0.05, dur * (0.95 - stacco - 0.45) - 0.15))
@@ -1340,6 +1354,8 @@ func accoda(eventi: Array) -> void:
 	if not _occupato:
 		_prossimo()
 
+var ultimo_evento := {}
+
 func _prossimo() -> void:
 	if _coda.is_empty():
 		_occupato = false
@@ -1348,6 +1364,7 @@ func _prossimo() -> void:
 		return
 	_occupato = true
 	var e: Dictionary = _coda.pop_front()
+	ultimo_evento = e
 	if debug_eventi:
 		print("%6d ev %s p%s %s" % [Time.get_ticks_msec(), e["t"], e.get("p", ""), e.get("effetto", e.get("n", ""))])
 	# un colpo dichiarato che non ha avuto esito parte a vuoto prima di qualunque altra mossa
@@ -1359,7 +1376,7 @@ func _prossimo() -> void:
 		var nome_a: String = _colpo["clip"]
 		var fa := figure[att]
 		var vv := figure[int(_colpo["dif"])].position - fa.position
-		fa.rotation.y = fa.rotation.y + wrapf(atan2(-vv.x, -vv.z) - fa.rotation.y, -PI, PI)
+		create_tween().tween_property(fa, "rotation:y", fa.rotation.y + wrapf(atan2(-vv.x, -vv.z) - fa.rotation.y, -PI, PI), 0.12)
 		clip(att, nome_a, 1.3)
 	if not _colpo.is_empty() and not passo_di_tori and not String(e["t"]) in ["para", "schiva", "danno", "tecnica", "azione", "dadi", "blocco", "vantaggi", "svantaggi", "guardia", "attitudine", "sfera", "iniziativa"]:
 		_coda.push_front(e)
@@ -1382,9 +1399,9 @@ func _anima(e: Dictionary) -> Tween:
 			var tw := create_tween()
 			var bf := figure[int(e["bers"])]
 			var v := bf.position - f.position
-			f.rotation.y = f.rotation.y + wrapf(atan2(-v.x, -v.z) - f.rotation.y, -PI, PI)
+			tw.tween_property(f, "rotation:y", f.rotation.y + wrapf(atan2(-v.x, -v.z) - f.rotation.y, -PI, PI), 0.15)
 			if ha_modello(p):
-				clip(p, "lancia_oggetto", 1.5)
+				tw.tween_callback(func(): clip(p, "lancia_oggetto", 1.5))
 			tw.tween_interval(0.55)
 			_proiettile(f.position + Vector3(0, 1.6, 0), bf.position + Vector3(0, 1.4, 0), e.get("oggetto", "") == "tizzone", tw)
 			tw.tween_callback(func():
@@ -1485,7 +1502,7 @@ func _anima(e: Dictionary) -> Tween:
 			tw.tween_callback(func():
 				clip(p, "proiezione" if proiez else "immobilizza", 1.2)
 				clip(u, "proiettato" if proiez else "caduta", 1.2, ""))
-			tw.parallel().tween_property(f, "position", casa + v * 0.35, 0.35)
+			tw.parallel().tween_property(f, "position", casa + v.normalized() * 0.12 * S, 0.3)
 			# volo: uke parte a circa metà della clip e atterra nell'esagono d'arrivo
 			tw.tween_interval(0.45)
 			# uke scivola e gira attorno a tori: una curva che passa di fianco, mai attraverso il suo corpo
@@ -1493,7 +1510,7 @@ func _anima(e: Dictionary) -> Tween:
 			var lato := Vector3(-(arrivo - p0).z, 0, (arrivo - p0).x).normalized()
 			if lato.dot(casa - p0) > 0:
 				lato = -lato
-			var ctrl := casa + lato * 1.4 * S + Vector3(0, 0.6, 0)
+			var ctrl := casa + lato * 2.0 * S + Vector3(0, 0.6, 0)
 			var gira_attorno := (arrivo - p0).length() > (casa - p0).length() * 0.9
 			var volo := func(t: float):
 				var q: Vector3

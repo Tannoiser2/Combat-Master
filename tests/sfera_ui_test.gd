@@ -58,11 +58,18 @@ func _giro() -> void:
 		if bs.is_empty():
 			main._sf_azzera()
 			main._sf_aggiorna()
+			# un dado fermo che non può salire da nessuna parte: si passa, come col bottone in basso
+			if fase == "azione" and ms.s["g"][0]["mano"].is_empty():
+				main._sf_esegui({"t": "passa"})
 			continue
 		# evita "Annulla" se c'è altro
 		var scelta: Button = bs[gen.randi() % bs.size()]
 		if scelta.text == "Annulla" and bs.size() > 1:
 			scelta = bs[0]
+		if scelta.text == "Annulla" and fase == "azione" and ms.s["g"][0]["mano"].is_empty():
+			# il dado fermo non ha dove salire: si passa
+			main._sf_esegui({"t": "passa"})
+			continue
 		scelta.pressed.emit()
 	Engine.time_scale = 1.0
 	var ms2: Sfera = main.ms
