@@ -4,11 +4,14 @@ extends SceneTree
 
 var out := "/tmp/shots/sf"
 var main: Node
+var pg := [0, 1]
 
 func _init() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("out="):
 			out = a.substr(4)
+		if a.begins_with("pg="):
+			pg = [int(a.substr(3).split(",")[0]), int(a.substr(3).split(",")[1])]
 	DirAccess.make_dir_recursive_absolute(out.get_base_dir())
 	main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
@@ -32,7 +35,7 @@ func _giro() -> void:
 	main.sf_officina()
 	await _foto("officina")
 	var sf: Dictionary = main.sf
-	main.sf_battaglia(sf["personaggi"][0].duplicate(true), sf["personaggi"][1].duplicate(true), "cortile", [false, true])
+	main.sf_battaglia(sf["personaggi"][pg[0]].duplicate(true), sf["personaggi"][pg[1]].duplicate(true), "cortile", [false, true])
 	for i in 400:
 		await process_frame
 		if main.ms.chi_decide() == 0 and not main.arena.occupato():

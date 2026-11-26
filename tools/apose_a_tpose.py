@@ -18,6 +18,8 @@ def importa(f):
     prima = set(bpy.data.objects)
     if f.lower().endswith(".glb") or f.lower().endswith(".gltf"):
         bpy.ops.import_scene.gltf(filepath=f)
+    elif f.lower().endswith(".obj"):
+        bpy.ops.wm.obj_import(filepath=f, forward_axis="NEGATIVE_Z", up_axis="Y")
     else:
         bpy.ops.import_scene.fbx(filepath=f, automatic_bone_orientation=False, ignore_leaf_bones=True)
     return [o for o in bpy.data.objects if o not in prima]

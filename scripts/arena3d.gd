@@ -838,6 +838,9 @@ const ASPETTI := [
 	{"id": "bionda", "nome": "Atleta bionda"},
 	{"id": "mora", "nome": "Atleta mora"},
 	{"id": "uomo3", "nome": "Lottatore brizzolato"},
+	{"id": "barbuto", "nome": "Lottatore barbuto"},
+	{"id": "formosa", "nome": "Lottatrice formosa"},
+	{"id": "snella", "nome": "Lottatrice snella"},
 ]
 
 ## aspetto di un combattente: quello scelto, altrimenti uno diverso per lato

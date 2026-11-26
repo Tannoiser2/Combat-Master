@@ -661,7 +661,7 @@
     "respiro"
    ],
    "raro": "",
-   "aspetto": "mora",
+   "aspetto": "snella",
    "testo": "Salta, aggira e colpisce alle spalle."
   },
   {
@@ -698,7 +698,7 @@
     "ukemi"
    ],
    "raro": "",
-   "aspetto": "uomo",
+   "aspetto": "formosa",
    "testo": "Incassa tutto e restituisce."
   },
   {
@@ -751,7 +751,7 @@
     "uscire_linea"
    ],
    "raro": "tenchi_nage",
-   "aspetto": "uomo3",
+   "aspetto": "barbuto",
    "testo": "Pochi token, ma prepara il Tenchi nage."
   },
   {
