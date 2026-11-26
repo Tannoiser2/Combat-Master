@@ -12,13 +12,35 @@ func _init() -> void:
 	var gen := RandomNumberGenerator.new()
 	gen.seed = 7
 	var t0 := Time.get_ticks_msec()
+	var sovrapposti := 0
+	var teletrasporti := 0
+	var fuori_posto := 0
+	var mosse_viste := 0
 	for i in n:
 		var m := Sfera.new(dati, sf)
 		var a: Dictionary = sf["personaggi"][i % sf["personaggi"].size()] if i % 2 == 0 else m.casuale(gen, "A")
 		var b: Dictionary = m.casuale(gen, "B")
 		m.nuova_sfera(a, b, arene[i % 3], [false, false], 1000 + i)
+		var pos := [m.s["g"][0]["pos"], m.s["g"][1]["pos"]]
 		var v := m.gioca_da_sola()
-		m.prendi_eventi()
+		# movimenti coerenti: mai sulla casella dell'avversario, e ogni passo è adiacente al precedente
+		for e in m.prendi_eventi():
+			if e["t"] == "muovi" or e["t"] == "spinto":
+				mosse_viste += 1
+			if e["t"] != "muovi" and e["t"] != "spinto":
+				continue
+			var q := int(e["p"])
+			var da: Vector2i = pos[q]
+			for k in e["percorso"].size():
+				var h := Vector2i(e["percorso"][k].x, e["percorso"][k].y)
+				if k == e["percorso"].size() - 1 and h == pos[1 - q]:
+					sovrapposti += 1
+				if not e.get("salta", false) and not e.get("lancia", false) and h != da and m.dist(da, h) > 1:
+					teletrasporti += 1
+				da = h
+			pos[q] = da
+		if pos[0] != m.s["g"][0]["pos"] or pos[1] != m.s["g"][1]["pos"]:
+			fuori_posto += 1
 		scambi += int(m.s["scambio"])
 		if v < 0:
 			pari += 1
@@ -26,7 +48,8 @@ func _init() -> void:
 			vinti[v] += 1
 	var ms := Time.get_ticks_msec() - t0
 	print("duelli %d  vinti %s  pari %d  scambi medi %.2f  ms %d" % [n, vinti, pari, float(scambi) / n, ms])
-	var ok := pari < n * 0.1 and float(scambi) / n > 3.0 and float(scambi) / n < 12.0
+	print("movimenti: sulla casella avversaria %d, salti di casella %d, figure fuori posto %d (su %d movimenti)" % [sovrapposti, teletrasporti, fuori_posto, mosse_viste])
+	var ok := mosse_viste > 300 and sovrapposti == 0 and teletrasporti == 0 and fuori_posto == 0 and pari < n * 0.1 and float(scambi) / n > 3.0 and float(scambi) / n < 12.0
 	# un umano che reagisce: il motore si ferma e riparte
 	var m2 := Sfera.new(dati, sf)
 	m2.nuova_sfera(sf["personaggi"][1], sf["personaggi"][0], "cortile", [false, true], 3)

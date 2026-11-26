@@ -2619,9 +2619,9 @@ func _sf_scelte_base(umano: int) -> void:
 			var evid := []
 			for i in est.size():
 				var e: Dictionary = est[i]
-				if e["pronto"] and not e["bloccato"] and ms.tok(e["id"])["modo"] == "subito" and ms.in_portata(e):
+				if e["pronto"] and not e["bloccato"] and ms.te(e)["modo"] == "subito" and ms.in_portata(e):
 					evid.append(i)
-					voci.append(["Fai scattare %s" % ms.tok(e["id"])["nome"], func(): _sf_esegui({"t": "scatta", "tok": i})])
+					voci.append(["Fai scattare %s" % ms.te(e)["nome"], func(): _sf_esegui({"t": "scatta", "tok": i})])
 			if not g["raro"].is_empty() and g["raro"]["pronto"] and ms.contatto():
 				voci.append(["Scatena %s" % ms.rarip[g["raro"]["id"]]["nome"], func(): _sf_esegui({"t": "raro"})])
 				_sf_vista.evid_raro = true
@@ -2689,7 +2689,7 @@ func _sf_premuto(cosa: Dictionary) -> void:
 			_sf_vista.queue_redraw()
 		"token":
 			var e: Dictionary = g["esterni"][int(cosa["i"])]
-			var t := ms.tok(e["id"])
+			var t := ms.te(e)
 			var stato := ""
 			if e["bloccato"]:
 				stato = " Bloccato fino alla pausa."
@@ -2763,7 +2763,7 @@ func _sf_chiedi_salita(p: int, colore: String, sett: String, v: int, cb: Callabl
 	var voci := []
 	for i in cand:
 		var e: Dictionary = est[i]
-		var nome: String = ms.tok(e["id"])["nome"]
+		var nome: String = ms.te(e)["nome"]
 		var sc := maxi(1, v - ms.freccia(e))
 		voci.append(["%s: scala a %d" % [nome, sc], func(): cb.call({"tok": i, "modo": "scala"})])
 		voci.append(["%s: ritira" % nome, func(): cb.call({"tok": i, "modo": "ritira"})])
@@ -2817,7 +2817,8 @@ func _sf_scelte_pausa(p: int) -> void:
 	var voci := []
 	for id in disp:
 		var scelto := _sf_piazza.has(id)
-		voci.append([("[x] " if scelto else "") + String(ms.tok(id)["nome"]), func():
+		var nome_t := String(ms.tok(id)["nome"]) + (" (2 azioni)" if ms.tok(id).has("seconda") else "")
+		voci.append([("[x] " if scelto else "") + nome_t, func():
 			if _sf_piazza.has(id):
 				_sf_piazza.erase(id)
 			elif _sf_piazza.size() < n:

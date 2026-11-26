@@ -884,8 +884,30 @@ func _modello_combattente(colp: Color, veste: Color, aspetto := "donna") -> Node
 	if ap != null:
 		if ap.has_animation("idle"):
 			ap.get_animation("idle").loop_mode = Animation.LOOP_LINEAR
+		_senza_deriva(ap)
 		ap.play("idle")
 	return mod
+
+## Clip in cui lo spostamento lo fa l'arena: i fianchi non devono avanzare da soli, altrimenti
+## la figura atterra oltre l'esagono e poi "scivola" indietro quando la clip finisce.
+const CLIP_SENZA_DERIVA := ["salto", "salto_mortale", "salto_indietro", "calcio_volante", "sali", "scendi",
+	"volo_indietro", "proiettato", "caduta", "rialzata", "spingi_oggetto"]
+
+func _senza_deriva(ap: AnimationPlayer) -> void:
+	for nome in CLIP_SENZA_DERIVA:
+		if not ap.has_animation(nome):
+			continue
+		var a := ap.get_animation(nome)
+		if a.has_meta("senza_deriva"):
+			continue
+		a.set_meta("senza_deriva", true)
+		for t in a.get_track_count():
+			if a.track_get_type(t) != Animation.TYPE_POSITION_3D or not String(a.track_get_path(t)).ends_with("Hips"):
+				continue
+			var p0: Vector3 = a.track_get_key_value(t, 0)
+			for k in a.track_get_key_count(t):
+				var v: Vector3 = a.track_get_key_value(t, k)
+				a.track_set_key_value(t, k, Vector3(p0.x, v.y, p0.z))
 
 func _player(n: Node) -> AnimationPlayer:
 	var lista := n.find_children("*", "AnimationPlayer", true, false)
@@ -1078,6 +1100,28 @@ func _tween_acrobazia(tw: Tween, p: int, f: Node3D, da: Vector3, a: Vector3, r0:
 	tw.tween_interval(dur * stacco)
 	tw.tween_method(func(t: float): f.position = da.lerp(a, t) + Vector3(0, sin(PI * t) * 0.3, 0), 0.0, 1.0, dur * 0.5)
 	tw.tween_interval(dur * (0.95 - stacco - 0.5))
+
+## Salto vero da un esagono all'altro: stacco, arco alto (sopra l'avversario se serve), atterraggio
+## esattamente nell'esagono d'arrivo. Con la capriola si usa il salto mortale.
+func _tween_salto(tw: Tween, p: int, f: Node3D, da: Vector3, a: Vector3, r0: float, ry: float, capriola: bool) -> void:
+	var nome := "salto_mortale" if capriola else "salto"
+	var ap := _ap(p)
+	var giro := Vector3(a.x - da.x, 0, a.z - da.z)
+	var verso := r0 + wrapf(atan2(-giro.x, -giro.z) - r0, -PI, PI) if giro.length() > 0.05 else r0
+	tw.tween_property(f, "rotation:y", verso, 0.12)
+	var dur := 0.8
+	var stacco := 0.25
+	if ap != null and ap.has_animation(nome):
+		var vel := 1.2
+		dur = ap.get_animation(nome).length / vel
+		tw.tween_callback(func(): clip(p, nome, vel))
+		stacco = 0.28 if capriola else 0.3
+	tw.tween_interval(dur * stacco)
+	# sopra la testa dell'avversario se lo si scavalca
+	var alto := 1.6 if capriola else 0.9
+	tw.tween_method(func(t: float): f.position = da.lerp(a, t) + Vector3(0, sin(PI * t) * alto, 0), 0.0, 1.0, dur * 0.45)
+	tw.tween_property(f, "rotation:y", ry, 0.15)
+	tw.tween_interval(maxf(0.05, dur * (0.95 - stacco - 0.45) - 0.15))
 
 ## Volo di chi viene lanciato o cade da un rialzo: arco ampio, atterraggio sulla schiena.
 func _tween_volo(tw: Tween, f: Node3D, da: Vector3, a: Vector3, ry: float, dur: float) -> void:
@@ -1441,7 +1485,21 @@ func _anima(e: Dictionary) -> Tween:
 			tw.parallel().tween_property(f, "position", casa + v * 0.35, 0.35)
 			# volo: uke parte a circa metà della clip e atterra nell'esagono d'arrivo
 			tw.tween_interval(0.45)
-			tw.tween_property(fu, "position", arrivo, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			# uke scivola e gira attorno a tori: una curva che passa di fianco, mai attraverso il suo corpo
+			var p0 := fu.position
+			var lato := Vector3(-(arrivo - p0).z, 0, (arrivo - p0).x).normalized()
+			if lato.dot(casa - p0) > 0:
+				lato = -lato
+			var ctrl := casa + lato * 1.4 * S + Vector3(0, 0.6, 0)
+			var gira_attorno := (arrivo - p0).length() > (casa - p0).length() * 0.9
+			var volo := func(t: float):
+				var q: Vector3
+				if gira_attorno:
+					q = p0.lerp(ctrl, t).lerp(ctrl.lerp(arrivo, t), t)
+				else:
+					q = p0.lerp(arrivo, t)
+				fu.position = q + Vector3(0, sin(PI * t) * 0.5, 0)
+			tw.tween_method(volo, 0.0, 1.0, 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 			tw.parallel().tween_property(f, "position", casa, 0.55)
 			tw.tween_interval(0.6)
 			tw.tween_callback(func():
@@ -1495,6 +1553,8 @@ func _anima(e: Dictionary) -> Tween:
 				var lungo := Vector2(pos.x - da.x, pos.z - da.z).length() > 2.0 * S
 				if vola:
 					_tween_volo(tw, f, da, pos, ry, 0.55)
+				elif e.get("salta", false):
+					_tween_salto(tw, p, f, da, pos, r0, ry, bool(e.get("capriola", false)))
 				elif lungo or absf(dy) > ALT * 1.5:
 					_tween_acrobazia(tw, p, f, da, pos, r0, ry)
 				elif absf(dy) > 0.05 and not spinto:

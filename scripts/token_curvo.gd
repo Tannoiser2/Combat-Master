@@ -14,7 +14,7 @@ var con_testo := true
 func _init(tok: Dictionary = {}, col := "") -> void:
 	t = tok
 	colore = col
-	custom_minimum_size = Vector2(250, 190)
+	custom_minimum_size = Vector2(250, 235)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 func _draw() -> void:
@@ -30,7 +30,16 @@ func _draw() -> void:
 	sb.set_border_width_all(3 if scelto else 1)
 	sb.set_corner_radius_all(10)
 	draw_style_box(sb, Rect2(Vector2.ZERO, size))
-	SferaVista.disegna_token(self, c, ri, ro, -90 - 27, -90 + 27, t, {}, scelto, colore)
+	if t.has("seconda"):
+		# due azioni: due metà dello stesso pezzo d'anello
+		var t2 := t.duplicate()
+		t2.erase("seconda")
+		for k in t["seconda"]:
+			t2[k] = t["seconda"][k]
+		SferaVista.disegna_token(self, c, ri, ro, -90 - 38, -90 - 0.5, t, {}, scelto, colore)
+		SferaVista.disegna_token(self, c, ri, ro, -90 + 0.5, -90 + 38, t2, {}, scelto, colore)
+	else:
+		SferaVista.disegna_token(self, c, ri, ro, -90 - 27, -90 + 27, t, {}, scelto, colore)
 	if t.has("costo"):
 		var cr := Rect2(w - 44, 8, 36, 30)
 		var sc := StyleBoxFlat.new()
@@ -47,7 +56,10 @@ func _draw() -> void:
 				modo = ""
 			"subito":
 				modo = "Scatta subito. "
-		Disegno.testo_a_capo(self, Vector2(10, alto + 14), modo + String(t.get("testo", "")), 14, Disegno.PERGAMENA, w - 20, 4)
+		var testo := modo + String(t.get("testo", ""))
+		if t.has("seconda"):
+			testo = String(t["nome"]) + ": " + testo + "\n" + String(t["seconda"]["nome"]) + ": " + String(t["seconda"]["testo"])
+		Disegno.testo_a_capo(self, Vector2(10, alto + 14), testo, 14 if not t.has("seconda") else 12, Disegno.PERGAMENA, w - 20, 6)
 
 func _gui_input(ev: InputEvent) -> void:
 	if not selezionabile:

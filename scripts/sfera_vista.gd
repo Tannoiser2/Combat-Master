@@ -69,8 +69,17 @@ static func testo_arco(ci: CanvasItem, c: Vector2, r: float, a_gradi: float, lar
 		f = Disegno.font_titolo()
 	var arco := deg_to_rad(larghezza_gradi) * r * 0.92
 	var dim := fs
-	while dim > 8 and f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, dim).x > arco:
+	while dim > 9 and f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, dim).x > arco:
 		dim -= 1
+	# ancora troppo lungo: tiene le prime parole, poi accorcia con il punto
+	var parole := t.split(" ", false)
+	while parole.size() > 1 and f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, dim).x > arco:
+		parole.remove_at(parole.size() - 1)
+		if parole.size() > 1 and String(parole[parole.size() - 1]).length() <= 2:
+			parole.remove_at(parole.size() - 1)
+		t = " ".join(parole)
+	while t.length() > 3 and f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, dim).x > arco:
+		t = t.substr(0, t.length() - 2) + "."
 	var a := deg_to_rad(a_gradi)
 	var giu := sin(a) > 0.15
 	# lettera per lettera lungo l'arco, così il testo segue la curva
@@ -165,24 +174,32 @@ func posizioni_token() -> Array:
 	if m == null:
 		return out
 	var est: Array = m.s["g"][p]["esterni"]
+	# per colore, un posto per token; i token con due azioni dividono il loro posto in due metà
 	var per_col := {}
 	var scena := []
 	for i in est.size():
-		var col: String = m.tok(est[i]["id"])["col"]
+		var col: String = m.te(est[i])["col"]
 		if col == "scena":
 			scena.append(i)
-		else:
-			if not per_col.has(col):
-				per_col[col] = []
-			per_col[col].append(i)
+			continue
+		if not per_col.has(col):
+			per_col[col] = {}
+		var id: String = est[i]["id"]
+		if not per_col[col].has(id):
+			per_col[col][id] = []
+		per_col[col][id].append(i)
 	for col in per_col:
-		var lista: Array = per_col[col]
+		var ids: Array = per_col[col].keys()
 		var centro: float = POSTO[col]
 		var tot := 56.0
-		var w := tot / lista.size()
-		for k in lista.size():
+		var w := tot / ids.size()
+		for k in ids.size():
+			var parti: Array = per_col[col][ids[k]]
+			parti.sort_custom(func(a, b): return int(est[a].get("parte", 0)) < int(est[b].get("parte", 0)))
 			var a0 := centro - tot / 2.0 + w * k + 1.0
-			out.append({"i": lista[k], "a0": a0, "a1": a0 + w - 2.0, "anello": 2})
+			var wp := (w - 2.0) / parti.size()
+			for q in parti.size():
+				out.append({"i": parti[q], "a0": a0 + wp * q + (0.4 if q > 0 else 0.0), "a1": a0 + wp * (q + 1) - (0.4 if q < parti.size() - 1 else 0.0), "anello": 2})
 	for k in scena.size():
 		var a0 := 64.0 + k * 26.0
 		out.append({"i": scena[k], "a0": a0, "a1": a0 + 24.0, "anello": 3})
@@ -280,7 +297,7 @@ func _draw() -> void:
 		var e: Dictionary = est[pt["i"]]
 		var ri: float = r[1] + 14 if pt["anello"] == 2 else r[2] + 3
 		var ro: float = r[2] - 3 if pt["anello"] == 2 else r[3] - 2
-		disegna_token(self, c, ri, ro, pt["a0"], pt["a1"], m.tok(e["id"]), e, evid_token.has(int(pt["i"])))
+		disegna_token(self, c, ri, ro, pt["a0"], pt["a1"], m.te(e), e, evid_token.has(int(pt["i"])))
 	# token raro
 	var rr: Dictionary = g["raro"]
 	if not rr.is_empty():
