@@ -692,7 +692,7 @@ func _mesh(mesh: Mesh, mat: Material, pos: Vector3, parent: Node3D, rot := Vecto
 ## Combattente fatto di forme semplici; l'arma dipende dai token della scheda.
 func _crea_figura(i: int) -> void:
 	var g: Dictionary = m.s["g"][i]
-	var toks: Dictionary = g["pg"]["token"]
+	var toks: Dictionary = g["pg"].get("token", {})
 	var radice := Node3D.new()
 	radice.scale = Vector3.ONE * SCALA_FIGURA
 	add_child(radice)
@@ -711,11 +711,18 @@ func _crea_figura(i: int) -> void:
 	# colore dominante della scheda per la veste
 	var dom := "rosso"
 	var maxd := -1
-	var st := Motore.statistiche(m.cat, g["pg"])
-	for c in st["dadi"]:
-		if st["dadi"][c] > maxd:
-			maxd = st["dadi"][c]
-			dom = c
+	if g["pg"].has("token"):
+		var st := Motore.statistiche(m.cat, g["pg"])
+		for c in st["dadi"]:
+			if st["dadi"][c] > maxd:
+				maxd = st["dadi"][c]
+				dom = c
+	else:
+		# la sfera: la veste prende il colore della caratteristica più alta
+		for k in [["F", "rosso"], ["A", "giallo"], ["P", "blu"]]:
+			if int(g["pg"].get(k[0], 0)) > maxd:
+				maxd = int(g["pg"].get(k[0], 0))
+				dom = k[1]
 	var veste := Disegno.colore(dom).darkened(0.2)
 	var modello := _modello_combattente(colp, veste, aspetto_di(g["pg"], i))
 	if modello != null:
@@ -1106,9 +1113,19 @@ func _process(dt: float) -> void:
 	# chiome degli alberi grandi: si schiariscono se sotto c'è qualcuno
 	for c in _chiome:
 		var sotto := false
+		var cc: Vector3 = c[2]
+		var cam_p := cam.global_position
+		# nascosta anche quando sta fra la telecamera e un combattente, o la telecamera ci è dentro
+		if Vector2(cam_p.x - cc.x, cam_p.z - cc.z).length() < 7.0 * S:
+			sotto = true
 		for f in figure:
-			var d := Vector2(f.position.x - c[2].x, f.position.z - c[2].z).length()
+			var d := Vector2(f.position.x - cc.x, f.position.z - cc.z).length()
 			if d < 4.2 * S:
+				sotto = true
+			var alto := cc + Vector3(0, 4.0 * S, 0)
+			var seg := f.position + Vector3(0, 1.0, 0) - cam_p
+			var t := clampf((alto - cam_p).dot(seg) / maxf(0.001, seg.length_squared()), 0.0, 1.0)
+			if (cam_p + seg * t).distance_to(alto) < 6.5 * S:
 				sotto = true
 		var mt: StandardMaterial3D = c[1]
 		var a := move_toward(mt.albedo_color.a, 0.15 if sotto else 1.0, dt * 2.0)

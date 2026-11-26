@@ -1,0 +1,77 @@
+{
+ "regole": {
+  "punti": 10,
+  "budget": 12,
+  "ritmo3_punti": 2,
+  "ritmo3_budget": 3,
+  "vita_base": 18,
+  "pesca": 4,
+  "max_vant": 5,
+  "vant_per_colpo": 3,
+  "danno_alto": 1,
+  "danno_spalle": 2,
+  "danno_urto": 1,
+  "danno_pericolo": 1,
+  "fallisce_fino": 2,
+  "scarto_tolleranza": 2,
+  "presa_soglia_spinta": 5,
+  "soglia_raro": 4,
+  "max_scambi": 40
+ },
+ "base": [
+  {"id": "colpo", "settore": "F", "nome": "Colpo", "testo": "A contatto: danno pari a metà del dado (per eccesso), più i vantaggi spesi. Il dado prosegue.", "faccia": "Colpo pesante", "testo_faccia": "Spendi 1 vantaggio: danno +2."},
+  {"id": "presa", "settore": "F", "nome": "Presa", "testo": "A contatto: 1 svantaggio al nemico e gli togli il dado più alto; con 5+ lo tieni fermo e lo sbilanci di un esagono. Il dado si ferma.", "faccia": "Presa forte", "testo_faccia": "Gira il dado fermo: 2 svantaggi e blocchi il suo token più carico."},
+  {"id": "passo", "settore": "A", "nome": "Passo", "testo": "Ti muovi di 1 esagono (2 con 5+). A contatto aggiri il nemico: +1 vantaggio, +2 se arrivi alle sue spalle. Il dado si ferma.", "faccia": "Balzo", "testo_faccia": "Gira il dado fermo: salti a contatto da 3 esagoni e prendi 1 vantaggio."},
+  {"id": "scarto", "settore": "A", "nome": "Scarto", "testo": "Reazione: con un dado almeno pari a quello d'attacco meno 2 schivi il colpo, arretri e prendi 1 vantaggio. Il dado prosegue.", "faccia": "Scarto e riposizionamento", "testo_faccia": "Spendi 1 vantaggio e ne riprendi 2."},
+  {"id": "parata", "settore": "P", "nome": "Parata", "testo": "Reazione: riduci il danno di metà del dado; se lo azzeri +1 vantaggio, se lo superi di 2 l'attaccante prende 1 ferita. Il dado prosegue.", "faccia": "Parata ferrea", "testo_faccia": "Spendi 1 vantaggio: riduci di 1 in più e l'attaccante prende 1 ferita."},
+  {"id": "leggi", "settore": "P", "nome": "Leggere il colpo", "testo": "+1 vantaggio (2 con 5+); con 4+ il nemico prende 1 svantaggio. Il dado si ferma.", "faccia": "Lettura profonda", "testo_faccia": "Gira il dado fermo: +2 vantaggi, il nemico ne perde 2 e per lo scambio ti colpisce 1 in meno."}
+ ],
+ "esterni": [
+  {"id": "calcio_girato", "nome": "Calcio girato", "col": "rosso", "req": ["r"], "freccia": 1, "modo": "subito", "eff": "colpo", "bonus": 2, "costo": 2, "testo": "A contatto: colpo con il dado +2."},
+  {"id": "raffica", "nome": "Raffica di pugni", "col": "rosso", "req": ["r", "n"], "freccia": 1, "modo": "subito", "eff": "colpo", "bonus": 1, "costo": 1, "testo": "A contatto: colpo con la somma dei dadi +1. Il secondo dado può essere bianco."},
+  {"id": "gomitata", "nome": "Gomitata", "col": "rosso", "req": ["r"], "freccia": 2, "modo": "subito", "eff": "colpo_stordente", "bonus": 1, "costo": 3, "testo": "A contatto: colpo +1; se ferisce, 2 svantaggi e perde il dado più alto."},
+  {"id": "spallata", "nome": "Spallata", "col": "rosso", "req": ["r"], "freccia": 1, "modo": "subito", "eff": "spinta", "bonus": 0, "costo": 4, "testo": "A contatto: colpo e spinta di 2 esagoni, 1 svantaggio."},
+  {"id": "carica_toro", "nome": "Carica del toro", "col": "arancio", "req": ["r", "g"], "freccia": 1, "modo": "subito", "eff": "carica", "bonus": 0, "costo": 1, "testo": "Da 4 esagoni arrivi davanti a lui e colpisci con la somma."},
+  {"id": "calcio_volante", "nome": "Calcio volante", "col": "arancio", "req": ["g", "r"], "freccia": 1, "modo": "subito", "eff": "carica", "bonus": 2, "costo": 2, "testo": "Come la Carica, danno +2."},
+  {"id": "affondo", "nome": "Affondo e rientro", "col": "arancio", "req": ["r", "g"], "freccia": 1, "modo": "subito", "eff": "affondo", "bonus": 1, "costo": 2, "testo": "Da 2 esagoni entri, colpisci con la somma +1 e arretri di 1."},
+  {"id": "sgambetto", "nome": "Sgambetto", "col": "arancio", "req": ["g", "r"], "freccia": 1, "modo": "subito", "eff": "sgambetto", "bonus": 0, "costo": 2, "testo": "A contatto: 1 ferita più un quarto della somma, 2 svantaggi, perde il dado più basso."},
+  {"id": "balzo", "nome": "Balzo", "col": "giallo", "req": ["g"], "freccia": 2, "modo": "subito", "eff": "balzo", "bonus": -3, "costo": 3, "testo": "Salti a contatto da 3 esagoni, +1 vantaggio e colpisci con il dado -3."},
+  {"id": "passi_danza", "nome": "Passi di danza", "col": "giallo", "req": ["g", "g"], "freccia": 1, "modo": "armato", "eff": "schivata", "bonus": 1, "costo": 1, "testo": "Trappola: schivi il prossimo colpo, +1 vantaggio, l'attaccante prende 2 ferite."},
+  {"id": "salto_mortale", "nome": "Salto mortale", "col": "giallo", "req": ["g"], "freccia": 2, "modo": "subito", "eff": "alle_spalle", "bonus": -6, "costo": 8, "testo": "Da 3 esagoni atterri alle sue spalle e colpisci (dado -6, +2 alle spalle); si schiva solo con 5 o 6."},
+  {"id": "irimi", "nome": "Irimi", "col": "verde", "req": ["g", "b"], "freccia": 1, "modo": "armato", "eff": "irimi", "bonus": 0, "costo": 1, "testo": "Trappola: annulli il colpo, +3 vantaggi, 1 ferita e 1 svantaggio all'attaccante; finisci al suo fianco e prendi l'iniziativa."},
+  {"id": "tenkan", "nome": "Tenkan", "col": "verde", "req": ["b", "g"], "freccia": 1, "modo": "armato", "eff": "tenkan", "bonus": 0, "costo": 3, "testo": "Trappola: annulli il colpo, +1 vantaggio, 1 ferita, 1 svantaggio e un dado in meno all'attaccante; i tuoi dadi in mano +1."},
+  {"id": "uscire_linea", "nome": "Uscire dalla linea", "col": "verde", "req": ["g", "b"], "freccia": 1, "modo": "armato", "eff": "schivata", "bonus": 1, "costo": 1, "testo": "Trappola: schivi, +1 vantaggio, l'attaccante prende 2 ferite; per due scambi i tuoi ritiri falliscono solo con 1."},
+  {"id": "ukemi", "nome": "Ukemi", "col": "verde", "req": ["g", "b"], "freccia": 1, "modo": "armato", "eff": "ukemi", "bonus": 0, "costo": 1, "testo": "Trappola: annulli il colpo, +1 vantaggio, togli gli svantaggi e recuperi 2 ferite."},
+  {"id": "guardia_ferrea", "nome": "Guardia ferrea", "col": "blu", "req": ["b"], "freccia": 1, "modo": "armato", "eff": "guardia", "bonus": 0, "costo": 4, "testo": "Passiva: per tutto lo scambio ogni colpo fa 2 danni in meno; la prima volta l'attaccante prende 1 ferita."},
+  {"id": "respiro", "nome": "Respiro profondo", "col": "blu", "req": ["b"], "freccia": 1, "modo": "subito", "eff": "respiro", "bonus": 0, "costo": 1, "testo": "Recuperi metà del dado per eccesso (massimo 3 ferite) e togli gli svantaggi."},
+  {"id": "provocazione", "nome": "Provocazione", "col": "blu", "req": ["b"], "freccia": 1, "modo": "subito", "eff": "provoca", "bonus": 0, "costo": 1, "testo": "2 svantaggi al nemico e perde il dado più alto; +1 vantaggio."},
+  {"id": "calma", "nome": "Calma interiore", "col": "blu", "req": ["b"], "freccia": 1, "modo": "subito", "eff": "calma", "bonus": 0, "costo": 7, "testo": "Peschi 2 dadi in più dal mucchio."},
+  {"id": "kote_gaeshi", "nome": "Kote gaeshi", "col": "viola", "req": ["b", "r"], "freccia": 1, "modo": "armato", "eff": "proiezione", "bonus": 0, "costo": 5, "testo": "Trappola: annulli il colpo, l'attaccante prende metà della somma e vola di 2 esagoni."},
+  {"id": "ikkyo", "nome": "Ikkyo", "col": "viola", "req": ["r", "b"], "freccia": 1, "modo": "armato", "eff": "immobilizza", "bonus": 0, "costo": 2, "testo": "Trappola: annulli il colpo, un quarto della somma in ferite, 1 svantaggio, perde 1 dado."},
+  {"id": "kaiten_nage", "nome": "Kaiten nage", "col": "viola", "req": ["b", "r"], "freccia": 2, "modo": "armato", "eff": "proiezione", "bonus": 0, "costo": 4, "testo": "Trappola: annulli il colpo, l'attaccante prende metà della somma e vola di 2 esagoni."},
+  {"id": "contrattacco", "nome": "Contrattacco", "col": "viola", "req": ["b", "r"], "freccia": 1, "modo": "armato", "eff": "contrattacco", "bonus": 0, "costo": 1, "testo": "Trappola: subisci il colpo meno 3 e restituisci metà della somma."}
+ ],
+ "rari": [
+  {"id": "tenchi_nage", "nome": "Tenchi nage", "dadi": 2, "eff": "tenchi", "costo": 8, "testo": "Metà della somma in ferite, il nemico vola di 3 esagoni e perde 2 dadi."},
+  {"id": "kiai", "nome": "Kiai del maestro", "dadi": 1, "eff": "kiai", "costo": 4, "testo": "Disarma tutti i token pronti del nemico, 2 svantaggi a lui e 2 vantaggi a te."},
+  {"id": "ritorno", "nome": "Ritorno al centro", "dadi": 2, "eff": "ritorno", "costo": 5, "testo": "Rimetti in mano 2 dadi."}
+ ],
+ "scena": [
+  {"id": "scena_pietre", "ogg": "pietre", "nome": "Lancio di pietra", "col": "scena", "req": ["x"], "freccia": 1, "modo": "subito", "eff": "lancio", "bonus": 0, "portata": 4, "usi": 3, "testo": "Da 4 esagoni: colpo con il dado."},
+  {"id": "scena_braciere", "ogg": "braciere", "nome": "Tizzone ardente", "col": "scena", "req": ["x"], "freccia": 1, "modo": "subito", "eff": "tizzone", "bonus": 1, "portata": 3, "usi": 2, "testo": "Da 3 esagoni: colpo con il dado +1 e 1 svantaggio."},
+  {"id": "scena_fontana", "ogg": "fontana", "nome": "Acqua negli occhi", "col": "scena", "req": ["x"], "freccia": 1, "modo": "subito", "eff": "acqua", "bonus": 0, "portata": 3, "usi": 2, "testo": "Da 3 esagoni: 2 svantaggi e perde il dado più alto."},
+  {"id": "scena_sabbia", "ogg": "sabbia", "nome": "Sabbia negli occhi", "col": "scena", "req": ["x"], "freccia": 1, "modo": "subito", "eff": "sabbia", "bonus": 0, "portata": 2, "usi": 1, "testo": "Da 2 esagoni: 2 svantaggi e la sua miglior difesa vale 1."},
+  {"id": "scena_cassa", "ogg": "cassa", "nome": "Spingi la cassa", "col": "scena", "req": ["x"], "freccia": 1, "modo": "subito", "eff": "cassa", "bonus": 0, "portata": 2, "usi": 1, "testo": "Da 2 esagoni: 1 ferita e spinta di un esagono."}
+ ],
+ "personaggi": [
+  {"nome": "Airone delle Paludi", "F": 2, "A": 2, "P": 3, "C": 3, "R": 2, "coll": ["kote_gaeshi", "irimi", "calcio_girato", "respiro", "uscire_linea", "contrattacco"], "raro": "", "aspetto": "donna", "testo": "Aspetta l'attacco e lo trasforma in proiezione."},
+  {"nome": "Toro di Bronzo", "F": 4, "A": 2, "P": 1, "C": 3, "R": 2, "coll": ["carica_toro", "spallata", "gomitata", "raffica", "calcio_girato"], "raro": "", "aspetto": "uomo2", "testo": "Carica, spinge contro i muri, picchia duro."},
+  {"nome": "Gatto delle Rovine", "F": 2, "A": 4, "P": 2, "C": 2, "R": 2, "coll": ["balzo", "passi_danza", "sgambetto", "calcio_volante", "uscire_linea", "irimi", "respiro"], "raro": "", "aspetto": "mora", "testo": "Salta, aggira e colpisce alle spalle."},
+  {"nome": "Maestro del Vento", "F": 2, "A": 2, "P": 3, "C": 1, "R": 3, "coll": ["tenkan", "ukemi", "ikkyo", "provocazione", "irimi", "respiro"], "raro": "", "aspetto": "uomo3", "testo": "Ritmo 3: tre token per pausa, tutto rotazioni e immobilizzazioni."},
+  {"nome": "Guardiano di Pietra", "F": 2, "A": 1, "P": 3, "C": 4, "R": 2, "coll": ["guardia_ferrea", "kaiten_nage", "contrattacco", "respiro", "ukemi"], "raro": "", "aspetto": "uomo", "testo": "Incassa tutto e restituisce."},
+  {"nome": "Acrobata Dorata", "F": 2, "A": 4, "P": 2, "C": 2, "R": 2, "coll": ["salto_mortale", "passi_danza", "uscire_linea", "respiro", "raffica"], "raro": "", "aspetto": "bionda", "testo": "Il salto mortale alle spalle è la sua firma."},
+  {"nome": "Volpe Rossa", "F": 3, "A": 2, "P": 3, "C": 2, "R": 2, "coll": ["gomitata", "provocazione", "irimi", "ikkyo", "respiro"], "raro": "kiai", "aspetto": "mora", "testo": "Provoca, legge e con il Kiai spegne le trappole."},
+  {"nome": "Saggio Errante", "F": 1, "A": 2, "P": 4, "C": 3, "R": 2, "coll": ["irimi", "contrattacco", "respiro", "uscire_linea"], "raro": "tenchi_nage", "aspetto": "uomo3", "testo": "Pochi token, ma prepara il Tenchi nage."},
+  {"nome": "Monaco della Calma", "F": 2, "A": 2, "P": 4, "C": 2, "R": 2, "coll": ["calma", "guardia_ferrea", "respiro"], "raro": "", "aspetto": "uomo", "testo": "Più dadi, più calma, più guardia."}
+ ]
+}

@@ -29,6 +29,7 @@ jobs:
           G=/tmp/godot-bin/Godot_v4.7-stable_linux.x86_64
           $G --headless --path . --editor --import --quit
           $G --headless --path . --script tests/regole_test.gd -- partite=20
+          $G --headless --path . --script tests/sfera_motore_test.gd
           pip install --quiet fonttools && python3 tools/controlla_glifi.py
           mkdir -p build/web
           $G --headless --path . --export-release Web build/web/index.html

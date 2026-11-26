@@ -1,135 +1,59 @@
-# Combat Master — Regole
+# Combat Master — Regole della sfera
 
 ## L'idea
-Due combattenti si affrontano in un'arena di esagoni. Ognuno ha una scheda fatta di token: quattro caratteristiche, attacchi, tecniche, strategie, talenti e segreti. I token mettono dadi colorati nel mucchio e offrono spazi su cui piazzarli. Il giocatore costruisce un motore: chi produce dadi di un colore, chi li consuma, chi li sblocca, chi li trasforma. Non ci sono turni fissi: l'iniziativa salta da un combattente all'altro secondo le azioni, le combo e le reazioni.
+Due combattenti a mani nude si affrontano in un'arena di esagoni. La scheda di ognuno è una sfera: al centro nascono i dadi, attorno ci sono le sei azioni base, all'esterno i token curvi che i dadi caricano salendo, nell'anello più esterno il token raro. È la sfera dinamica dell'aikido resa gioco: il movimento parte dal centro e si apre verso l'esterno.
 
-## Attacchi e tecniche (mani nude)
-Il duello è a mani nude, ispirato ad "Aikido e la sfera dinamica". Armi, armature, magie e oggetti sono un'espansione futura e per ora non si usano.
+## Il personaggio
+- Quattro caratteristiche da 1 a 4, che sommano 10: **Forza** (dadi rossi), **Agilità** (gialli), **Percezione** (blu) e **Costituzione** (dadi bianchi, che valgono per qualsiasi azione base).
+- Ferite: 18 più la Costituzione.
+- **Ritmo** 2 o 3: quanti token esterni metti in campo a ogni pausa. Il Ritmo 3 costa 2 punti di caratteristica e 3 di budget.
+- Budget di 12 punti per la collezione di token esterni e, se vuoi, un token raro. Nell'Officina componi il tuo personaggio; i token si vedono già curvi, come sulla sfera.
 
-- **18 attacchi**, uno per carta: 12 prese (1-6 frontali, 7-12 dorsali), 3 colpi (13 dall'alto alla testa, 14 circolare, 15 all'addome) e 3 combinazioni (16 presa con presa, 17 presa con colpo, 18 colpo con colpo). Le prese fanno poco danno ma stordiscono dadi o danno svantaggi. Le prese dorsali si tentano solo da dietro il difensore.
-- **35 tecniche** di neutralizzazione: 7 immobilizzazioni (I1-I7) e 28 proiezioni (P1-P28). Ogni tecnica è una reazione che vale solo contro gli attacchi indicati sulla carta, come nella tabella del libro. P28 vale contro tutti. I colpi delle schede senza numero contano come colpi (13-15).
-- La tecnica annulla l'attacco: il difensore non subisce danni e prende l'iniziativa.
-- **Irimi o tenkan**: con un dado dispari il difensore entra sul fianco dell'attaccante (irimi), con un dado pari ruota su se stesso (tenkan). In entrambi i casi guadagna 1 vantaggio.
-- **Proiezione**: chi attaccava vola di 1 esagono (2 con un dado 5+) e subisce 1 ferita più un terzo del dado. Se ha un dado verde nel mucchio rotola (ukemi): il dado va in Attesa e le ferite si dimezzano; altrimenti prende 2 svantaggi.
-- **Immobilizzazione**: chi attaccava subisce 1 ferita (2 con un dado 5+), prende 2 svantaggi e ha due dadi storditi. Il duello si vince sempre portando l'avversario a zero ferite.
-- Il costo di una tecnica cresce con il numero di attacchi che copre; le più versatili chiedono anche un dado alto.
+## La sfera
+- **Centro**: a ogni pausa peschi 4 dadi dal tuo mucchio e li tiri. Restano lì finché non li usi.
+- **Tre settori, sei azioni base**: Forza in alto (Colpo, Presa), Agilità in basso a destra (Passo, Scarto), Percezione in basso a sinistra (Parata, Leggere il colpo). Un dado va su un'azione del suo colore; quelli bianchi su qualsiasi.
+- **Anello esterno**: i token esterni. Quelli di un colore stanno fuori dal loro settore; i misti stanno a cavallo di due settori: arancio (Forza e Agilità), verde (Agilità e Percezione), viola (Percezione e Forza). Un token misto vuole un dado da ciascuno dei due settori.
+- **Anello raro**: il token raro e i token di scena.
 
-## Creare il personaggio
-Lo scenario stabilisce il budget di punti (30, 45 o 60). Nell'Officina scegli i token e paghi il loro costo, oppure premi Casuale.
-- Caratteristiche (obbligatorie): Forza (dadi rossi), Destrezza (blu), Tempra (verdi) e Mente (viola). Per ognuna scegli una e una sola scheda fra dieci stili molto diversi (per esempio Forza del soldato, del berserker, del colosso, del lottatore, del pugile…). Ogni scheda ha 2 o 3 azioni e dà un numero fisso di dadi del suo colore, da 1 a 4: pochi dadi con azioni forti, o molti dadi con azioni semplici che vanno sfruttati con altri token. Già qui si decide come combatte il personaggio; i dadi del mucchio vengono quasi tutti da qui.
-- Ogni caratteristica ha un ruolo, e ogni sua scheda lo garantisce: **Forza** ha sempre un attacco, **Destrezza** un movimento o una schivata, **Tempra** una difesa, **Mente** un'azione di controllo o di tempo (stordire, girare il nemico, leggere, prendere dadi). Con le quattro schede obbligatorie hai quindi sempre movimento, attacco e difesa di base; tutto il resto si aggiunge sopra.
-- Il costo di una scheda caratteristica nasce dai dadi che porta e dalla forza delle sue azioni (ogni dado vale circa 1,3 punti; un attacco libero circa 2; azioni che chiedono un dado preciso valgono meno), poi viene corretto con migliaia di duelli simulati finché le schede vincono più o meno allo stesso modo a parità di punti. Costano da 1 a 6.
-- Armi e strategie: 1 o 2 azioni ciascuna.
-- Equipaggiamento, oggetti, talenti e magie: 1 azione ciascuno. Alcuni danno anche un dado in più o un vantaggio fisso (armatura, ferite, ritmo), ma sempre insieme a un'azione.
-- Segreti: restano coperti per l'avversario finché non scattano.
-Il mucchio è la somma dei dadi indicati sui token. Ogni spazio accetta solo certi colori (le strisce colorate sotto l'alloggio) e spesso chiede un valore (dado 4 o più, dado 1-2, due dadi uguali…); il dado bianco vale come qualsiasi colore.
-In battaglia le schede dei due combattenti mostrano il mucchio circolare, la zona In Attesa e tutte le carte. Toccando un dado disponibile, gli spazi dove può andare si illuminano d'oro; non esistono una Mano permanente né una zona generica Scartati.
-Si parte con 30 ferite, Ritmo 3, Recupero 1 e la possibilità di conservare 1 dado.
+## Le azioni base
+- **Colpo** (a contatto): danno pari a metà del dado, arrotondato per eccesso. Il dado prosegue: subito dopo può salire su un token.
+- **Presa** (a contatto): 1 svantaggio al nemico e gli togli il dado più alto; con 5 o 6 lo tieni fermo e lo sbilanci di un esagono. Il dado si ferma.
+- **Passo**: ti muovi di 1 esagono (2 con 5 o 6). A contatto aggiri il nemico (con 4 o più di due esagoni): +1 vantaggio, +2 se arrivi alle sue spalle. Il dado si ferma.
+- **Scarto** (reazione): con un dado almeno pari a quello d'attacco meno 2 schivi tutto, arretri e prendi 1 vantaggio. Non si scarta un colpo alle spalle. Il dado prosegue.
+- **Parata** (reazione): riduci il danno di metà del dado. Se lo azzeri prendi 1 vantaggio; se lo superi di 2 l'attaccante prende 1 ferita. Il dado prosegue.
+- **Leggere il colpo**: +1 vantaggio (2 con 5 o 6); con 4 o più il nemico prende 1 svantaggio. Il dado si ferma.
+- Un dado che si ferma resta sull'azione: con un'azione successiva può salire su un token, oppure girare l'azione.
 
-## Il ciclo dei dadi
-Ogni dado che entra nel mucchio viene tirato subito: il mucchio è sempre visibile. All'inizio si tirano tutti.
-1. Ritmo: a ogni scambio disponi di un budget di dadi pari al Ritmo; con metà delle ferite o meno diminuisce di uno. Non devi sceglierli tutti in anticipo.
-2. Iniziativa: comincia chi ha la somma più alta dei migliori dadi blu disponibili, fino al proprio Ritmo, più i bonus.
-3. Azioni: chi ha l'iniziativa fa UNA azione scegliendo direttamente dal mucchio i dadi richiesti. Ogni dado impegnato consuma un punto Ritmo dello scambio. Poi l'iniziativa passa, salvo combo e azioni LIBERE.
-4. Attitudine: i dadi rimasti sui token e l'equilibrio fra vantaggi e svantaggi formano Aggressiva (rosso), Fluida (blu), Guardinga (verde) o Concentrata (viola). L'Attitudine consente di concentrare il Ritmo sul colore favorito; in Neutrale occorre una selezione più mista.
-5. I dadi piazzati restano sul token e occupano lo spazio. **Sbloccare** libera lo spazio ma manda i dadi in **Attesa**.
-6. Passare: quando passi sblocchi tanti spazi quanto il Recupero. Chi passa per primo lascia all'avversario la possibilità di agire da solo.
-7. Fine dello scambio: i dadi storditi e quelli preparati ma non utilizzati tornano nel mucchio; i dadi in Attesa vi restano. Il budget di Ritmo si rinnova.
-8. **Riposo**: una volta per scambio, dopo aver attaccato, recupera 1 dado dall'Attesa al mucchio e cede l'iniziativa.
+## Salire: la freccia o il ritiro
+Ogni token esterno ha una freccia (-1 o -2). Quando un dado sale scegli:
+- **Scalare**: il dado sale con il suo valore meno la freccia (minimo 1). È sicuro, ma il turno passa all'avversario.
+- **Ritirare**: il dado sale con il nuovo valore, prendi 1 vantaggio e continui a giocare. Se esce 1 o 2 il dado va in Attesa e il turno passa.
+Quando un token è pieno scatta: subito se è un colpo o un effetto, alla prossima occasione se è una trappola (scatta da sola al prossimo attacco nemico). Se i dadi sono tutti uguali il token si gira sulla faccia potenziata (+2).
 
-## La sfera: vantaggi e svantaggi
-Dal vecchio regolamento "Combattimento" e dall'idea della sfera dinamica dell'aikido: prima si costruisce l'occasione, poi si colpisce.
-- **Vantaggi**: l'occasione che ti costruisci sull'avversario (posizione, attenzione, lettura dei suoi gesti). Sulla mappa sono perle d'oro sopra la sua figura. Massimo 10.
-- **Svantaggi**: la tua esposizione. Perle rosso scuro sopra la tua figura. Massimo 10.
-- **Campo visivo**: vedi l'avversario se non ti è alle spalle. Non guadagni vantaggi su chi non vedi; se l'avversario ti sta alle spalle, gli svantaggi che prendi raddoppiano e non puoi leggere i suoi colpi.
-- Si guadagnano vantaggi con: Cercare il varco (azione di base), movimento che avvicina o aggira (+1; +2 se arrivi alle sue spalle), parate, schivate e contrattacchi riusciti, cedere l'iniziativa liberando spazi.
-- Si prendono svantaggi: quando il proprio colpo va a vuoto, con un 1 su Cercare il varco o Leggere il colpo.
-- **Attacco**: ogni colpo mette in gioco tutti i vantaggi di chi attacca e tutti gli svantaggi di chi è colpito: ogni 3 punti, +1 danno. Poi si azzerano entrambi.
-- **Leggere il colpo** (reazione di base): prima che il colpo arrivi, un dado toglie vantaggi all'attaccante (2-3: uno, 5: due, 6: tre e tu ne guadagni uno; 1: prendi uno svantaggio).
-- **Flusso**: due vantaggi liberano uno spazio occupato; i suoi dadi vanno in Attesa. **Rovescio**: tre vantaggi, quando ti attaccano di fronte o di fianco: -1 danno e contrattacco 2.
+## Doppia faccia
+Ogni azione base ha una faccia potenziata, una volta per scambio:
+- Presa forte, Balzo, Lettura profonda: si girano con un dado fermo sull'azione.
+- Colpo pesante (+2 danni), Parata ferrea (riduci di 1 in più e l'attaccante prende 1 ferita), Riposizionarsi (dopo lo scarto riprendi 2 vantaggi): si girano spendendo 1 vantaggio.
 
-## L'orbita dei dadi
-Nella scheda il mucchio è il cerchio al centro; intorno ci sono le zone dove i dadi passano: Sui token, In attesa, Fuori gioco. Le frecce mostrano il ciclo: dal mucchio un dado va su un token con un'azione, uno sblocco lo manda in Attesa, un recupero lo riporta nel mucchio. I dadi storditi escono dal gioco e tornano nel mucchio a fine scambio.
+## Vantaggi e svantaggi
+- Ogni colpo spende fino a 3 vantaggi: +1 danno ciascuno. In parata i vantaggi riducono il danno di 1 ciascuno (fino a 2).
+- Ogni svantaggio toglie 1 al prossimo dado che usi.
+- Al massimo 5 vantaggi.
 
-## Azioni base
-- Cercare il varco: libera, una volta per scambio, con l'avversario in vista entro 4 esagoni. 1: prendi 1 svantaggio; 2-3: 1 vantaggio; 4: niente; 5: 1 vantaggio e togli 1 svantaggio; 6: 3 vantaggi.
-- Leggere il colpo: reazione, una volta per scambio, non se ti attaccano alle spalle.
-- Riposo: recupera fino a 1 dado dalla zona di Attesa al Mucchio, ritirandoli; una volta per scambio, cede l'iniziativa.
-- Sblocco di emergenza: una volta per scambio puoi spendere un dado disponibile e un punto Ritmo per liberare uno spazio occupato. Il dado speso e quelli liberati finiscono in Attesa.
-- Colpo improvvisato: ogni scheda ha questo spazio; con un dado qualsiasi colpisci a portata 1 per un terzo del dado.
-- Passo: una volta per scambio, senza dadi, ti muovi con 2 punti movimento.
-- Spingere la fortuna: una volta per scambio ritiri dadi selezionati dal mucchio, consumando il relativo Ritmo; ogni 1 resta stordito.
-- Conservare: metti da parte un dado disponibile per lo scambio seguente.
+## Scambi e pause
+- Si gioca un'azione a testa; l'iniziativa resta a chi continua dopo un ritiro riuscito, o a chi la prende con una mossa (Irimi).
+- Quando nessuno dei due può più agire (o entrambi passano) c'è una pausa: si pescano 4 dadi nuovi e si piazzano i token esterni, fino al Ritmo. I token già carichi restano con i loro dadi.
+- Sopra un rialzo hai un posto in più per un token.
+- Accanto a pietre, braciere, fontana o casse, o sopra la sabbia, ricevi il token di scena di quell'oggetto, oltre al Ritmo, finché l'oggetto ha usi.
 
-## Economia dell'Attesa
-Il Riposo universale recupera solo 1 dado e cede l'iniziativa. I token specializzati possono recuperare 2 o 3 dadi, modificare i risultati o curare, ma richiedono un investimento di punti e lasciano il dado speso impegnato. Gli sblocchi trasferiscono sempre i dadi in Attesa; anche i dadi che evitano di occupare un token grazie a un talento passano per Attesa.
+## La mappa
+- Contatto: esagoni vicini con al massimo un livello di differenza.
+- Colpo dall'alto: +1 danno. Colpo alle spalle (i tre lati di dietro): +2 danni e niente scarto.
+- Spinte e proiezioni: contro un ostacolo 1 ferita, giù da un'altura 1 ferita per livello, nel fuoco 1 ferita.
+- Chi aggira resta alle spalle finché l'altro non agisce: conviene continuare con un ritiro riuscito e colpire subito.
 
-## Tipi di spazio
-- AZIONE: si usa quando hai l'iniziativa e la cede.
-- LIBERA: si usa quando tocca a te decidere, anche durante un colpo, e non cede l'iniziativa.
-- REAZIONE: si usa quando vieni attaccato (schivate, parate, contrattacchi).
-- SUPPORTO: si aggiunge a un tuo colpo appena dichiarato o alla tua difesa; al massimo 2 supporti per colpo da ogni parte.
-- CONTATORE: ci metti un dado alla volta; quando la somma arriva alla soglia è carico e puoi scaricarlo come azione.
-- SEGRETO: lo carichi con un dado come azione; scatta da solo quando succede qualcosa (un attacco, un nemico che ti arriva accanto, una ferita, la fine dello scambio) e si rivela.
-- AZZARDO: dopo il primo dado puoi aggiungere altri dadi rossi ritirandoli uno alla volta; con un 1 il colpo fallisce e quei dadi restano storditi.
-Alcuni spazi tengono più dadi (fino a 2 o 3): ogni dado sopra dà un bonus continuo, per esempio +1 a tutti i colpi.
+## Il token raro
+Si carica solo con i dadi che scattano dai token esterni: dopo ogni scatto si tira un dado, con 4 o più sale sull'anello raro. Si usa una volta per duello.
 
-## Condizioni
-Gli spazi possono chiedere: un valore minimo o massimo, un valore pari o dispari, due dadi uguali, una scala, valori precisi (1, 2 e 3), una somma minima, massima o esatta, un dado pari o superiore a quello d'attacco. Molti spazi preferiscono i dadi bassi: un 1 può essere prezioso quanto un 6.
-
-## Manipolare i dadi
-Ritocco (±1), Rovescio (l'1 diventa 6), Cambio di peso (scambia due valori), Eco e Specchio (copiano un valore), Concentrazione (ritiri i dadi bassi), pesca dal mucchio, sblocco degli spazi, eliminazione per sempre di un dado dal mucchio, sacrificio di un dado per un effetto forte.
-
-## L'esagono sui token
-Alcuni token hanno un esagono disegnato. Il dado si mette su un lato dell'esagono, che corrisponde a un lato del corpo (davanti, avanti a sinistra, dietro a sinistra, dietro, dietro a destra, avanti a destra): su quel lato vale pieno, sui due lati vicini vale 1 in meno, sui due successivi 2 in meno, sul lato opposto 3 in meno.
-- Guardia (prima del colpo): si prepara come azione. Il dado resta sul token e ferma ogni colpo che arriva da quel lato per il suo valore, ridotto secondo la distanza dal lato scelto. Ogni colpo fermato toglie 1 al dado; a zero la guardia cede e il dado passa in Attesa. La guardia gira con il corpo: se il nemico ti aggira o ti fa girare, ti trova scoperto.
-- Reazioni (dopo il colpo): una volta che l'attacco è partito si risponde solo con le reazioni (parate, schivate, passi laterali, spostare la guardia di un lato).
-- Colpo mirato: il dado si mette sul lato verso cui colpisci. Se prima che il colpo arrivi il nemico si sposta (passo laterale, balzo), il colpo arriva di sbieco e perde 1 per ogni lato di scarto; se il nemico esce dalla portata va a vuoto.
-- Alcuni token fanno più cose insieme: Lama e brocchiero colpisce e lascia il dado in guardia; Tenere la guardia e Spirito saldo alzano il dado di una guardia già messa; Sfondare e Rompiguardia abbassano quelli delle guardie nemiche.
-
-## Spinte, lanci e movimenti obbligati
-- Spinta: il difensore arretra; Spinta di lato lo sposta di traverso; Attirare lo tira verso di te.
-- Lancio: come la spinta, ma se sbatte contro una colonna, il bordo o l'altro combattente subisce 3 danni e perde il dado più alto in mano.
-- Sbilanciare: il difensore si gira di uno o più lati e ti offre il fianco o la schiena.
-- Colpo pesante: chi incassa 4 danni o più da un colpo arretra di un esagono.
-- Movimento obbligato: alcune mosse costringono chi le usa a muoversi dopo il colpo (arretrare, incalzare, girare attorno al nemico, passare oltre alle sue spalle). È automatico e si fa anche se il colpo va a vuoto; se non c'è spazio per muoversi perdi l'equilibrio e ti si stordisce il dado più alto in mano.
-
-## Colpire e difendersi
-- Ogni combattente guarda verso uno dei sei lati. Muoversi in avanti costa 1, di lato o indietro 2, girarsi di un lato 1.
-- Gli attacchi colpiscono verso il fronte (i tre lati davanti), salvo quelli ad area. Si combatte a mani nude: si colpisce solo a contatto, cioè nell'esagono vicino, qualunque portata o gittata scriva la carta. Un nemico sul fianco a contatto si può colpire girandosi verso di lui nello stesso attacco.
-- Attrito: il danno base di ogni colpo (il valore che il dado porta nell'azione) cala di 2 prima dei modificatori.
-- Colpire sul fianco dà +1 danno, alle spalle +2.
-- Le armature riducono ogni colpo del loro valore, salvo gli attacchi che ignorano l'armatura; da sola però l'armatura non scende sotto 1 danno: un colpo andato a segno fa sempre almeno 1 ferita, a meno di parate e schivate.
-- Più lo scontro dura, più l'arena si scalda: dal decimo scambio ogni colpo fa +1, dal ventesimo +2.
-- Stordire un dado del nemico gli toglie un dado in mano; Disarmare blocca il suo attacco migliore fino a fine scambio; il Gelo fa diventare 1 il suo dado più alto.
-- Chi viene spinto contro una colonna, il bordo o un altro combattente subisce 2 danni. Chi finisce su un braciere subisce 2 danni.
-- Esecuzione: con due dadi uguali da 5 o 6, colpendo sul fianco o alle spalle un nemico con un quarto delle ferite o meno, lo metti a terra.
-
-## Vittoria
-Vince chi porta l'avversario a 0 ferite. Dopo 30 scambi vince chi ha più ferite in proporzione.
-
-## Guardare l'IA
-Dal menu, Guarda l'IA combattere: scegli lo scenario e due combattenti (anche casuali) e regola la velocità. Con Scontri a ripetizione partono sempre nuovi duelli fra avventurieri casuali.
-
-## Terreno a più livelli
-
-- Ogni esagono ha un livello: 0 il suolo, 1 una piattaforma o una roccia, 2 un rocchio di colonna spezzata.
-- Salire di un livello costa un punto movimento in più. Scendere di un livello è gratis.
-- Due livelli (su o giù) si superano solo con un **salto acrobatico**, che richiede almeno 5 punti movimento in un'azione e costa 2 punti in più.
-- Con un salto acrobatico si scavalcano anche le **macerie basse** (rovine), solo in avanti, atterrando due esagoni più in là. Le colonne intere restano muri.
-- Si colpisce a contatto solo se il dislivello è al massimo di un livello. Chi colpisce dall'alto fa **+1 danno**.
-- Spinte: un gradino più alto ferma la spinta; due livelli sono un muro (urto). Chi viene spinto giù da un rialzo **cade** e subisce una ferita per ogni livello.
-
-## Parate che deviano
-
-Quando un attacco viene parato (azione di parata o guardia), lo slancio porta l'attaccante di fianco al difensore, girato di un lato. Se di fianco non c'è spazio, è il difensore a fare un passo indietro, fuori dalla linea del colpo.
-
-## Oggetti di scena
-
-Ogni arena ha oggetti con uno scopo. Le **Azioni di scena** sono sempre sulla scheda, accanto alle azioni di base: si usano con un dado qualsiasi, una volta per scambio ciascuna, e il dado va in Attesa.
-
-- **Lanciare**: accanto a un mucchio di pietre (3 lanci) o a un braciere, nemico in vista da 2 a 4 esagoni. Pietra: danno metà del dado. Tizzone: un terzo del dado +1 e 1 svantaggio.
-- **Sabbia o acqua negli occhi**: stando su un esagono di sabbia o accanto a una fontana, nemico davanti entro 2 (dislivello massimo 1). Stordisce il dado più alto del nemico fino al valore del tuo e gli dà 1 svantaggio.
-- **Spingere o rovesciare**: una cassa accanto scivola di metà del dado nel verso della spinta; se travolge il nemico gli fa 2 danni e lo spinge di un esagono. Un braciere accanto si rovescia: l'esagono oltre prende fuoco, e chi c'è subisce 2 danni e 1 svantaggio.
-- **Casse**: sono gradini mobili, alti un livello; ci si sale sopra.
-- **Alberi, fontane e bracieri** non si attraversano. Gli alberi bloccano la vista: riparano dai lanci.
+## Vincere
+Vince chi porta l'avversario a zero ferite. Dopo 40 scambi vince chi ha più ferite rimaste.

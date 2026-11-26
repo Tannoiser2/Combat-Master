@@ -82,6 +82,39 @@ var _lato_sfidante := 1
 var _sfida := {"giocate": 0, "vinte": 0, "generazioni": 0, "adottate": 0}
 var _registrato := false
 
+# ---- la sfera (nuovo sistema di azioni)
+const FILE_PG_SFERA := "user://personaggi_sfera.json"
+var sf: Dictionary = {}
+var ms: Sfera = null
+var miei_sf: Array = []
+var _sf_ia := [false, true]
+var _sf_pg: Array = []
+var _sf_arena := "cortile"
+var _sf_modo := "ia"
+var _sf_vista: SferaVista
+var _sf_pan: PanelContainer
+var _sf_testa: Label
+var _sf_info: Label
+var _sf_scelte: HFlowContainer
+var _sf_msg: Label
+var _sf_diario: Label
+var _sf_avv_btn: Button
+var _sf_passa_btn: Button
+var _sf_avversario := false
+var _sf_sel := {}
+var _sf_esagoni := {}
+var _sf_piazza: Array = []
+var _sf_timer := 0.0
+var _sf_fine_mostrata := false
+var _sf_prep_arena := 0
+var _sf_prep_opt: Array = []
+var _sf_prep_desc: Array = []
+var _sf_prep_asp: Array = []
+var _sf_prep_btn: Array = []
+var _off_sf: Dictionary = {}
+var _off_sf_sommario: Label
+var _off_sf_token: Array = []
+
 func _ready() -> void:
 	dati = Motore.carica_dati()
 	cat = dati["per_id"]
@@ -100,6 +133,11 @@ func _ready() -> void:
 	ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cl.add_child(ui)
 	_carica_miei()
+	sf = Sfera.carica_sfera()
+	_carica_miei_sf()
+	get_viewport().size_changed.connect(func():
+		if ms != null and _sf_pan != null:
+			_sf_layout())
 	menu()
 
 func _su_ui(p: Vector2) -> bool:
@@ -117,6 +155,11 @@ func _pulisci() -> void:
 	pagina.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui.add_child(pagina)
 	m = null
+	ms = null
+	_sf_pan = null
+	_sf_sel = {}
+	_sf_esagoni = {}
+	_sf_fine_mostrata = false
 	attesa = {}
 	sel = []
 	_fine = null
@@ -167,10 +210,10 @@ func menu() -> void:
 	st.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(st)
 	v.add_child(HSeparator.new())
-	v.add_child(_bottone("Gioca contro l'IA", func(): preparazione("ia"), 420))
-	v.add_child(_bottone("Due giocatori sullo stesso schermo", func(): preparazione("due"), 420))
-	v.add_child(_bottone("Guarda l'IA combattere", func(): preparazione("spettatore"), 420))
-	v.add_child(_bottone("Officina dei personaggi", officina, 420))
+	v.add_child(_bottone("Gioca contro l'IA", func(): sf_prepara("ia"), 420))
+	v.add_child(_bottone("Due giocatori sullo stesso schermo", func(): sf_prepara("due"), 420))
+	v.add_child(_bottone("Guarda l'IA combattere", func(): sf_prepara("spettatore"), 420))
+	v.add_child(_bottone("Officina dei personaggi", sf_officina, 420))
 	v.add_child(_bottone("Regole del gioco", regole, 420))
 	var nota := _label("Prova di gioco: si combatte uno contro uno. Il multigiocatore online arriverà in seguito.", 15, Color(1, 1, 1, 0.6))
 	nota.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -199,6 +242,9 @@ func _demo_arena() -> void:
 func _process(dt: float) -> void:
 	if _demo and arena != null:
 		arena.ruota_vista(dt * 0.08)
+	if ms != null:
+		_sf_process(dt)
+		return
 	if m != null and m.s["vinc"] >= 0 and allenamento and not _registrato:
 		_registra_sfida()
 	if m != null and m.s["vinc"] >= 0 and (a_ripetizione or allenamento) and not arena.occupato():
@@ -1358,6 +1404,9 @@ func _umano_decide() -> int:
 	return chi
 
 func _aggiorna() -> void:
+	if ms != null:
+		_sf_aggiorna()
+		return
 	if m == null or _stati.is_empty():
 		return
 	var p := _giocatore_mostrato()
@@ -1886,6 +1935,9 @@ func _slot(tok: String, sid: String) -> void:
 			_esegui(p, {"t": "slot", "tok": tok, "slot": sid, "dadi": ids, "b": bs[0]})
 
 func _esagono(h: Vector2i, punto: Vector3) -> void:
+	if ms != null:
+		_sf_esagono(h)
+		return
 	if attesa.is_empty() or not (attesa["passo"] in ["esagono", "direzione"]):
 		return
 	var p := _umano_decide()
@@ -2198,3 +2250,767 @@ func _mostra_fine() -> void:
 			nota.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			v.add_child(nota)
 	h.add_child(_bottone("Menu", menu, 220))
+
+# ================================================================= la sfera
+
+func _carica_miei_sf() -> void:
+	miei_sf = []
+	if FileAccess.file_exists(FILE_PG_SFERA):
+		var d = JSON.parse_string(FileAccess.open(FILE_PG_SFERA, FileAccess.READ).get_as_text())
+		if d is Array:
+			miei_sf = d
+
+func _salva_miei_sf() -> void:
+	var f := FileAccess.open(FILE_PG_SFERA, FileAccess.WRITE)
+	if f != null:
+		f.store_string(JSON.stringify(miei_sf))
+
+func _sf_motore() -> Sfera:
+	return Sfera.new(dati, sf)
+
+func sf_personaggi() -> Array:
+	var out := [{"nome": CASUALE, "casuale": true}]
+	for pg in miei_sf:
+		out.append(pg)
+	for pg in sf["personaggi"]:
+		out.append(pg)
+	return out
+
+func sf_descrivi(pg: Dictionary) -> String:
+	if pg.get("casuale", false):
+		return "Caratteristiche e token a caso, entro il budget."
+	var mm := _sf_motore()
+	var nomi := []
+	for id in pg.get("coll", []):
+		if mm.tokp.has(id):
+			nomi.append(mm.tokp[id]["nome"])
+	var t := "Forza %d, Agilità %d, Percezione %d, Costituzione %d, Ritmo %d.\nToken: %s." % [pg["F"], pg["A"], pg["P"], pg["C"], pg["R"], ", ".join(nomi)]
+	if String(pg.get("raro", "")) != "":
+		t += "\nRaro: %s." % mm.rarip[pg["raro"]]["nome"]
+	if pg.has("testo"):
+		t += "\n" + String(pg["testo"])
+	return t
+
+# ----------------------------------------------------------------- preparazione
+
+func sf_prepara(modo: String) -> void:
+	_pulisci()
+	_demo_arena()
+	_sf_modo = modo
+	var centro := CenterContainer.new()
+	centro.set_anchors_preset(Control.PRESET_FULL_RECT)
+	centro.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pagina.add_child(centro)
+	var pan := _pannello(centro)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 12)
+	var vw := get_viewport().get_visible_rect().size
+	var largo := minf(1040.0, vw.x - 40)
+	v.custom_minimum_size = Vector2(largo, 0)
+	pan.add_child(v)
+	v.add_child(_label("Prepara lo scontro", 32, Disegno.ORO, Disegno.font_titolo()))
+	v.add_child(_label("Arena", 20, Disegno.ORO, Disegno.font_titolo()))
+	var hs := HFlowContainer.new()
+	hs.add_theme_constant_override("h_separation", 10)
+	v.add_child(hs)
+	_sf_prep_btn.clear()
+	for i in dati["scenari"].size():
+		var sc: Dictionary = dati["scenari"][i]
+		var b := Button.new()
+		b.toggle_mode = true
+		b.text = String(sc["nome"])
+		b.custom_minimum_size = Vector2(minf(320, largo / 3.0 - 10), 54)
+		b.pressed.connect(func(): _sf_prep_set(i))
+		hs.add_child(b)
+		_sf_prep_btn.append(b)
+	var hp := HFlowContainer.new()
+	hp.add_theme_constant_override("h_separation", 20)
+	v.add_child(hp)
+	_sf_prep_opt.clear()
+	_sf_prep_desc.clear()
+	_sf_prep_asp.clear()
+	var lista := sf_personaggi()
+	var colw := minf(500.0, largo / 2.0 - 12) if largo > 760 else largo - 10
+	for p in 2:
+		var col := VBoxContainer.new()
+		col.custom_minimum_size = Vector2(colw, 0)
+		hp.add_child(col)
+		var tit := "Giocatore %d" % (p + 1)
+		if modo == "ia" and p == 1:
+			tit = "Avversario (IA)"
+		if modo == "spettatore":
+			tit = "IA %d" % (p + 1)
+		col.add_child(_label(tit, 20, Disegno.GIOCATORI[p], Disegno.font_titolo()))
+		var ob := OptionButton.new()
+		ob.custom_minimum_size = Vector2(colw - 10, 46)
+		for pg in lista:
+			ob.add_item(String(pg["nome"]))
+		ob.select(0 if p == 1 else mini(1, lista.size() - 1))
+		ob.item_selected.connect(func(_i): _sf_prep_desc_aggiorna())
+		col.add_child(ob)
+		_sf_prep_opt.append(ob)
+		var d := _label("", 16)
+		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		d.custom_minimum_size = Vector2(colw - 10, 110)
+		col.add_child(d)
+		_sf_prep_desc.append(d)
+		var ha := HBoxContainer.new()
+		col.add_child(ha)
+		var la := _label("Aspetto", 18)
+		la.custom_minimum_size = Vector2(100, 0)
+		ha.add_child(la)
+		var oa := OptionButton.new()
+		oa.custom_minimum_size = Vector2(colw - 120, 42)
+		oa.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		for a in Arena3D.ASPETTI:
+			oa.add_item(a["nome"])
+		oa.select(p % Arena3D.ASPETTI.size())
+		ha.add_child(oa)
+		_sf_prep_asp.append(oa)
+	var hb := HFlowContainer.new()
+	hb.add_theme_constant_override("h_separation", 12)
+	v.add_child(hb)
+	hb.add_child(_bottone("Indietro", menu, 180))
+	hb.add_child(_bottone("Officina", sf_officina, 180))
+	hb.add_child(_bottone("Guarda!" if modo == "spettatore" else "Combatti!", _sf_prep_via, 220))
+	_sf_prep_set(_sf_prep_arena)
+
+func _sf_prep_set(i: int) -> void:
+	_sf_prep_arena = i
+	for k in _sf_prep_btn.size():
+		_sf_prep_btn[k].button_pressed = k == i
+	_sf_prep_desc_aggiorna()
+
+func _sf_prep_desc_aggiorna() -> void:
+	var lista := sf_personaggi()
+	for p in _sf_prep_opt.size():
+		_sf_prep_desc[p].text = sf_descrivi(lista[maxi(0, _sf_prep_opt[p].selected)])
+
+func _sf_prep_via() -> void:
+	var lista := sf_personaggi()
+	var mm := _sf_motore()
+	var pgs := []
+	for p in 2:
+		var pg: Dictionary = lista[maxi(0, _sf_prep_opt[p].selected)].duplicate(true)
+		if pg.get("casuale", false):
+			pg = mm.casuale(rng, "Avventuriero" if p == 0 else "Sfidante")
+		pg["aspetto"] = Arena3D.ASPETTI[maxi(0, _sf_prep_asp[p].selected)]["id"]
+		pgs.append(pg)
+	if pgs[0]["nome"] == pgs[1]["nome"]:
+		pgs[1]["nome"] = String(pgs[1]["nome"]) + " (ombra)"
+	var ia_ := [_sf_modo == "spettatore", _sf_modo != "due"]
+	sf_battaglia(pgs[0], pgs[1], String(dati["scenari"][_sf_prep_arena]["arena"]), ia_)
+
+# ----------------------------------------------------------------- battaglia
+
+func sf_battaglia(a: Dictionary, b: Dictionary, arena_id: String, ia_: Array) -> void:
+	_pulisci()
+	_demo = false
+	_sf_ia = ia_
+	_sf_pg = [a, b]
+	_sf_arena = arena_id
+	ms = _sf_motore()
+	ms.nuova_sfera(a, b, arena_id, [not ia_[0], not ia_[1]])
+	ms.prendi_eventi()
+	arena.visible = true
+	arena.costruisci(ms)
+	arena.mostra_nomi(false)
+	_sf_avversario = false
+	_sf_costruisci_hud()
+	_sf_aggiorna()
+
+func _sf_costruisci_hud() -> void:
+	_sf_pan = _pannello(pagina)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 6)
+	_sf_pan.add_child(v)
+	_sf_testa = _label("", 17)
+	_sf_testa.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(_sf_testa)
+	_sf_vista = SferaVista.new()
+	_sf_vista.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_sf_vista.premuto.connect(_sf_premuto)
+	v.add_child(_sf_vista)
+	_sf_info = _label("", 16)
+	_sf_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_sf_info.custom_minimum_size = Vector2(100, 0)
+	v.add_child(_sf_info)
+	_sf_scelte = HFlowContainer.new()
+	_sf_scelte.add_theme_constant_override("h_separation", 6)
+	_sf_scelte.add_theme_constant_override("v_separation", 6)
+	v.add_child(_sf_scelte)
+	var hb := HFlowContainer.new()
+	hb.add_theme_constant_override("h_separation", 6)
+	v.add_child(hb)
+	_sf_passa_btn = _bottone("Passa fino alla pausa", func(): _sf_esegui({"t": "passa"}), 150)
+	hb.add_child(_sf_passa_btn)
+	_sf_avv_btn = _bottone("Sfera avversaria", func():
+		_sf_avversario = not _sf_avversario
+		_sf_sel = {}
+		_sf_aggiorna(), 150)
+	hb.add_child(_sf_avv_btn)
+	hb.add_child(_bottone("Menu", menu, 90))
+	# in alto a destra: messaggio e diario
+	var pd := _pannello(pagina)
+	pd.name = "Diario"
+	var vd := VBoxContainer.new()
+	pd.add_child(vd)
+	_sf_msg = _label("", 18, Disegno.ORO)
+	_sf_msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vd.add_child(_sf_msg)
+	_sf_diario = _label("", 14)
+	_sf_diario.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vd.add_child(_sf_diario)
+	_sf_layout()
+
+func _sf_layout() -> void:
+	var vw := get_viewport().get_visible_rect().size
+	var verticale := vw.y > vw.x * 1.1
+	var pd: Control = pagina.get_node_or_null("Diario")
+	var lato: float
+	if verticale:
+		_sf_pan.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+		_sf_pan.offset_left = 6
+		_sf_pan.offset_right = -6
+		_sf_pan.offset_top = -vw.y * 0.58
+		_sf_pan.offset_bottom = -6
+		lato = minf(vw.x - 40, vw.y * 0.34)
+		if pd != null:
+			pd.set_anchors_preset(Control.PRESET_TOP_WIDE)
+			pd.offset_left = 6
+			pd.offset_right = -6
+			pd.offset_top = 6
+			pd.offset_bottom = 6 + vw.y * 0.11
+		arena.spostamento_v = 0.42
+		arena.spostamento_h = 0.0
+	else:
+		var w := clampf(vw.x * 0.36, 380.0, 560.0)
+		_sf_pan.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+		_sf_pan.offset_left = 6
+		_sf_pan.offset_right = 6 + w
+		_sf_pan.offset_top = 6
+		_sf_pan.offset_bottom = -6
+		lato = minf(w - 24, vw.y * 0.56)
+		if pd != null:
+			pd.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+			pd.offset_left = -minf(420.0, vw.x * 0.3)
+			pd.offset_right = -6
+			pd.offset_top = 6
+			pd.offset_bottom = 6 + minf(300.0, vw.y * 0.38)
+		arena.spostamento_v = 0.1
+		arena.spostamento_h = -0.18
+	_sf_vista.custom_minimum_size = Vector2(lato, lato)
+	_sf_info.custom_minimum_size.x = lato
+	var v := Arena3D.mondo(ms.s["g"][1]["pos"]) - Arena3D.mondo(ms.s["g"][0]["pos"])
+	arena.yaw = -atan2(v.z, v.x) if v.length() > 0.1 else 0.0
+	arena.pitch = deg_to_rad(55)
+	arena.distanza = (8.0 if verticale else 11.0) + ms.s["raggio"] * 1.6
+	arena.pivot.position = Vector3.ZERO
+	arena.ruota_vista(0)
+
+func _sf_umano() -> int:
+	var chi := ms.chi_decide()
+	if chi >= 0 and not _sf_ia[chi]:
+		return chi
+	return -1
+
+func _sf_process(dt: float) -> void:
+	if ms.s["vinc"] >= 0:
+		if not arena.occupato() and not _sf_fine_mostrata:
+			_sf_fine()
+		return
+	if arena.occupato():
+		return
+	var chi := ms.chi_decide()
+	if chi < 0 or not _sf_ia[chi]:
+		_sf_timer = 0.0
+		return
+	_sf_timer += dt
+	if _sf_timer < (0.55 if not (_sf_ia[0] and _sf_ia[1]) else 0.4):
+		return
+	_sf_timer = 0.0
+	match String(ms.s["fase"]):
+		"reazione":
+			ms.reagisci(chi, ms._ia_reazione(chi, ms.s["pend"]))
+		"pausa":
+			ms.piazza(chi, ms._scegli_token(chi, ms.posti_da_piazzare(chi)))
+		_:
+			if ms.esegui(chi, ms.ia_scegli(chi)) != "":
+				ms.esegui(chi, {"t": "passa"})
+	arena.accoda(ms.prendi_eventi())
+	_sf_aggiorna()
+
+func _sf_testo_giocatore(p: int) -> String:
+	var g: Dictionary = ms.s["g"][p]
+	return "%s  -  Vita %d/%d  Vantaggi %d  Svantaggi %d" % [g["nome"], g["vita"], g["vita_max"], g["vantaggi"], g["svantaggi"]]
+
+func _sf_aggiorna() -> void:
+	if ms == null or _sf_pan == null:
+		return
+	var umano := _sf_umano()
+	var base := umano
+	if base < 0:
+		base = 0 if not _sf_ia[0] else (1 if not _sf_ia[1] else 0)
+	var mostra_p := (1 - base) if _sf_avversario else base
+	_sf_vista.imposta(ms, mostra_p)
+	_sf_vista.attiva = umano == mostra_p
+	_sf_avv_btn.text = "La mia sfera" if _sf_avversario else "Sfera avversaria"
+	var g: Dictionary = ms.s["g"][mostra_p]
+	_sf_testa.text = _sf_testo_giocatore(mostra_p) + "\nRitmo %d  -  token in campo fino a %d" % [g["R"], g["slot"]]
+	_sf_testa.add_theme_color_override("font_color", Disegno.GIOCATORI[mostra_p])
+	var log_: Array = ms.s["log"]
+	_sf_diario.text = "\n".join(log_.slice(maxi(0, log_.size() - 9)))
+	_sf_msg.text = "Scambio %d  -  %s\n%s" % [ms.s["scambio"], _sf_testo_giocatore(1 - base), _sf_messaggio(umano)]
+	_sf_passa_btn.disabled = not (umano >= 0 and ms.s["fase"] == "azione")
+	if _sf_sel.is_empty():
+		_sf_scelte_base(umano)
+	_sf_vista.queue_redraw()
+
+func _sf_messaggio(umano: int) -> String:
+	if ms.s["vinc"] >= 0:
+		return "Duello finito."
+	var chi := ms.chi_decide()
+	if umano < 0:
+		return "Tocca a %s." % ms.s["g"][chi]["nome"] if chi >= 0 else ""
+	match String(ms.s["fase"]):
+		"reazione":
+			var pend: Dictionary = ms.s["pend"]
+			return "%s ti attacca con %s: %d danni. Come reagisci?" % [ms.s["g"][pend["att"]]["nome"], pend["nome"], pend["danno"]]
+		"pausa":
+			return "Pausa: scegli i token da mettere sulla sfera (fino a %d)." % ms.posti_da_piazzare(umano)
+	return "Tocca a te: scegli un dado al centro, un dado fermo o un token pronto."
+
+func _sf_bottoni(voci: Array) -> void:
+	for c in _sf_scelte.get_children():
+		c.queue_free()
+	for voce in voci:
+		var b := _bottone(String(voce[0]), voce[1], 0)
+		b.custom_minimum_size = Vector2(0, 42)
+		_sf_scelte.add_child(b)
+
+func _sf_azzera() -> void:
+	_sf_sel = {}
+	_sf_esagoni = {}
+	arena.pulisci_evidenza()
+	if _sf_vista != null:
+		_sf_vista.sel_dado = -1
+		_sf_vista.sel_fermo = -1
+		_sf_vista.evid_azioni = []
+		_sf_vista.evid_token = []
+		_sf_vista.evid_fermi = []
+		_sf_vista.evid_raro = false
+
+func _sf_scelte_base(umano: int) -> void:
+	if umano < 0 or ms.s["vinc"] >= 0:
+		_sf_bottoni([])
+		if ms.s["vinc"] < 0:
+			_sf_info.text = "Tocca la sfera per leggere azioni e token."
+		return
+	match String(ms.s["fase"]):
+		"reazione":
+			_sf_scelte_reazione(umano)
+		"pausa":
+			_sf_scelte_pausa(umano)
+		_:
+			_sf_info.text = "Tocca un dado al centro della sfera, poi l'azione. I dadi fermi sulle azioni possono salire su un token o girare l'azione."
+			var voci := []
+			var g: Dictionary = ms.s["g"][umano]
+			var est: Array = g["esterni"]
+			var evid := []
+			for i in est.size():
+				var e: Dictionary = est[i]
+				if e["pronto"] and not e["bloccato"] and ms.tok(e["id"])["modo"] == "subito" and ms.in_portata(e):
+					evid.append(i)
+					voci.append(["Fai scattare %s" % ms.tok(e["id"])["nome"], func(): _sf_esegui({"t": "scatta", "tok": i})])
+			if not g["raro"].is_empty() and g["raro"]["pronto"] and ms.contatto():
+				voci.append(["Scatena %s" % ms.rarip[g["raro"]["id"]]["nome"], func(): _sf_esegui({"t": "raro"})])
+				_sf_vista.evid_raro = true
+			_sf_vista.evid_token = evid
+			var ef := []
+			for j in g["fermi"].size():
+				ef.append(j)
+			_sf_vista.evid_fermi = ef
+			_sf_bottoni(voci)
+
+func _sf_premuto(cosa: Dictionary) -> void:
+	var umano := _sf_umano()
+	var p := _sf_vista.p
+	var g: Dictionary = ms.s["g"][p]
+	match String(cosa["tipo"]):
+		"dado":
+			var i := ms.dado_in_mano(p, int(cosa["id"]))
+			if i < 0:
+				return
+			var dd: Dictionary = g["mano"][i]
+			if umano != p or ms.s["fase"] != "azione":
+				_sf_info.text = "Dado %s da %d." % [Sfera.NOMI_DADO[dd["c"]], dd["v"]]
+				return
+			_sf_azzera()
+			_sf_sel = {"tipo": "dado", "id": dd["id"]}
+			_sf_vista.sel_dado = int(dd["id"])
+			var azioni := ms.azioni_dado(p, dd)
+			_sf_vista.evid_azioni = azioni
+			var voci := []
+			for az in azioni:
+				voci.append([_sf_nome_azione(az), func(): _sf_scegli_azione(az)])
+			voci.append(["Annulla", func():
+				_sf_azzera()
+				_sf_aggiorna()])
+			_sf_info.text = "Dado %s da %d: scegli l'azione.%s" % [Sfera.NOMI_DADO[dd["c"]], dd["v"], "" if not azioni.is_empty() else " Nessuna azione possibile ora."]
+			_sf_bottoni(voci)
+			_sf_vista.queue_redraw()
+		"azione":
+			var az: String = cosa["az"]
+			var b := _sf_base(az)
+			_sf_info.text = "%s: %s\nFaccia potenziata, %s: %s" % [b["nome"], b["testo"], b["faccia"], b["testo_faccia"]]
+			if _sf_sel.get("tipo", "") == "dado" and _sf_vista.evid_azioni.has(az):
+				_sf_scegli_azione(az)
+		"fermo":
+			var j := int(cosa["j"])
+			var f: Dictionary = g["fermi"][j]
+			var b := _sf_base(f["az"])
+			if umano != p or ms.s["fase"] != "azione":
+				_sf_info.text = "Dado fermo su %s." % b["nome"]
+				return
+			_sf_azzera()
+			_sf_sel = {"tipo": "fermo", "j": j}
+			_sf_vista.sel_fermo = j
+			var voci := []
+			var sett: String = Sfera.AZ_SETTORE[f["az"]]
+			if not ms.bersagli_salita(p, f["c"], sett).is_empty():
+				voci.append(["Sali verso un token", func(): _sf_chiedi_salita(p, f["c"], sett, int(f["v"]), func(sal): _sf_esegui({"t": "sali", "fermo": j, "salita": sal}))])
+			if not g["girate"].has(f["az"]):
+				voci.append(["Gira: %s" % b["faccia"], func(): _sf_esegui({"t": "gira", "fermo": j})])
+			voci.append(["Annulla", func():
+				_sf_azzera()
+				_sf_aggiorna()])
+			_sf_info.text = "Dado %s da %d fermo su %s.\n%s: %s" % [Sfera.NOMI_DADO[f["c"]], f["v"], b["nome"], b["faccia"], b["testo_faccia"]]
+			_sf_bottoni(voci)
+			_sf_vista.queue_redraw()
+		"token":
+			var e: Dictionary = g["esterni"][int(cosa["i"])]
+			var t := ms.tok(e["id"])
+			var stato := ""
+			if e["bloccato"]:
+				stato = " Bloccato fino alla pausa."
+			elif e["pronto"]:
+				stato = " Pronto."
+			_sf_info.text = "%s (freccia -%d): %s%s" % [t["nome"], int(t.get("freccia", 1)), t["testo"], stato]
+		"raro":
+			var r: Dictionary = g["raro"]
+			_sf_info.text = "Token raro %s: %s Si carica con i dadi che scattano dai token esterni (4 o più)." % [ms.rarip[r["id"]]["nome"], ms.rarip[r["id"]]["testo"]]
+
+func _sf_base(az: String) -> Dictionary:
+	for b in sf["base"]:
+		if b["id"] == az:
+			return b
+	return {"nome": az, "testo": "", "faccia": "", "testo_faccia": ""}
+
+func _sf_nome_azione(az: String) -> String:
+	return String(_sf_base(az)["nome"])
+
+func _sf_scegli_azione(az: String) -> void:
+	var p := _sf_umano()
+	if p < 0 or _sf_sel.get("tipo", "") != "dado":
+		return
+	var id := int(_sf_sel["id"])
+	var g: Dictionary = ms.s["g"][p]
+	var dd: Dictionary = g["mano"][ms.dado_in_mano(p, id)]
+	var v := int(dd["v"])
+	match az:
+		"colpo":
+			var dopo := func(pesante: bool) -> void:
+				_sf_chiedi_salita(p, dd["c"], "F", v, func(sal): _sf_esegui({"t": "colpo", "dado": id, "pesante": pesante, "salita": sal}))
+			if int(g["vantaggi"]) >= 1 and not g["girate"].has("colpo"):
+				_sf_info.text = "Colpo con un %d. Vuoi girarlo in Colpo pesante (1 vantaggio, danno +2)?" % v
+				_sf_bottoni([["Colpo", func(): dopo.call(false)], ["Colpo pesante", func(): dopo.call(true)]])
+			else:
+				dopo.call(false)
+		"passo":
+			var k := 2 if v >= 5 else 1
+			if ms.contatto():
+				_sf_info.text = "A contatto il Passo aggira il nemico verso le sue spalle (con 4+ di due esagoni). Oppure ti allontani."
+				_sf_bottoni([["Aggira", func(): _sf_esegui({"t": "passo", "dado": id})], ["Allontanati", func(): _sf_esegui({"t": "passo", "dado": id, "via": true})]])
+			else:
+				var vis := ms.cammino(p, k)
+				var hs := []
+				for h in vis:
+					if h != g["pos"]:
+						hs.append(h)
+				_sf_esagoni = {"dado": id, "hex": hs}
+				arena.pulisci_evidenza()
+				arena.evidenzia(hs, Color("#5aa0d8"))
+				_sf_info.text = "Tocca l'esagono dove andare (fino a %s), oppure lascia scegliere." % plurale_es(k)
+				_sf_bottoni([["Avanza verso di lui", func(): _sf_esegui({"t": "passo", "dado": id})], ["Allontanati", func(): _sf_esegui({"t": "passo", "dado": id, "via": true})]])
+		_:
+			_sf_esegui({"t": az, "dado": id})
+
+func plurale_es(k: int) -> String:
+	return "1 esagono" if k == 1 else "%d esagoni" % k
+
+func _sf_esagono(h: Vector2i) -> void:
+	if _sf_esagoni.is_empty() or not _sf_esagoni["hex"].has(h):
+		return
+	_sf_esegui({"t": "passo", "dado": int(_sf_esagoni["dado"]), "dest": h})
+
+## Chiede dove e come salire: per ogni token possibile, scalando (sicuro, il turno passa) o ritirando (continui; 1 o 2 fallisce).
+func _sf_chiedi_salita(p: int, colore: String, sett: String, v: int, cb: Callable) -> void:
+	var cand := ms.bersagli_salita(p, colore, sett)
+	if cand.is_empty():
+		cb.call({"modo": "no"})
+		return
+	var est: Array = ms.s["g"][p]["esterni"]
+	var voci := []
+	for i in cand:
+		var e: Dictionary = est[i]
+		var nome: String = ms.tok(e["id"])["nome"]
+		var sc := maxi(1, v - ms.freccia(e))
+		voci.append(["%s: scala a %d" % [nome, sc], func(): cb.call({"tok": i, "modo": "scala"})])
+		voci.append(["%s: ritira" % nome, func(): cb.call({"tok": i, "modo": "ritira"})])
+	voci.append(["Non salire", func(): cb.call({"modo": "no"})])
+	_sf_vista.evid_token = cand
+	_sf_vista.queue_redraw()
+	_sf_info.text = "Il dado (%d) può salire verso l'esterno. Scalando sale sicuro ma perdi l'iniziativa; ritirando continui a giocare e prendi 1 vantaggio, ma con 1 o 2 il dado va in Attesa." % v
+	_sf_bottoni(voci)
+
+func _sf_scelte_reazione(d: int) -> void:
+	var opz := ms.opzioni_reazione(d)
+	var g: Dictionary = ms.s["g"][d]
+	var voci := []
+	for op in opz:
+		var dd: Dictionary = g["mano"][ms.dado_in_mano(d, int(op["dado"]))]
+		var nome := "Para con il %d %s (-%d)" % [dd["v"], Sfera.NOMI_DADO[dd["c"]], op["riduce"]] if op["t"] == "parata" else "Scarta con il %d %s" % [dd["v"], Sfera.NOMI_DADO[dd["c"]]]
+		voci.append([nome, func(): _sf_reazione_passo2(d, op, dd)])
+	voci.append(["Nessuna reazione", func(): _sf_reagisci(d, {"t": "nessuna"})])
+	_sf_info.text = "Parata (dadi blu o bianchi): riduci il danno di metà del dado. Scarto (gialli o bianchi, non alle spalle): schivi tutto. Il dado poi può salire su un token."
+	_sf_bottoni(voci)
+
+func _sf_reazione_passo2(d: int, op: Dictionary, dd: Dictionary) -> void:
+	_sf_sel = {"tipo": "reazione"}
+	var g: Dictionary = ms.s["g"][d]
+	var sett := "P" if op["t"] == "parata" else "A"
+	var fine := func(gira: bool) -> void:
+		_sf_chiedi_salita(d, dd["c"], sett, int(dd["v"]), func(sal):
+			var sc: Dictionary = op.duplicate()
+			sc["gira"] = gira
+			sc["salita"] = sal
+			_sf_reagisci(d, sc))
+	var faccia := "Parata ferrea (1 vantaggio: -1 in più e 1 ferita a lui)" if op["t"] == "parata" else "Riposizionarsi (1 vantaggio, ne riprendi 2)"
+	if int(g["vantaggi"]) >= 1 and not g["girate"].has(op["t"]):
+		_sf_info.text = "Vuoi girare l'azione sulla faccia potenziata?"
+		_sf_bottoni([["Normale", func(): fine.call(false)], [faccia, func(): fine.call(true)]])
+	else:
+		fine.call(false)
+
+func _sf_reagisci(d: int, scelta: Dictionary) -> void:
+	var e := ms.reagisci(d, scelta)
+	if e != "":
+		_sf_info.text = e
+	_sf_azzera()
+	arena.accoda(ms.prendi_eventi())
+	_sf_aggiorna()
+
+func _sf_scelte_pausa(p: int) -> void:
+	var n := ms.posti_da_piazzare(p)
+	var disp := ms.token_disponibili(p)
+	_sf_piazza = _sf_piazza.filter(func(id): return disp.has(id))
+	var voci := []
+	for id in disp:
+		var scelto := _sf_piazza.has(id)
+		voci.append([("[x] " if scelto else "") + String(ms.tok(id)["nome"]), func():
+			if _sf_piazza.has(id):
+				_sf_piazza.erase(id)
+			elif _sf_piazza.size() < n:
+				_sf_piazza.append(id)
+			_sf_scelte_pausa(p)])
+	voci.append(["Conferma", func():
+		ms.piazza(p, _sf_piazza.duplicate())
+		_sf_piazza = []
+		arena.accoda(ms.prendi_eventi())
+		_sf_aggiorna()])
+	_sf_info.text = "Scelti %d di %d. Sopra un rialzo hai un posto in più; i token già carichi restano." % [_sf_piazza.size(), n]
+	_sf_bottoni(voci)
+
+func _sf_esegui(op: Dictionary) -> void:
+	var p := _sf_umano()
+	if p < 0:
+		return
+	var e := ms.esegui(p, op)
+	_sf_azzera()
+	if e != "":
+		_sf_info.text = e
+	arena.accoda(ms.prendi_eventi())
+	_sf_aggiorna()
+
+func _sf_fine() -> void:
+	_sf_fine_mostrata = true
+	var v := int(ms.s["vinc"])
+	var testo := "Pareggio ai punti." if v == 2 else "Vince %s!" % ms.s["g"][v]["nome"]
+	var centro := CenterContainer.new()
+	centro.set_anchors_preset(Control.PRESET_FULL_RECT)
+	centro.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pagina.add_child(centro)
+	var pan := _pannello(centro)
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 12)
+	pan.add_child(vb)
+	var t := _label(testo, 34, Disegno.ORO, Disegno.font_titolo())
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(t)
+	vb.add_child(_label("Scambi giocati: %d" % ms.s["scambio"], 18))
+	var hb := HFlowContainer.new()
+	hb.add_theme_constant_override("h_separation", 10)
+	vb.add_child(hb)
+	hb.add_child(_bottone("Rivincita", func(): sf_battaglia(_sf_pg[0], _sf_pg[1], _sf_arena, _sf_ia), 180))
+	hb.add_child(_bottone("Nuovo scontro", func(): sf_prepara(_sf_modo), 180))
+	hb.add_child(_bottone("Menu", menu, 140))
+
+# ----------------------------------------------------------------- officina
+
+func sf_officina() -> void:
+	_pulisci()
+	_demo_arena()
+	var vw := get_viewport().get_visible_rect().size
+	var pan := _pannello(pagina)
+	pan.set_anchors_preset(Control.PRESET_FULL_RECT)
+	pan.offset_left = 10 if vw.x < 900 else 60
+	pan.offset_right = -pan.offset_left
+	pan.offset_top = 20
+	pan.offset_bottom = -20
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+	pan.add_child(v)
+	var testa := HFlowContainer.new()
+	testa.add_theme_constant_override("h_separation", 10)
+	v.add_child(testa)
+	testa.add_child(_label("Officina dei personaggi", 30, Disegno.ORO, Disegno.font_titolo()))
+	testa.add_child(_bottone("Nuovo", func():
+		_off_sf = {"nome": "Nuovo combattente", "F": 3, "A": 3, "P": 2, "C": 2, "R": 2, "coll": [], "raro": ""}
+		sf_officina(), 120))
+	var parti := OptionButton.new()
+	parti.add_item("Parti da un modello...")
+	for pg in sf["personaggi"]:
+		parti.add_item(String(pg["nome"]))
+	for pg in miei_sf:
+		parti.add_item("(mio) " + String(pg["nome"]))
+	parti.item_selected.connect(func(i):
+		if i == 0:
+			return
+		var tutti: Array = sf["personaggi"] + miei_sf
+		_off_sf = tutti[i - 1].duplicate(true)
+		if i - 1 >= sf["personaggi"].size():
+			_off_sf["_indice"] = i - 1 - sf["personaggi"].size()
+		else:
+			_off_sf["nome"] = String(_off_sf["nome"]) + " (copia)"
+		sf_officina())
+	parti.custom_minimum_size = Vector2(260, 46)
+	testa.add_child(parti)
+	testa.add_child(_bottone("Salva", _sf_off_salva, 110))
+	testa.add_child(_bottone("Elimina", _sf_off_elimina, 110))
+	testa.add_child(_bottone("Menu", menu, 100))
+	if _off_sf.is_empty():
+		_off_sf = sf["personaggi"][0].duplicate(true)
+		_off_sf["nome"] = "Il mio combattente"
+	var riga := HFlowContainer.new()
+	riga.add_theme_constant_override("h_separation", 14)
+	v.add_child(riga)
+	var nome := LineEdit.new()
+	nome.text = String(_off_sf["nome"])
+	nome.custom_minimum_size = Vector2(300, 44)
+	nome.text_changed.connect(func(t): _off_sf["nome"] = t)
+	riga.add_child(nome)
+	for k in [["F", "Forza"], ["A", "Agilità"], ["P", "Percezione"], ["C", "Costituzione"]]:
+		var hb := HBoxContainer.new()
+		hb.add_child(_label(k[1], 17))
+		hb.add_child(_bottone("-", func(): _sf_off_car(k[0], -1), 40))
+		var lv := _label(str(int(_off_sf[k[0]])), 20, Disegno.ORO)
+		lv.custom_minimum_size = Vector2(24, 0)
+		lv.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hb.add_child(lv)
+		hb.add_child(_bottone("+", func(): _sf_off_car(k[0], 1), 40))
+		riga.add_child(hb)
+	var rit := OptionButton.new()
+	rit.add_item("Ritmo 2")
+	rit.add_item("Ritmo 3 (2 punti e 3 di budget)")
+	rit.select(int(_off_sf["R"]) - 2)
+	rit.item_selected.connect(func(i):
+		_off_sf["R"] = i + 2
+		sf_officina())
+	riga.add_child(rit)
+	var raro := OptionButton.new()
+	raro.add_item("Nessun token raro")
+	for r in sf["rari"]:
+		raro.add_item("Raro: %s (%d)" % [r["nome"], int(r["costo"])])
+	var ri := 0
+	for i in sf["rari"].size():
+		if sf["rari"][i]["id"] == String(_off_sf.get("raro", "")):
+			ri = i + 1
+	raro.select(ri)
+	raro.item_selected.connect(func(i):
+		_off_sf["raro"] = "" if i == 0 else String(sf["rari"][i - 1]["id"])
+		_sf_off_sommario())
+	riga.add_child(raro)
+	_off_sf_sommario = _label("", 17, Disegno.ORO)
+	_off_sf_sommario.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(_off_sf_sommario)
+	var sc := ScrollContainer.new()
+	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	v.add_child(sc)
+	var griglia := HFlowContainer.new()
+	griglia.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	griglia.add_theme_constant_override("h_separation", 10)
+	griglia.add_theme_constant_override("v_separation", 10)
+	sc.add_child(griglia)
+	_off_sf_token = []
+	for t in sf["esterni"]:
+		var tc := TokenCurvo.new(t)
+		tc.scelto = _off_sf["coll"].has(t["id"])
+		tc.cambiato.connect(func(on):
+			if on and not _off_sf["coll"].has(t["id"]):
+				_off_sf["coll"].append(t["id"])
+			elif not on:
+				_off_sf["coll"].erase(t["id"])
+			_sf_off_sommario())
+		griglia.add_child(tc)
+		_off_sf_token.append(tc)
+	_sf_off_sommario()
+
+func _sf_off_car(k: String, d: int) -> void:
+	_off_sf[k] = clampi(int(_off_sf[k]) + d, 1, 4)
+	sf_officina()
+
+func _sf_off_sommario() -> void:
+	var c := _sf_motore().conto(_off_sf)
+	var t := "Caratteristiche %d/%d  -  Budget dei token %d/%d" % [c["punti"], c["max_punti"], c["budget"], c["max_budget"]]
+	if not c["problemi"].is_empty():
+		t += "\nDa sistemare: " + "; ".join(c["problemi"]) + "."
+	else:
+		t += "\nPronto per combattere."
+	_off_sf_sommario.text = t
+
+func _sf_off_salva() -> void:
+	var c := _sf_motore().conto(_off_sf)
+	if not c["problemi"].is_empty():
+		_off_sf_sommario.text = "Non posso salvare: " + "; ".join(c["problemi"]) + "."
+		return
+	var pg := _off_sf.duplicate(true)
+	var idx := int(pg.get("_indice", -1))
+	pg.erase("_indice")
+	pg.erase("testo")
+	pg.erase("casuale")
+	if idx >= 0 and idx < miei_sf.size():
+		miei_sf[idx] = pg
+	else:
+		miei_sf.append(pg)
+		_off_sf["_indice"] = miei_sf.size() - 1
+	_salva_miei_sf()
+	_off_sf_sommario.text = "Salvato: %s." % pg["nome"]
+
+func _sf_off_elimina() -> void:
+	var idx := int(_off_sf.get("_indice", -1))
+	if idx >= 0 and idx < miei_sf.size():
+		miei_sf.remove_at(idx)
+		_salva_miei_sf()
+	_off_sf = {}
+	sf_officina()
