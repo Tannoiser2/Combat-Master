@@ -2616,6 +2616,8 @@ func _sf_messaggio(umano: int) -> String:
 	match String(ms.s["fase"]):
 		"reazione":
 			var pend: Dictionary = ms.s["pend"]
+			if pend.get("genere", "") == "presa":
+				return "%s prova ad afferrarti. Puoi scartare la presa." % ms.s["g"][pend["att"]]["nome"]
 			return "%s ti attacca con %s: %d danni. Come reagisci?" % [ms.s["g"][pend["att"]]["nome"], pend["nome"], pend["danno"]]
 	return "Hai l'iniziativa: tocca un dado e poi una zona illuminata."
 
@@ -2672,7 +2674,7 @@ func _sf_scelte_base(umano: int) -> void:
 	var et := []
 	for i in g["esterni"].size():
 		var e: Dictionary = g["esterni"][i]
-		if e["pronto"] and not e["bloccato"] and ms.te(e)["modo"] == "subito" and ms.in_portata(e):
+		if (e["pronto"] and not e["bloccato"] and ms.te(e)["modo"] == "subito" and ms.in_portata(e)) or ms.tecnica_su_tenuto(umano, e):
 			et.append(i)
 	_sf_vista.evid_token = et
 	_sf_info.text = "Tocca un dado illuminato: si accendono i posti dove puoi metterlo. I dadi fermi sulle azioni possono salire su un token o girare l'azione. Tocca un token per leggerlo%s." % (" o girarlo con i vantaggi" if int(g["vantaggi"]) > 0 else "")
@@ -2815,8 +2817,11 @@ func _sf_premuto(cosa: Dictionary) -> void:
 			_sf_info.text = _sf_testo_token(e)
 			var voci := []
 			if turno:
-				if e["pronto"] and not e["bloccato"] and t["modo"] == "subito" and ms.in_portata(e):
+				if (e["pronto"] and not e["bloccato"] and t["modo"] == "subito" and ms.in_portata(e)) or ms.tecnica_su_tenuto(p, e):
 					voci.append(["Fai scattare %s" % t["nome"], func(): _sf_esegui({"t": "scatta", "tok": ti})])
+				if t.get("a", {}).get("varianti", false):
+					var ora := String(e.get("variante", "irimi"))
+					voci.append(["Prepara in %s (ora %s)" % ["tenkan" if ora == "irimi" else "irimi", ora], func(): _sf_esegui({"t": "variante", "tok": ti})])
 				var cg := ms.costo_gira(e)
 				if cg > 0 and not e.get("pot", false) and int(g["vantaggi"]) >= cg:
 					voci.append(["Gira sulla faccia potenziata (%s)" % Motore.plurale(cg, "vantaggio", "vantaggi"), func(): _sf_esegui({"t": "potenzia", "tok": ti})])
@@ -2954,7 +2959,8 @@ func _sf_scelte_reazione(d: int) -> void:
 	_sf_vista.evid_dadi = dadi
 	_sf_vista.evid_azioni = zone
 	_sf_vista.evid_token = []
-	_sf_info.text = "%s ti attacca con %s: %d danni.%s" % [ms.s["g"][pend["att"]]["nome"], pend["nome"], int(pend["danno"]), " Tocca un dado o una reazione illuminata. Una reazione che annulla l'attacco ti dà l'iniziativa." if not opz.is_empty() else " Non hai reazioni possibili."]
+	var cosa_fa := ("prova ad afferrarti (%s)" % pend["nome"]) if pend.get("genere", "") == "presa" else ("ti attacca con %s: %d danni" % [pend["nome"], int(pend["danno"])])
+	_sf_info.text = "%s %s.%s" % [ms.s["g"][pend["att"]]["nome"], cosa_fa, " Tocca un dado o una reazione illuminata. Una reazione che annulla l'attacco ti dà l'iniziativa." if not opz.is_empty() else " Non hai reazioni possibili."]
 	_sf_bottoni([["Nessuna reazione", func(): _sf_reagisci(d, {"t": "nessuna"})]])
 	_sf_vista.queue_redraw()
 

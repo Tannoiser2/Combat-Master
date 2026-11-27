@@ -25,7 +25,7 @@ func _init() -> void:
 				cont["D TOTALE"] = int(cont.get("D TOTALE", 0)) + nn
 			elif r.ends_with("!") or r.ends_with("."):
 				ultimo = r.left(48)
-			for chiave in ["sale nell'anello esterno", "potenziat", "Scatta la trappola", "mette in campo", "guardia di", "6: ", "assorbe"]:
+			for chiave in ["sale nell'anello esterno", "potenziat", "Scatta la trappola", "guardia di", "6: ", "assorbe", "su chi tiene", "scarta la presa", "stringe la presa", "entra in irimi", "gira in tenkan", "da dietro", "L'iniziativa passa", "sacrifica", "spende"]:
 				if chiave in r:
 					cont[chiave] = int(cont.get(chiave, 0)) + 1
 			if r.ends_with("!") and ": " in r:

@@ -192,6 +192,8 @@ static func disegna_token(ci: CanvasItem, c: Vector2, ri: float, ro: float, a0: 
 		st = "BLOCCATO"
 	elif pronto:
 		st = "ARMATA" if String(t.get("modo", "")) == "armato" else "PRONTO"
+	if t.get("a", {}).get("varianti", false):
+		st = (st + ", " if st != "" else "") + String(e.get("variante", "irimi")).to_upper()
 	if st != "":
 		testo_arco(ci, c, ro + 9, am, span, st, 11, Disegno.ORO if not bloccato else Color(0.7, 0.7, 0.7))
 

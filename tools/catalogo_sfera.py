@@ -120,8 +120,16 @@ def _seguiti(a, ferendo=False):
         mie.append("arretri di " + _num(a["arretra"], "esagono", "esagoni"))
     if a.get("iniziativa") and a["tipo"] == "trappola":
         mie.append("prendi l'iniziativa")
+    if a.get("strangola"):
+        mie.append("finché lo tieni, ogni tua azione gli toglie %s" % _num(a["strangola"], "ferita", "ferite"))
     if mie:
         s += ("; " if s else ", ") + ", ".join(mie)
+    if a.get("dietro"):
+        s += ". Da dietro: non può scartarla"
+    if a.get("varianti"):
+        s += ". Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco)"
+    if a["tipo"] == "trappola" and (a.get("proietta") or a.get("tieni")):
+        s += ". Se lo tieni, puoi farla scattare tu"
     if a.get("sicuro"):
         s += ". Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio"
     if a.get("cede_svant"):
@@ -434,7 +442,24 @@ PROIEZIONI = [
 ]
 for pid, nome, contro, pr, piu, n in PROIEZIONI:
     MEDIANO.append(token(pid, nome, VE, [trappola(nome, n=n, contro=contro, danno="meta" if n > 1 else "dado", piu=piu - (2 if n == 1 else 0),
-                                                   proietta=pr, a_terra=True, freccia=2 if n > 1 else 1)], origine=pid))
+                                                   proietta=pr, a_terra=True, freccia=2 if n > 1 else 1, svant=1, varianti=True)], origine=pid))
+
+# le immobilizzazioni scelgono anche loro fra irimi e tenkan
+for t in MEDIANO:
+    if t["id"].startswith("tec_i"):
+        for az in t["azioni"]:
+            az["a"]["varianti"] = True
+
+# attacchi del libro che mancavano: prese da dietro, strangolamenti, presa e pugno
+MEDIANO += [
+    token("str_dietro", "Strangolamento da dietro", R, [presa("Strangolamento da dietro", n=2, dietro=True, tieni=True, strangola=1, svant=1)], origine="libro: attacco 10"),
+    token("presa_collo", "Presa al polso e al collo", VI, [presa("Presa al polso", dietro=True, tieni=True, svant=1),
+                                                            presa("Avambraccio alla gola", tieni=True, strangola=1)], origine="libro: attacco 16"),
+    token("bavero_pugno", "Bavero e pugno", AR, [presa("Afferrare il bavero", tieni=True, svant=1),
+                                                  colpo("Pugno a chi tieni", danno="dado", piu=1, sicuro=True)], origine="libro: attacco 17"),
+    token("presa_alle_spalle", "Presa ai polsi da dietro", G, [presa("Presa ai polsi da dietro", n=2, dietro=True, tieni=True, svant=2)], origine="libro: attacchi 7-9"),
+    token("abbraccio", "Abbraccio da dietro", R, [presa("Abbraccio da dietro", n=2, dietro=True, tieni=True, danno=1, togli="caso")], origine="libro: attacchi 11-12"),
+]
 
 ESTERNO = [
     # rosso | arancio

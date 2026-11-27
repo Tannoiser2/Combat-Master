@@ -122,7 +122,7 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 2,
+   "costo": 3,
    "gira": 1,
    "sblocca": 2
   },
@@ -247,7 +247,7 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 2,
+   "costo": 1,
    "gira": 1,
    "sblocca": 2
   },
@@ -305,7 +305,7 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 5,
+   "costo": 6,
    "gira": 2,
    "sblocca": 3
   },
@@ -340,7 +340,7 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 2,
+   "costo": 3,
    "gira": 1,
    "sblocca": 2
   },
@@ -413,8 +413,8 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 3,
-   "gira": 1,
+   "costo": 4,
+   "gira": 2,
    "sblocca": 2
   },
   {
@@ -465,13 +465,13 @@
        "proietta": 2
       }
      },
-     "testo": "Trappola: schivi, l'attaccante prende 1, lo proietti attorno a te di 1 esagono; +1 vantaggio.",
-     "testo_pot": "Trappola: schivi, l'attaccante prende 1, lo proietti attorno a te di 2 esagoni; +1 vantaggio."
+     "testo": "Trappola: schivi, l'attaccante prende 1, lo proietti attorno a te di 1 esagono; +1 vantaggio. Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: schivi, l'attaccante prende 1, lo proietti attorno a te di 2 esagoni; +1 vantaggio. Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1,
+   "costo": 2,
    "gira": 3,
    "sblocca": 3
   },
@@ -506,7 +506,7 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1,
+   "costo": 2,
    "gira": 1,
    "sblocca": 2
   },
@@ -596,8 +596,8 @@
        "proietta": 3
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma -1, lo proietti attorno a te di 2 esagoni, resta a terra. Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma -1, lo proietti attorno a te di 3 esagoni, resta a terra. Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -730,7 +730,7 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1,
+   "costo": 2,
    "gira": 1,
    "sblocca": 2
   },
@@ -761,7 +761,7 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1,
+   "costo": 2,
    "gira": 1,
    "sblocca": 2
   },
@@ -814,7 +814,7 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 6,
+   "costo": 7,
    "gira": 2,
    "sblocca": 3
   },
@@ -879,7 +879,7 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 6,
+   "costo": 5,
    "gira": 2,
    "sblocca": 2
   },
@@ -908,8 +908,8 @@
        "proietta": 3
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma, lo proietti attorno a te di 2 esagoni, resta a terra. Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma, lo proietti attorno a te di 3 esagoni, resta a terra. Se lo tieni, puoi farla scattare tu."
     },
     {
      "nome": "Kote a terra",
@@ -966,8 +966,8 @@
        "svant": 2
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende un quarto della somma, 1 svantaggio, perde il dado a caso, lo tieni (non può muoversi).",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende un quarto della somma, 2 svantaggi, perde il dado a caso, lo tieni (non può muoversi)."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende un quarto della somma, 1 svantaggio, perde il dado a caso, lo tieni (non può muoversi). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende un quarto della somma, 2 svantaggi, perde il dado a caso, lo tieni (non può muoversi). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -1002,14 +1002,14 @@
        "proietta": 3
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma, lo proietti attorno a te di 2 esagoni, resta a terra. Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma, lo proietti attorno a te di 3 esagoni, resta a terra. Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": true,
    "origine": "",
-   "costo": 3,
-   "gira": 2,
+   "costo": 4,
+   "gira": 3,
    "sblocca": 1
   },
   {
@@ -1367,7 +1367,7 @@
    ],
    "entrambi": false,
    "origine": "portatore",
-   "costo": 1,
+   "costo": 3,
    "gira": 2,
    "sblocca": 3
   },
@@ -1475,7 +1475,7 @@
    ],
    "entrambi": false,
    "origine": "gladiatore",
-   "costo": 6,
+   "costo": 7,
    "gira": 3,
    "sblocca": 3
   },
@@ -1584,7 +1584,7 @@
    ],
    "entrambi": false,
    "origine": "toro",
-   "costo": 1,
+   "costo": 2,
    "gira": 2,
    "sblocca": 2
   },
@@ -1619,7 +1619,7 @@
    ],
    "entrambi": false,
    "origine": "furia_cieca",
-   "costo": 1,
+   "costo": 2,
    "gira": 1,
    "sblocca": 1
   },
@@ -1687,7 +1687,7 @@
    ],
    "entrambi": false,
    "origine": "ira_ferita",
-   "costo": 5,
+   "costo": 4,
    "gira": 3,
    "sblocca": 1
   },
@@ -1886,7 +1886,7 @@
    ],
    "entrambi": false,
    "origine": "att13",
-   "costo": 1,
+   "costo": 2,
    "gira": 2,
    "sblocca": 1
   },
@@ -1920,8 +1920,8 @@
    ],
    "entrambi": false,
    "origine": "att15",
-   "costo": 5,
-   "gira": 2,
+   "costo": 3,
+   "gira": 1,
    "sblocca": 2
   },
   {
@@ -1955,7 +1955,7 @@
    ],
    "entrambi": false,
    "origine": "att18",
-   "costo": 1,
+   "costo": 2,
    "gira": 1,
    "sblocca": 2
   },
@@ -2113,7 +2113,7 @@
    ],
    "entrambi": false,
    "origine": "equilibrio",
-   "costo": 2,
+   "costo": 3,
    "gira": 2,
    "sblocca": 3
   },
@@ -2165,7 +2165,7 @@
    ],
    "entrambi": false,
    "origine": "riflessi",
-   "costo": 2,
+   "costo": 1,
    "gira": 2,
    "sblocca": 2
   },
@@ -2273,7 +2273,7 @@
    ],
    "entrambi": false,
    "origine": "istinto",
-   "costo": 6,
+   "costo": 5,
    "gira": 3,
    "sblocca": 3
   },
@@ -2378,7 +2378,7 @@
    ],
    "entrambi": false,
    "origine": "acrobata",
-   "costo": 3,
+   "costo": 4,
    "gira": 3,
    "sblocca": 3
   },
@@ -2494,7 +2494,7 @@
    ],
    "entrambi": false,
    "origine": "riflesso",
-   "costo": 2,
+   "costo": 1,
    "gira": 1,
    "sblocca": 2
   },
@@ -2662,7 +2662,7 @@
    ],
    "entrambi": false,
    "origine": "colpo_mirato",
-   "costo": 2,
+   "costo": 1,
    "gira": 1,
    "sblocca": 2
   },
@@ -2729,7 +2729,7 @@
    ],
    "entrambi": false,
    "origine": "sesto_senso",
-   "costo": 4,
+   "costo": 2,
    "gira": 1,
    "sblocca": 2
   },
@@ -2834,7 +2834,7 @@
    ],
    "entrambi": false,
    "origine": "resistenza",
-   "costo": 6,
+   "costo": 7,
    "gira": 2,
    "sblocca": 2
   },
@@ -2885,8 +2885,8 @@
    ],
    "entrambi": false,
    "origine": "volonta",
-   "costo": 3,
-   "gira": 1,
+   "costo": 4,
+   "gira": 2,
    "sblocca": 3
   },
   {
@@ -2938,7 +2938,7 @@
    ],
    "entrambi": false,
    "origine": "costituzione",
-   "costo": 1,
+   "costo": 2,
    "gira": 2,
    "sblocca": 3
   },
@@ -2988,7 +2988,7 @@
    ],
    "entrambi": false,
    "origine": "montanaro",
-   "costo": 7,
+   "costo": 6,
    "gira": 3,
    "sblocca": 2
   },
@@ -3038,8 +3038,8 @@
    ],
    "entrambi": false,
    "origine": "marinaio",
-   "costo": 3,
-   "gira": 1,
+   "costo": 4,
+   "gira": 2,
    "sblocca": 2
   },
   {
@@ -3091,7 +3091,7 @@
    ],
    "entrambi": false,
    "origine": "orso",
-   "costo": 1,
+   "costo": 2,
    "gira": 3,
    "sblocca": 2
   },
@@ -3142,7 +3142,7 @@
    ],
    "entrambi": false,
    "origine": "penitente",
-   "costo": 3,
+   "costo": 4,
    "gira": 3,
    "sblocca": 3
   },
@@ -3276,7 +3276,7 @@
    ],
    "entrambi": false,
    "origine": "cambio_guardia",
-   "costo": 3,
+   "costo": 2,
    "gira": 1,
    "sblocca": 1
   },
@@ -3308,8 +3308,8 @@
    ],
    "entrambi": false,
    "origine": "guardia_alta",
-   "costo": 4,
-   "gira": 3,
+   "costo": 2,
+   "gira": 2,
    "sblocca": 2
   },
   {
@@ -3341,7 +3341,7 @@
    ],
    "entrambi": false,
    "origine": "ferro",
-   "costo": 3,
+   "costo": 2,
    "gira": 1,
    "sblocca": 2
   },
@@ -3374,8 +3374,8 @@
    ],
    "entrambi": false,
    "origine": "riscossa",
-   "costo": 5,
-   "gira": 3,
+   "costo": 3,
+   "gira": 2,
    "sblocca": 2
   },
   {
@@ -3440,7 +3440,7 @@
    ],
    "entrambi": false,
    "origine": "fiato_lungo",
-   "costo": 7,
+   "costo": 5,
    "gira": 2,
    "sblocca": 2
   },
@@ -3474,7 +3474,7 @@
    ],
    "entrambi": false,
    "origine": "seconda_aria",
-   "costo": 2,
+   "costo": 3,
    "gira": 1,
    "sblocca": 2
   },
@@ -3507,7 +3507,7 @@
    ],
    "entrambi": false,
    "origine": "cuore_leone",
-   "costo": 1,
+   "costo": 2,
    "gira": 1,
    "sblocca": 2
   },
@@ -3572,7 +3572,7 @@
    ],
    "entrambi": false,
    "origine": "respingere",
-   "costo": 1,
+   "costo": 2,
    "gira": 2,
    "sblocca": 2
   },
@@ -3604,8 +3604,8 @@
    ],
    "entrambi": false,
    "origine": "respiro_profondo",
-   "costo": 4,
-   "gira": 2,
+   "costo": 3,
+   "gira": 1,
    "sblocca": 2
   },
   {
@@ -3636,8 +3636,8 @@
    ],
    "entrambi": false,
    "origine": "gestione_del_fiato",
-   "costo": 5,
-   "gira": 3,
+   "costo": 3,
+   "gira": 2,
    "sblocca": 2
   },
   {
@@ -3668,7 +3668,7 @@
    ],
    "entrambi": false,
    "origine": "raccogliere_le_forze",
-   "costo": 5,
+   "costo": 4,
    "gira": 2,
    "sblocca": 2
   },
@@ -3701,7 +3701,7 @@
    ],
    "entrambi": false,
    "origine": "istinto_di_sopravvivenza",
-   "costo": 7,
+   "costo": 5,
    "gira": 1,
    "sblocca": 2
   },
@@ -3736,7 +3736,7 @@
    ],
    "entrambi": false,
    "origine": "assalto",
-   "costo": 3,
+   "costo": 2,
    "gira": 1,
    "sblocca": 2
   },
@@ -3838,7 +3838,7 @@
    ],
    "entrambi": false,
    "origine": "doppio_pari",
-   "costo": 2,
+   "costo": 3,
    "gira": 2,
    "sblocca": 2
   },
@@ -4008,7 +4008,7 @@
    ],
    "entrambi": false,
    "origine": "tecnica_del_logoramento",
-   "costo": 1,
+   "costo": 3,
    "gira": 1,
    "sblocca": 2
   },
@@ -4042,7 +4042,7 @@
    ],
    "entrambi": false,
    "origine": "att14",
-   "costo": 1,
+   "costo": 2,
    "gira": 1,
    "sblocca": 2
   },
@@ -4110,7 +4110,7 @@
    ],
    "entrambi": false,
    "origine": "riposo_tattico",
-   "costo": 7,
+   "costo": 6,
    "gira": 2,
    "sblocca": 1
   },
@@ -4175,7 +4175,7 @@
    ],
    "entrambi": false,
    "origine": "preparazione_del_ritorno",
-   "costo": 4,
+   "costo": 5,
    "gira": 2,
    "sblocca": 1
   },
@@ -4274,7 +4274,7 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 3,
+   "costo": 2,
    "gira": 2,
    "sblocca": 2
   },
@@ -4805,7 +4805,7 @@
    ],
    "entrambi": false,
    "origine": "specchio",
-   "costo": 5,
+   "costo": 6,
    "gira": 2,
    "sblocca": 1
   },
@@ -5046,7 +5046,7 @@
    ],
    "entrambi": false,
    "origine": "att07",
-   "costo": 1,
+   "costo": 2,
    "gira": 1,
    "sblocca": 1
   },
@@ -5150,7 +5150,7 @@
    ],
    "entrambi": true,
    "origine": "att10",
-   "costo": 1,
+   "costo": 2,
    "gira": 2,
    "sblocca": 2
   },
@@ -5257,7 +5257,7 @@
    ],
    "entrambi": false,
    "origine": "att16",
-   "costo": 3,
+   "costo": 2,
    "gira": 2,
    "sblocca": 2
   },
@@ -5287,10 +5287,11 @@
       "a_terra": true,
       "pot": {
        "svant": 3
-      }
+      },
+      "varianti": true
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -5325,15 +5326,16 @@
       "a_terra": true,
       "pot": {
        "svant": 3
-      }
+      },
+      "varianti": true
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
    "origine": "tec_i2",
-   "costo": 1,
+   "costo": 3,
    "gira": 1,
    "sblocca": 1
   },
@@ -5362,15 +5364,16 @@
       "a_terra": true,
       "pot": {
        "svant": 2
-      }
+      },
+      "varianti": true
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende 2, 1 svantaggio, perde il dado a caso, lo tieni (non può muoversi), resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 2, 2 svantaggi, perde il dado a caso, lo tieni (non può muoversi), resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 2, 1 svantaggio, perde il dado a caso, lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 2, 2 svantaggi, perde il dado a caso, lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
    "origine": "tec_i3",
-   "costo": 1,
+   "costo": 3,
    "gira": 1,
    "sblocca": 2
   },
@@ -5399,10 +5402,11 @@
       "a_terra": true,
       "pot": {
        "svant": 3
-      }
+      },
+      "varianti": true
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde il dado più alto, lo tieni (non può muoversi), resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde il dado più alto, lo tieni (non può muoversi), resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde il dado più alto, lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde il dado più alto, lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -5434,15 +5438,16 @@
       "a_terra": true,
       "pot": {
        "svant": 3
-      }
+      },
+      "varianti": true
      },
-     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, lo tieni (non può muoversi), resta a terra.",
-     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, lo tieni (non può muoversi), resta a terra."
+     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
    "origine": "tec_i5",
-   "costo": 4,
+   "costo": 6,
    "gira": 2,
    "sblocca": 2
   },
@@ -5471,15 +5476,16 @@
       "a_terra": true,
       "pot": {
        "svant": 2
-      }
+      },
+      "varianti": true
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende 2, 1 svantaggio, perde il dado a caso, lo tieni (non può muoversi), resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 2, 2 svantaggi, perde il dado a caso, lo tieni (non può muoversi), resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 2, 1 svantaggio, perde il dado a caso, lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 2, 2 svantaggi, perde il dado a caso, lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
    "origine": "tec_i6",
-   "costo": 1,
+   "costo": 3,
    "gira": 1,
    "sblocca": 1
   },
@@ -5509,10 +5515,11 @@
       "a_terra": true,
       "pot": {
        "svant": 3
-      }
+      },
+      "varianti": true
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -5544,12 +5551,14 @@
       "proietta": 2,
       "a_terra": true,
       "freccia": 2,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 3
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -5581,12 +5590,14 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 2,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -5617,12 +5628,14 @@
       "proietta": 2,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 3
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -5654,17 +5667,19 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 2,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +2, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +2, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +2, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +2, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
    "origine": "tec_p4",
-   "costo": 2,
+   "costo": 3,
    "gira": 1,
    "sblocca": 2
   },
@@ -5690,12 +5705,14 @@
       "proietta": 2,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 3
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -5726,12 +5743,14 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -5762,12 +5781,14 @@
       "proietta": 2,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 3
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -5798,12 +5819,14 @@
       "proietta": 2,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 3
       }
      },
-     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -5834,12 +5857,14 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -5870,17 +5895,19 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
    "origine": "tec_p10",
-   "costo": 2,
+   "costo": 1,
    "gira": 1,
    "sblocca": 2
   },
@@ -5906,12 +5933,14 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -5942,12 +5971,14 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -5979,12 +6010,14 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 2,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6015,12 +6048,14 @@
       "proietta": 2,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 3
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6051,12 +6086,14 @@
       "proietta": 2,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 3
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6088,12 +6125,14 @@
       "proietta": 2,
       "a_terra": true,
       "freccia": 2,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 3
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6124,12 +6163,14 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6161,12 +6202,14 @@
       "proietta": 2,
       "a_terra": true,
       "freccia": 2,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 3
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6197,12 +6240,14 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6233,12 +6278,14 @@
       "proietta": 2,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 3
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6269,12 +6316,14 @@
       "proietta": 2,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 3
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6305,12 +6354,14 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6341,12 +6392,14 @@
       "proietta": 2,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 3
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6377,12 +6430,14 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6413,12 +6468,14 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6450,17 +6507,19 @@
       "proietta": 1,
       "a_terra": true,
       "freccia": 2,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 2
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 1 esagono, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
    "origine": "tec_p26",
-   "costo": 2,
+   "costo": 1,
    "gira": 1,
    "sblocca": 2
   },
@@ -6486,12 +6545,14 @@
       "proietta": 3,
       "a_terra": true,
       "freccia": 1,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 4
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 4 esagoni, resta a terra."
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 4 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
@@ -6523,18 +6584,234 @@
       "proietta": 2,
       "a_terra": true,
       "freccia": 2,
+      "svant": 1,
+      "varianti": true,
       "pot": {
        "proietta": 3
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 3 esagoni, 1 svantaggio, resta a terra. Scegli irimi (entri: 1 svantaggio in più) o tenkan (giri: 1 esagono di proiezione in più e gli vai al fianco). Se lo tieni, puoi farla scattare tu."
     }
    ],
    "entrambi": false,
    "origine": "tec_p28",
+   "costo": 2,
+   "gira": 2,
+   "sblocca": 2
+  },
+  {
+   "id": "str_dietro",
+   "nome": "Strangolamento da dietro",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Strangolamento da dietro",
+     "req": [
+      "r",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Strangolamento da dietro",
+      "tipo": "presa",
+      "n": 2,
+      "dietro": true,
+      "tieni": true,
+      "strangola": 1,
+      "svant": 1,
+      "pot": {
+       "svant": 2
+      },
+      "sicuro": true
+     },
+     "testo": "A contatto: afferri, 1 svantaggio, lo tieni (non può muoversi); finché lo tieni, ogni tua azione gli toglie 1 ferita. Da dietro: non può scartarla. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: afferri, 2 svantaggi, lo tieni (non può muoversi); finché lo tieni, ogni tua azione gli toglie 1 ferita. Da dietro: non può scartarla. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
+    }
+   ],
+   "entrambi": false,
+   "origine": "libro: attacco 10",
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
+  },
+  {
+   "id": "presa_collo",
+   "nome": "Presa al polso e al collo",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Presa al polso",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Presa al polso",
+      "tipo": "presa",
+      "n": 1,
+      "dietro": true,
+      "tieni": true,
+      "svant": 1,
+      "pot": {
+       "svant": 2
+      },
+      "cede_svant": 3
+     },
+     "testo": "A contatto: afferri, 1 svantaggio, lo tieni (non può muoversi). Da dietro: non può scartarla. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri, 2 svantaggi, lo tieni (non può muoversi). Da dietro: non può scartarla. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
+    },
+    {
+     "nome": "Avambraccio alla gola",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Avambraccio alla gola",
+      "tipo": "presa",
+      "n": 1,
+      "tieni": true,
+      "strangola": 1,
+      "pot": {
+       "svant": 1
+      },
+      "cede_svant": 3
+     },
+     "testo": "A contatto: afferri, lo tieni (non può muoversi); finché lo tieni, ogni tua azione gli toglie 1 ferita. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri, 1 svantaggio, lo tieni (non può muoversi); finché lo tieni, ogni tua azione gli toglie 1 ferita. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "libro: attacco 16",
    "costo": 1,
    "gira": 2,
+   "sblocca": 2
+  },
+  {
+   "id": "bavero_pugno",
+   "nome": "Bavero e pugno",
+   "col": "arancio",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Afferrare il bavero",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Afferrare il bavero",
+      "tipo": "presa",
+      "n": 1,
+      "tieni": true,
+      "svant": 1,
+      "pot": {
+       "svant": 2
+      },
+      "sicuro": true
+     },
+     "testo": "A contatto: afferri, 1 svantaggio, lo tieni (non può muoversi). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: afferri, 2 svantaggi, lo tieni (non può muoversi). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
+    },
+    {
+     "nome": "Pugno a chi tieni",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Pugno a chi tieni",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "pot": {
+       "piu": 3
+      },
+      "cede_svant": 3
+     },
+     "testo": "A contatto: colpo con il dado +1. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +3. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "libro: attacco 17",
+   "costo": 1,
+   "gira": 3,
+   "sblocca": 2
+  },
+  {
+   "id": "presa_alle_spalle",
+   "nome": "Presa ai polsi da dietro",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Presa ai polsi da dietro",
+     "req": [
+      "g",
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Presa ai polsi da dietro",
+      "tipo": "presa",
+      "n": 2,
+      "dietro": true,
+      "tieni": true,
+      "svant": 2,
+      "pot": {
+       "svant": 3
+      },
+      "sicuro": true
+     },
+     "testo": "A contatto: afferri, 2 svantaggi, lo tieni (non può muoversi). Da dietro: non può scartarla. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: afferri, 3 svantaggi, lo tieni (non può muoversi). Da dietro: non può scartarla. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
+    }
+   ],
+   "entrambi": false,
+   "origine": "libro: attacchi 7-9",
+   "costo": 3,
+   "gira": 2,
+   "sblocca": 2
+  },
+  {
+   "id": "abbraccio",
+   "nome": "Abbraccio da dietro",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Abbraccio da dietro",
+     "req": [
+      "r",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Abbraccio da dietro",
+      "tipo": "presa",
+      "n": 2,
+      "dietro": true,
+      "tieni": true,
+      "danno": 1,
+      "togli": "caso",
+      "pot": {
+       "danno": 3
+      },
+      "cede_svant": 3
+     },
+     "testo": "A contatto: afferri (1 di danno), perde il dado a caso, lo tieni (non può muoversi). Da dietro: non può scartarla. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (3 di danno), perde il dado a caso, lo tieni (non può muoversi). Da dietro: non può scartarla. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "libro: attacchi 11-12",
+   "costo": 2,
+   "gira": 1,
    "sblocca": 2
   },
   {
@@ -6722,7 +6999,7 @@
    ],
    "cond": "alto",
    "origine": "furia_cieca",
-   "costo": 2,
+   "costo": 1,
    "gira": 3,
    "sblocca": 3,
    "testo_cond": "Si potenzia se sei più in alto dell'avversario."
@@ -6782,7 +7059,7 @@
    ],
    "cond": "catena",
    "origine": "",
-   "costo": 3,
+   "costo": 4,
    "gira": 2,
    "sblocca": 3,
    "testo_cond": "Si potenzia se le due metà si caricano nello stesso scambio."
@@ -6844,7 +7121,7 @@
    ],
    "cond": "alto",
    "origine": "",
-   "costo": 3,
+   "costo": 2,
    "gira": 2,
    "sblocca": 3,
    "testo_cond": "Si potenzia se sei più in alto dell'avversario."
@@ -6959,13 +7236,13 @@
       }
      },
      "col": "verde",
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 2 esagoni, resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 2 esagoni, resta a terra. Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 3 esagoni, resta a terra. Se lo tieni, puoi farla scattare tu."
     }
    ],
    "cond": "catena",
    "origine": "",
-   "costo": 8,
+   "costo": 6,
    "gira": 2,
    "sblocca": 3,
    "testo_cond": "Si potenzia se le due metà si caricano nello stesso scambio."
@@ -7118,8 +7395,8 @@
       }
      },
      "col": "verde",
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 1 esagono, resta a terra. Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 2 esagoni, resta a terra. Se lo tieni, puoi farla scattare tu."
     },
     {
      "nome": "Chiusura",
@@ -7204,7 +7481,7 @@
    ],
    "cond": "ferito",
    "origine": "",
-   "costo": 4,
+   "costo": 3,
    "gira": 2,
    "sblocca": 3,
    "testo_cond": "Si potenzia se hai metà delle ferite o meno."
@@ -7263,7 +7540,7 @@
    ],
    "cond": "ferito",
    "origine": "ultima_risorsa",
-   "costo": 2,
+   "costo": 1,
    "gira": 3,
    "sblocca": 3,
    "testo_cond": "Si potenzia se hai metà delle ferite o meno."
@@ -7322,7 +7599,7 @@
    ],
    "cond": "vantaggi",
    "origine": "",
-   "costo": 6,
+   "costo": 8,
    "gira": 3,
    "sblocca": 3,
    "testo_cond": "Si potenzia se hai almeno 3 vantaggi."
@@ -7377,8 +7654,8 @@
       }
      },
      "col": "viola",
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 1 esagono, resta a terra. Se lo tieni, puoi farla scattare tu.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 2 esagoni, resta a terra. Se lo tieni, puoi farla scattare tu."
     }
    ],
    "cond": "presa",
@@ -7725,19 +8002,18 @@
    "C": 3,
    "R": 2,
    "coll": [
-    "montanaro",
+    "respiro",
     "tenkan",
-    "maestro_armi",
-    "fabbro",
-    "calcio_volante",
-    "doppio_pari",
-    "danzatore",
+    "monaco_guerriero",
+    "toro",
+    "bavero_pugno",
+    "balzo",
     "ritorno",
     "juji_nage",
-    "passo_ombra",
+    "kokyu_nage",
     "agguato",
     "assalto_finale",
-    "zanshin"
+    "volo_della_gru"
    ],
    "raro": "",
    "aspetto": "donna",
@@ -7751,18 +8027,15 @@
    "C": 3,
    "R": 2,
    "coll": [
-    "gomitata",
+    "gladiatore",
     "carica_toro",
-    "ipnotista",
+    "azzardo",
     "ladro",
-    "tenkan",
-    "veterano",
+    "irimi",
+    "orso",
     "atemi",
-    "tenchi_nage",
-    "turbine",
-    "fortuna_matto",
-    "juji_nage",
-    "ultima_risorsa"
+    "somma_perfetta",
+    "volo_della_gru"
    ],
    "raro": "",
    "aspetto": "uomo2",
@@ -7778,14 +8051,14 @@
    "coll": [
     "borseggiatore",
     "carica_toro",
-    "irimi",
+    "tenkan",
     "fabbro",
-    "veterano",
+    "gigante",
     "kote_gaeshi",
     "volo_della_gru",
     "passo_ombra",
     "atemi",
-    "ultima_risorsa"
+    "ritorno"
    ],
    "raro": "",
    "aspetto": "snella",
@@ -7799,17 +8072,16 @@
    "C": 1,
    "R": 2,
    "coll": [
-    "montanaro",
+    "legionario",
     "irimi",
-    "imbroglione",
-    "fabbro",
-    "calcio_volante",
-    "att14",
-    "cecchino",
-    "ritorno",
+    "tattico",
+    "toro",
+    "bavero_pugno",
+    "balzo",
+    "ultima_risorsa",
     "kiai",
-    "fortuna_matto",
-    "tenchi_nage",
+    "passo_ombra",
+    "agguato",
     "assalto_finale"
    ],
    "raro": "",
@@ -7824,18 +8096,18 @@
    "C": 4,
    "R": 2,
    "coll": [
-    "montanaro",
-    "monaco_guerriero",
+    "respiro",
+    "tattico",
     "fabbro",
     "irimi",
-    "doppio_pari",
-    "affondo",
-    "danzatore",
-    "ira_repressa",
-    "ritorno",
-    "somma_perfetta",
+    "bavero_pugno",
+    "ladro",
+    "juji_nage",
+    "ultima_risorsa",
+    "tenchi_nage",
     "assalto_finale",
-    "fortuna_matto"
+    "kokyu_nage",
+    "zanshin"
    ],
    "raro": "",
    "aspetto": "formosa",
@@ -7851,16 +8123,14 @@
    "coll": [
     "borseggiatore",
     "carica_toro",
-    "tenkan",
-    "calcio_girato",
-    "veterano",
-    "kote_gaeshi",
-    "zanshin",
+    "irimi",
+    "toro",
+    "orso",
+    "presa_collo",
+    "turbine",
     "passo_ombra",
-    "assalto_finale",
-    "ritorno",
-    "juji_nage",
-    "tenchi_nage"
+    "atemi",
+    "ultima_risorsa"
    ],
    "raro": "",
    "aspetto": "bionda",
@@ -7875,17 +8145,17 @@
    "R": 2,
    "coll": [
     "gomitata",
-    "montanaro",
-    "kote_gaeshi",
-    "danza_guerra",
-    "att14",
+    "respiro",
+    "cacciatore_taglie",
+    "bavero_pugno",
     "irimi",
-    "gatto",
-    "juji_nage",
-    "somma_perfetta",
+    "balzo",
+    "ira_repressa",
+    "agguato",
     "assalto_finale",
     "ritorno",
-    "volo_della_gru"
+    "zanshin",
+    "passo_ombra"
    ],
    "raro": "",
    "aspetto": "mora",
@@ -7899,17 +8169,16 @@
    "C": 3,
    "R": 2,
    "coll": [
-    "montanaro",
+    "legionario",
     "tenkan",
-    "monaco_guerriero",
-    "danzatore",
-    "doppio_pari",
-    "calcio_volante",
+    "tattico",
+    "ladro",
+    "bavero_pugno",
     "fabbro",
-    "ultima_risorsa",
-    "kiai",
-    "passo_ombra",
-    "zanshin"
+    "shiho_nage",
+    "juji_nage",
+    "fortuna_matto",
+    "turbine"
    ],
    "raro": "",
    "aspetto": "barbuto",
@@ -7923,18 +8192,18 @@
    "C": 2,
    "R": 2,
    "coll": [
-    "montanaro",
+    "respiro",
     "irimi",
     "maestro_armi",
-    "fabbro",
-    "doppio_pari",
-    "affondo_v",
-    "danzatore",
+    "toro",
+    "bavero_pugno",
+    "ladro",
     "ritorno",
-    "ira_repressa",
-    "fortuna_matto",
+    "juji_nage",
+    "kokyu_nage",
     "tenchi_nage",
-    "atemi"
+    "assalto_finale",
+    "volo_della_gru"
    ],
    "raro": "",
    "aspetto": "uomo",

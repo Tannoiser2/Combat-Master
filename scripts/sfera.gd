@@ -1579,6 +1579,21 @@ func _attacco(p: int, danno: int, dado_max: int, nome: String, genere: String, p
 	var scelta := _ia_reazione(d, pend)
 	_risolvi_reazione(pend, scelta)
 
+## Una presa: il difensore può scartarla (non da dietro); poi(true) se la presa riesce.
+func _presa_reazione(p: int, dado_max: int, nome: String, poi: Callable) -> void:
+	var d := 1 - p
+	var dietro := alle_spalle_di(d, s["g"][p]["pos"])
+	s["schivato"] = false
+	var pend := {"att": p, "dif": d, "danno": 0, "dado_max": dado_max, "scartare": not dietro, "nome": nome,
+		"non_para": true, "genere": "presa", "poi": func(_r): poi.call(not s.get("schivato", false))}
+	if dietro:
+		_scrivi("%s afferra da dietro: non si può scartare." % s["g"][p]["nome"])
+	if s["g"][d]["umano"] and not opzioni_reazione(d, pend).is_empty():
+		s["pend"] = pend
+		s["fase"] = "reazione"
+		return
+	_risolvi_reazione(pend, _ia_reazione(d, pend))
+
 ## Reazioni possibili del difensore a un attacco in sospeso.
 func opzioni_reazione(d: int, pend: Dictionary = {}) -> Array:
 	if pend.is_empty():
@@ -1603,6 +1618,14 @@ func reagisci(d: int, scelta: Dictionary) -> String:
 	return ""
 
 func _ia_reazione(d: int, pend: Dictionary) -> Dictionary:
+	if pend.get("genere", "") == "presa":
+		# contro una presa: la scarta spesso, se può
+		for op in opzioni_reazione(d, pend):
+			if op["t"] == "scarto" and rng.randf() < 0.7:
+				var sc0: Dictionary = op.duplicate()
+				sc0["salita"] = {"modo": "auto"}
+				return sc0
+		return {"t": "nessuna"}
 	var danno := int(pend["danno"])
 	var best := {}
 	var best_resto := 999
@@ -1665,8 +1688,9 @@ func _risolvi_reazione(pend: Dictionary, scelta: Dictionary) -> void:
 		_sali(d, c, "P", false, v, salita, func(_c): poi.call(resto))
 	else:
 		_evento({"t": "schiva", "p": d})
-		_scrivi("%s scarta il colpo con un %d." % [n["nome"], v])
+		_scrivi("%s scarta %s con un %d." % [n["nome"], "la presa" if pend.get("genere", "") == "presa" else "il colpo", v])
 		s["cede"] = p
+		s["schivato"] = true
 		allontana(d, 1)
 		_vant(d, 1)
 		if scelta.get("gira", false) and int(n["vantaggi"]) >= 1 and not n["girate"].has("scarto"):
@@ -1961,12 +1985,16 @@ func _scatta_comp(p: int, e: Dictionary, poi: Callable) -> void:
 			if not trap.is_empty():
 				_trappola(o, trap, 0, p, func(_r): fine.call())
 				return
-			var dmg := D(_valore_comp(a, e))
-			if dmg > 0:
-				_ferisci(o, dmg)
-			_effetti_su(p, o, a)
-			_effetti_miei(p, a)
-			fine.call()
+			_presa_reazione(p, massimo(e), t["nome"], func(ok: bool):
+				if ok and s["vinc"] < 0:
+					var dmg := D(_valore_comp(a, e))
+					if dmg > 0:
+						_ferisci(o, dmg)
+					_effetti_su(p, o, a)
+					if int(a.get("strangola", 0)) > 0:
+						s["g"][o]["strangolato"] = int(a["strangola"])
+				_effetti_miei(p, a)
+				fine.call())
 		"effetto":
 			_evento({"t": "azione", "p": p, "effetto": _effetto_anim(a), "nome": t["nome"]})
 			_effetti_su(p, o, a)
@@ -1981,6 +2009,18 @@ func _trappola_comp(d: int, e: Dictionary, danno: int, att: int, poi: Callable) 
 	if anello(e) == 3:
 		e["pot"] = cond_esterno(d, e)
 	var a := _a_eff(e)
+	if a.get("varianti", false) and not n["umano"] and not e.has("variante"):
+		e["variante"] = "tenkan" if rng.randf() < 0.5 else "irimi"
+	if a.get("varianti", false):
+		# irimi: entri nella sua guardia (1 svantaggio in più); tenkan: giri al suo fianco e lo proietti più lontano
+		if String(e.get("variante", "irimi")) == "tenkan":
+			a["aggira"] = 2
+			if int(a.get("proietta", 0)) > 0:
+				a["proietta"] = int(a["proietta"]) + 1
+			_scrivi("%s gira in tenkan." % n["nome"])
+		else:
+			a["svant"] = int(a.get("svant", 0)) + 1
+			_scrivi("%s entra in irimi." % n["nome"])
 	n["esterni"].erase(e)
 	_scrivi("Scatta la trappola di %s: %s%s!" % [n["nome"], t["nome"], " potenziata" if e["pot"] else ""])
 	var inflitto := -1
@@ -2038,6 +2078,8 @@ func puo_agire(p: int) -> bool:
 		return true
 	for e in g["esterni"]:
 		if e["pronto"] and not e["bloccato"] and te(e)["modo"] == "subito" and in_portata(e):
+			return true
+		if tecnica_su_tenuto(p, e):
 			return true
 	return not g["raro"].is_empty() and g["raro"]["pronto"] and contatto()
 
@@ -2177,17 +2219,21 @@ func esegui(p: int, op: Dictionary) -> String:
 				_in_attesa(p, "F", String(dd["c"]))
 				_trappola(o, trap_p, 0, p, func(_r): _fine_azione(p, false))
 				return ""
-			_scrivi("%s afferra %s con un %d." % [g["nome"], s["g"][o]["nome"], v])
-			_svant(o, 1)
-			_togli_dado_alto(o)
-			if v >= 5:
-				s["g"][o]["tenuto"] = true
-			if v >= int(reg["presa_soglia_spinta"]):
-				spingi(p, o, 1)
-			g["fermi"].append({"c": dd["c"], "az": "presa", "v": v})
-			# la presa tiene l'iniziativa, ma sbilancia anche te
-			_svant(p, 1)
-			_fine_azione(p, false)
+			_presa_reazione(p, v, "Presa", func(ok: bool):
+				if ok and s["vinc"] < 0:
+					_scrivi("%s afferra %s con un %d." % [g["nome"], s["g"][o]["nome"], v])
+					_svant(o, 1)
+					_togli_dado_alto(o)
+					if v >= 5:
+						s["g"][o]["tenuto"] = true
+					if v >= int(reg["presa_soglia_spinta"]):
+						spingi(p, o, 1)
+					g["fermi"].append({"c": dd["c"], "az": "presa", "v": v})
+					# la presa tiene l'iniziativa, ma sbilancia anche te
+					_svant(p, 1)
+				else:
+					_in_attesa(p, "rosso", String(dd["c"]))
+				_fine_azione(p, false))
 		"passo":
 			var i := dado_in_mano(p, int(op.get("dado", -1)))
 			var rosso_ok: bool = i >= 0 and g["mano"][i]["c"] == "r" and not contatto() and not op.get("via", false)
@@ -2272,9 +2318,22 @@ func esegui(p: int, op: Dictionary) -> String:
 			if j < 0 or j >= g["esterni"].size():
 				return "token inesistente"
 			var e: Dictionary = g["esterni"][j]
+			if tecnica_su_tenuto(p, e):
+				# una trappola di proiezione o di controllo, lanciata su chi tieni
+				_scrivi("%s parte con %s su chi tiene." % [g["nome"], te(e)["nome"]])
+				_trappola(p, e, 0, o, func(_r): _fine_azione(p, true))
+				return ""
 			if not e["pronto"] or e["bloccato"] or te(e)["modo"] != "subito" or not in_portata(e):
 				return "il token non può scattare ora"
 			_scatta(p, e, func(): _fine_azione(p, false))
+		"variante":
+			var j := int(op.get("tok", -1))
+			if j < 0 or j >= g["esterni"].size() or not te(g["esterni"][j]).get("a", {}).get("varianti", false):
+				return "questo token non ha varianti"
+			var e: Dictionary = g["esterni"][j]
+			e["variante"] = "tenkan" if String(e.get("variante", "irimi")) == "irimi" else "irimi"
+			_scrivi("%s prepara %s in %s." % [g["nome"], te(e)["nome"], e["variante"]])
+			_fine_azione(p, true)
 		"raro":
 			if g["raro"].is_empty() or not g["raro"]["pronto"] or not contatto():
 				return "il token raro non è pronto"
@@ -2293,6 +2352,16 @@ func _fine_azione(p: int, _flusso: bool, aggirato := false) -> void:
 		return
 	if not aggirato:
 		gira_verso(p)
+	var o := 1 - p
+	if int(s["g"][o].get("strangolato", 0)) > 0:
+		if s["g"][o]["tenuto"] and int(s["attivo"]) == p:
+			_scrivi("%s stringe la presa al collo." % s["g"][p]["nome"])
+			_ferisci(o, int(s["g"][o]["strangolato"]))
+			if s["vinc"] >= 0:
+				s["fase"] = "fine"
+				return
+		elif not s["g"][o]["tenuto"]:
+			s["g"][o]["strangolato"] = 0
 	_rimetti_in_campo(0)
 	_rimetti_in_campo(1)
 	if int(s["iniziativa_a"]) >= 0:
@@ -2369,6 +2438,18 @@ func _rimetti_in_campo(p: int) -> void:
 			if not ci.has("%s:%d" % [g["assetto3"][k], int(e["parte"])]):
 				e["posto3"] = int(k)
 				g["esterni"].append(e)
+
+## Una tecnica armata (proiezione o controllo) si può far partire anche di tua iniziativa se tieni l'avversario.
+func tecnica_su_tenuto(p: int, e: Dictionary) -> bool:
+	if not e["pronto"] or e["bloccato"] or not e_trappola(e) or not contatto():
+		return false
+	if not s["g"][1 - p]["tenuto"]:
+		return false
+	var t := te(e)
+	if t["eff"] != "comp":
+		return false
+	var a: Dictionary = t["a"]
+	return int(a.get("proietta", 0)) > 0 or a.get("tieni", false)
 
 func costo_gira(e: Dictionary) -> int:
 	return int(tok(e["id"]).get("gira", -1)) if not String(e["id"]).begins_with("scena_") else -1
@@ -2484,7 +2565,7 @@ func ia_scegli(p: int) -> Dictionary:
 				pr += 3.0
 			elif trap_presa:
 				pr = 0.5
-			op.append([pr, {"t": "presa", "dado": id}])
+			op.append([pr + 1.5, {"t": "presa", "dado": id}])
 		if c == "r" and not cont and not g["tenuto"]:
 			op.append([4.0, {"t": "passo", "dado": id}])
 		if c in ["g", "n"] and not g["tenuto"]:
@@ -2508,6 +2589,9 @@ func ia_scegli(p: int) -> Dictionary:
 				op.append([4.5, {"t": "gira", "fermo": j}])
 			elif f["az"] == "leggi":
 				op.append([2.5, {"t": "gira", "fermo": j}])
+	for j in g["esterni"].size():
+		if tecnica_su_tenuto(p, g["esterni"][j]):
+			op.append([6.5, {"t": "scatta", "tok": j}])
 	# vantaggi: girare un token, sbloccare un dado, alzarne uno; dadi inutili si sacrificano
 	var va := int(g["vantaggi"])
 	for j in g["esterni"].size():

@@ -66,5 +66,12 @@ Ogni azione base ha una faccia potenziata, una volta per scambio:
 - A terra non puoi colpire, afferrare, muoverti né leggere; non puoi scartare; ogni colpo che ricevi fa 1 ferita in più.
 - Per rialzarti usi un'azione con un dado qualsiasi; con un dado giallo o bianco (una ukemi) il dado prosegue e può salire.
 
+## Le tecniche dell'Aikido
+- **Prese**: una presa si può scartare come un colpo (con un dado giallo o bianco abbastanza alto), e lo scarto ti dà l'iniziativa. Una presa da dietro non si scarta.
+- **Strangolamenti**: alcune prese stringono al collo; finché tieni l'avversario, ogni tua azione gli toglie le ferite scritte sul token.
+- **Irimi o tenkan**: le proiezioni e le immobilizzazioni si preparano in una delle due varianti (si cambia toccando il token). Irimi: entri nella sua guardia, 1 svantaggio in più. Tenkan: giri al suo fianco e lo proietti di 1 esagono in più.
+- **Atemi**: ogni proiezione dà anche 1 svantaggio, il colpo al viso che la apre.
+- **Tecnica su chi tieni**: una proiezione o un'immobilizzazione armata si può far partire anche di tua iniziativa, se tieni l'avversario. Così un'immobilizzazione si conclude in una proiezione, come nelle combinazioni del libro.
+
 ## Vincere
 Vince chi porta l'avversario a zero ferite. Dopo 80 passaggi d'iniziativa vince chi ha più ferite rimaste.
