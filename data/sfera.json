@@ -1,10 +1,10 @@
 {
  "regole": {
   "punti": 10,
-  "budget": 12,
+  "budget": 24,
   "ritmo3_punti": 2,
   "ritmo3_budget": 3,
-  "vita_base": 26,
+  "vita_base": 50,
   "pesca": 4,
   "max_vant": 5,
   "vant_per_colpo": 3,
@@ -17,7 +17,8 @@
   "presa_soglia_spinta": 5,
   "max_scambi": 40,
   "danno_a_terra": 1,
-  "budget_esterno": 10
+  "budget_esterno": 16,
+  "colpo_rosso": 4
  },
  "base": [
   {
@@ -74,580 +75,7083 @@
    "id": "calcio_girato",
    "nome": "Calcio girato",
    "col": "rosso",
-   "req": [
-    "r"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Calcio girato",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Calcio girato",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 2,
+      "pot": {
+       "piu": 4
+      }
+     },
+     "testo": "A contatto: colpo con il dado +2.",
+     "testo_pot": "A contatto: colpo con il dado +4."
+    },
+    {
+     "nome": "Spazzata bassa",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Spazzata bassa",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 1,
+      "piu": 0,
+      "svant": 2,
+      "togli": "basso",
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: colpo da 1; se ferisce, 2 svantaggi, perde il dado più basso.",
+     "testo_pot": "A contatto: colpo da 3; se ferisce, 2 svantaggi, perde il dado più basso."
+    }
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "colpo",
-   "bonus": 2,
-   "costo": 2,
-   "testo": "A contatto: colpo con il dado +2.",
-   "seconda": {
-    "nome": "Spazzata bassa",
-    "req": [
-     "r"
-    ],
-    "eff": "sgambetto",
-    "bonus": 0,
-    "modo": "subito",
-    "freccia": 1,
-    "testo": "A contatto: 1 ferita più un quarto del dado, 2 svantaggi, perde il dado più basso."
-   },
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "raffica",
    "nome": "Raffica di pugni",
    "col": "rosso",
-   "req": [
-    "r",
-    "n"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Raffica di pugni",
+     "req": [
+      "r",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Raffica di pugni",
+      "tipo": "colpo",
+      "n": 2,
+      "danno": "somma",
+      "piu": 1,
+      "iniziativa": true,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con la somma +1, mantieni l'iniziativa.",
+     "testo_pot": "A contatto: colpo con la somma +3, mantieni l'iniziativa."
+    }
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "colpo",
-   "bonus": 1,
-   "costo": 1,
-   "testo": "A contatto: colpo con la somma dei dadi +1. Il secondo dado può essere bianco.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "gomitata",
    "nome": "Gomitata",
    "col": "rosso",
-   "req": [
-    "r"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Gomitata",
+     "req": [
+      "r"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Gomitata",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "svant": 2,
+      "togli": "alto",
+      "freccia": 2,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con il dado +1; se ferisce, 2 svantaggi, perde il dado più alto.",
+     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, 2 svantaggi, perde il dado più alto."
+    },
+    {
+     "nome": "Ginocchiata",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Ginocchiata",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con il dado +1.",
+     "testo_pot": "A contatto: colpo con il dado +3."
+    }
    ],
-   "freccia": 2,
-   "modo": "subito",
-   "eff": "colpo_stordente",
-   "bonus": 1,
-   "costo": 2,
-   "testo": "A contatto: colpo +1; se ferisce, 2 svantaggi e perde il dado più alto.",
-   "seconda": {
-    "nome": "Ginocchiata",
-    "req": [
-     "r"
-    ],
-    "eff": "colpo",
-    "bonus": 1,
-    "modo": "subito",
-    "freccia": 1,
-    "testo": "A contatto: colpo con il dado +1."
-   },
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 7
   },
   {
-   "id": "spallata",
+   "id": "spallata_s",
    "nome": "Spallata",
    "col": "rosso",
-   "req": [
-    "r"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Spallata",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Spallata",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 0,
+      "spinta": 2,
+      "svant": 1,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: colpo con il dado; se ferisce, spinta di 2 esagoni, 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +2; se ferisce, spinta di 2 esagoni, 1 svantaggio."
+    }
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "spinta",
-   "bonus": 0,
-   "costo": 1,
-   "testo": "A contatto: colpo e spinta di 2 esagoni, 1 svantaggio.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 2
   },
   {
    "id": "carica_toro",
    "nome": "Carica del toro",
    "col": "arancio",
-   "req": [
-    "r",
-    "g"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Carica del toro",
+     "req": [
+      "r",
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Carica del toro",
+      "tipo": "colpo",
+      "n": 2,
+      "danno": "somma",
+      "piu": 0,
+      "entra": 4,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "Da 4 esagoni: entri e colpisci con la somma.",
+     "testo_pot": "Da 4 esagoni: entri e colpisci con la somma +2."
+    },
+    {
+     "nome": "Spinta del toro",
+     "req": [
+      "r",
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Spinta del toro",
+      "tipo": "colpo",
+      "n": 2,
+      "danno": "somma",
+      "piu": 0,
+      "spinta": 2,
+      "svant": 1,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: colpo con la somma; se ferisce, spinta di 2 esagoni, 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con la somma +2; se ferisce, spinta di 2 esagoni, 1 svantaggio."
+    }
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "carica",
-   "bonus": 0,
-   "costo": 3,
-   "testo": "Da 4 esagoni arrivi davanti a lui e colpisci con la somma.",
-   "seconda": {
-    "nome": "Spinta del toro",
-    "req": [
-     "r",
-     "g"
-    ],
-    "eff": "spinta",
-    "bonus": 0,
-    "modo": "subito",
-    "freccia": 1,
-    "testo": "A contatto: colpo con la somma e spinta di 2 esagoni, 1 svantaggio."
-   },
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "calcio_volante",
    "nome": "Calcio volante",
    "col": "arancio",
-   "req": [
-    "g",
-    "r"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Calcio volante",
+     "req": [
+      "r",
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Calcio volante",
+      "tipo": "colpo",
+      "n": 2,
+      "danno": "somma",
+      "piu": 2,
+      "entra": 4,
+      "pot": {
+       "piu": 4
+      }
+     },
+     "testo": "Da 4 esagoni: entri e colpisci con la somma +2.",
+     "testo_pot": "Da 4 esagoni: entri e colpisci con la somma +4."
+    }
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "carica",
-   "bonus": 2,
-   "costo": 3,
-   "testo": "Come la Carica, danno +2.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "affondo",
    "nome": "Affondo e rientro",
    "col": "arancio",
-   "req": [
-    "r",
-    "g"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Affondo e rientro",
+     "req": [
+      "r",
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Affondo e rientro",
+      "tipo": "colpo",
+      "n": 2,
+      "danno": "somma",
+      "piu": 1,
+      "entra": 2,
+      "arretra": 1,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "Da 2 esagoni: entri e colpisci con la somma +1, arretri di 1 esagono.",
+     "testo_pot": "Da 2 esagoni: entri e colpisci con la somma +3, arretri di 1 esagono."
+    }
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "affondo",
-   "bonus": 1,
-   "costo": 2,
-   "testo": "Da 2 esagoni entri, colpisci con la somma +1 e arretri di 1.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "sgambetto",
    "nome": "Sgambetto",
    "col": "arancio",
-   "req": [
-    "g",
-    "r"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Sgambetto",
+     "req": [
+      "r",
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sgambetto",
+      "tipo": "colpo",
+      "n": 2,
+      "danno": "quarto",
+      "piu": 1,
+      "svant": 2,
+      "togli": "basso",
+      "a_terra": true,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con un quarto della somma +1; se ferisce, 2 svantaggi, perde il dado più basso, resta a terra.",
+     "testo_pot": "A contatto: colpo con un quarto della somma +3; se ferisce, 2 svantaggi, perde il dado più basso, resta a terra."
+    }
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "sgambetto",
-   "bonus": 0,
-   "costo": 6,
-   "testo": "A contatto: 1 ferita più un quarto della somma, 2 svantaggi, perde il dado più basso.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "balzo",
    "nome": "Balzo",
    "col": "giallo",
-   "req": [
-    "g"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Balzo",
+     "req": [
+      "g"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Balzo",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": -3,
+      "entra": 3,
+      "vant": 1,
+      "freccia": 2,
+      "pot": {
+       "piu": -1
+      }
+     },
+     "testo": "Da 3 esagoni: entri e colpisci con il dado -3, +1 vantaggio.",
+     "testo_pot": "Da 3 esagoni: entri e colpisci con il dado -1, +1 vantaggio."
+    },
+    {
+     "nome": "Passo indietro",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Passo indietro",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "schiva": true,
+      "vant": 1,
+      "danno": 1,
+      "proietta": 1,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola: schivi, l'attaccante prende 1, lo proietti attorno a te di 1 esagono; +1 vantaggio.",
+     "testo_pot": "Trappola: schivi, l'attaccante prende 1, lo proietti attorno a te di 2 esagoni; +1 vantaggio."
+    }
    ],
-   "freccia": 2,
-   "modo": "subito",
-   "eff": "balzo",
-   "bonus": -3,
-   "costo": 1,
-   "testo": "Salti a contatto da 3 esagoni, +1 vantaggio e colpisci con il dado -3.",
-   "seconda": {
-    "nome": "Passo indietro",
-    "req": [
-     "g"
-    ],
-    "eff": "schivata",
-    "bonus": 0,
-    "modo": "armato",
-    "freccia": 1,
-    "testo": "Trappola: schivi il prossimo colpo, +1 vantaggio, l'attaccante prende 1 ferita e scivola oltre."
-   },
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "passi_danza",
    "nome": "Passi di danza",
    "col": "giallo",
-   "req": [
-    "g",
-    "g"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Passi di danza",
+     "req": [
+      "g",
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Passi di danza",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "schiva": true,
+      "vant": 1,
+      "danno": 2,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "testo": "Trappola: schivi, l'attaccante prende 2, +1 vantaggio.",
+     "testo_pot": "Trappola: schivi, l'attaccante prende 2, 1 svantaggio; +1 vantaggio."
+    }
    ],
-   "freccia": 1,
-   "modo": "armato",
-   "eff": "schivata",
-   "bonus": 1,
-   "costo": 1,
-   "testo": "Trappola: schivi il prossimo colpo, +1 vantaggio, l'attaccante prende 2 ferite.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "salto_mortale",
    "nome": "Salto mortale",
    "col": "giallo",
-   "req": [
-    "g"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Salto mortale",
+     "req": [
+      "g"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Salto mortale",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": -4,
+      "alle_spalle": true,
+      "freccia": 2,
+      "pot": {
+       "piu": -2
+      }
+     },
+     "testo": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado -4.",
+     "testo_pot": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado -2."
+    }
    ],
-   "freccia": 2,
-   "modo": "subito",
-   "eff": "alle_spalle",
-   "bonus": -6,
-   "costo": 2,
-   "testo": "Da 3 esagoni atterri alle sue spalle e colpisci (dado -6, +2 alle spalle); si schiva solo con 5 o 6.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "irimi",
    "nome": "Irimi",
    "col": "verde",
-   "req": [
-    "g",
-    "b"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Irimi",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Irimi",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "vant": 3,
+      "danno": 1,
+      "svant": 1,
+      "iniziativa": true,
+      "aggira": 2,
+      "pot": {
+       "svant": 2
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 1 svantaggio; +3 vantaggi, gli giri attorno di 2 esagoni, mantieni l'iniziativa.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi; +3 vantaggi, gli giri attorno di 2 esagoni, mantieni l'iniziativa."
+    },
+    {
+     "nome": "Irimi nage",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Irimi nage",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "danno": "meta",
+      "piu": -1,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 2,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
    ],
-   "freccia": 1,
-   "modo": "armato",
-   "eff": "irimi",
-   "bonus": 0,
-   "costo": 3,
-   "testo": "Trappola: annulli il colpo, +3 vantaggi, 1 ferita e 1 svantaggio all'attaccante; finisci al suo fianco e prendi l'iniziativa.",
-   "seconda": {
-    "nome": "Irimi nage",
-    "req": [
-     "g",
-     "b"
-    ],
-    "eff": "proiezione",
-    "bonus": -1,
-    "modo": "armato",
-    "freccia": 2,
-    "testo": "Trappola: annulli il colpo, entri e lo proietti attorno a te: metà della somma meno 1."
-   },
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "tenkan",
    "nome": "Tenkan",
    "col": "verde",
-   "req": [
-    "b",
-    "g"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Tenkan",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Tenkan",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "vant": 1,
+      "danno": 1,
+      "svant": 1,
+      "togli": "caso",
+      "pot": {
+       "svant": 2
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 1 svantaggio, perde il dado a caso; +1 vantaggio.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde il dado a caso; +1 vantaggio."
+    },
+    {
+     "nome": "Tenkan e ukemi",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Tenkan e ukemi",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "vant": 1,
+      "pulisci": true,
+      "cura": 2,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, +1 vantaggio, recuperi 2 ferite, togli i tuoi svantaggi.",
+     "testo_pot": "Trappola: annulli l'attacco, 1 svantaggio; +1 vantaggio, recuperi 2 ferite, togli i tuoi svantaggi."
+    }
    ],
-   "freccia": 1,
-   "modo": "armato",
-   "eff": "tenkan",
-   "bonus": 0,
-   "costo": 5,
-   "testo": "Trappola: annulli il colpo, +1 vantaggio, 1 ferita, 1 svantaggio e un dado in meno all'attaccante; i tuoi dadi in mano +1.",
-   "seconda": {
-    "nome": "Tenkan e ukemi",
-    "req": [
-     "b",
-     "g"
-    ],
-    "eff": "ukemi",
-    "bonus": 0,
-    "modo": "armato",
-    "freccia": 1,
-    "testo": "Trappola: annulli il colpo, +1 vantaggio, togli gli svantaggi e recuperi 2 ferite."
-   },
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "uscire_linea",
    "nome": "Uscire dalla linea",
    "col": "verde",
-   "req": [
-    "g",
-    "b"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Uscire dalla linea",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Uscire dalla linea",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "schiva": true,
+      "vant": 1,
+      "danno": 2,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "testo": "Trappola: schivi, l'attaccante prende 2, +1 vantaggio.",
+     "testo_pot": "Trappola: schivi, l'attaccante prende 2, 1 svantaggio; +1 vantaggio."
+    }
    ],
-   "freccia": 1,
-   "modo": "armato",
-   "eff": "schivata",
-   "bonus": 1,
-   "costo": 1,
-   "testo": "Trappola: schivi, +1 vantaggio, l'attaccante prende 2 ferite; per due scambi i tuoi ritiri falliscono solo con 1.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "ukemi",
    "nome": "Ukemi",
    "col": "verde",
-   "req": [
-    "g",
-    "b"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Ukemi",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Ukemi",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "vant": 1,
+      "pulisci": true,
+      "cura": 2,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, +1 vantaggio, recuperi 2 ferite, togli i tuoi svantaggi.",
+     "testo_pot": "Trappola: annulli l'attacco, 1 svantaggio; +1 vantaggio, recuperi 2 ferite, togli i tuoi svantaggi."
+    }
    ],
-   "freccia": 1,
-   "modo": "armato",
-   "eff": "ukemi",
-   "bonus": 0,
-   "costo": 1,
-   "testo": "Trappola: annulli il colpo, +1 vantaggio, togli gli svantaggi e recuperi 2 ferite.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "guardia_ferrea",
    "nome": "Guardia ferrea",
    "col": "blu",
-   "req": [
-    "b"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Guardia ferrea",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Guardia ferrea",
+      "tipo": "guardia",
+      "n": 1,
+      "riduci": 2,
+      "pot": {
+       "riduci": 3
+      }
+     },
+     "testo": "Guardia: il prossimo colpo che ricevi fa 2 danni in meno.",
+     "testo_pot": "Guardia: il prossimo colpo che ricevi fa 3 danni in meno."
+    }
    ],
-   "freccia": 1,
-   "modo": "armato",
-   "eff": "guardia",
-   "bonus": 0,
-   "costo": 1,
-   "testo": "Passiva: per tutto lo scambio ogni colpo fa 2 danni in meno; la prima volta l'attaccante prende 1 ferita.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 3
   },
   {
    "id": "respiro",
    "nome": "Respiro profondo",
    "col": "blu",
-   "req": [
-    "b"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Respiro profondo",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Respiro profondo",
+      "tipo": "effetto",
+      "n": 1,
+      "cura": 2,
+      "pulisci": true,
+      "pot": {
+       "cura": 3
+      }
+     },
+     "testo": "Recuperi 2 ferite, togli i tuoi svantaggi.",
+     "testo_pot": "Recuperi 3 ferite, togli i tuoi svantaggi."
+    },
+    {
+     "nome": "Sguardo fermo",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sguardo fermo",
+      "tipo": "effetto",
+      "n": 1,
+      "svant": 2,
+      "togli": "alto",
+      "vant": 1,
+      "pot": {
+       "svant": 3
+      }
+     },
+     "testo": "2 svantaggi, perde il dado più alto; +1 vantaggio.",
+     "testo_pot": "3 svantaggi, perde il dado più alto; +1 vantaggio."
+    }
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "respiro",
-   "bonus": 0,
-   "costo": 1,
-   "testo": "Recuperi metà del dado per eccesso (massimo 3 ferite) e togli gli svantaggi.",
-   "seconda": {
-    "nome": "Sguardo fermo",
-    "req": [
-     "b"
-    ],
-    "eff": "provoca",
-    "bonus": 0,
-    "modo": "subito",
-    "freccia": 1,
-    "testo": "2 svantaggi al nemico e perde il dado più alto; +1 vantaggio."
-   },
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "provocazione",
    "nome": "Provocazione",
    "col": "blu",
-   "req": [
-    "b"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Provocazione",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Provocazione",
+      "tipo": "effetto",
+      "n": 1,
+      "svant": 2,
+      "togli": "alto",
+      "vant": 1,
+      "pot": {
+       "svant": 3
+      }
+     },
+     "testo": "2 svantaggi, perde il dado più alto; +1 vantaggio.",
+     "testo_pot": "3 svantaggi, perde il dado più alto; +1 vantaggio."
+    }
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "provoca",
-   "bonus": 0,
-   "costo": 1,
-   "testo": "2 svantaggi al nemico e perde il dado più alto; +1 vantaggio.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 3
   },
   {
    "id": "calma",
    "nome": "Calma interiore",
    "col": "blu",
-   "req": [
-    "b"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Calma interiore",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Calma interiore",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 2,
+      "pot": {
+       "pesca": 3
+      }
+     },
+     "testo": "Peschi 2 dadi.",
+     "testo_pot": "Peschi 3 dadi."
+    }
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "calma",
-   "bonus": 0,
-   "costo": 6,
-   "testo": "Peschi 2 dadi in più dal mucchio.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 8
   },
   {
    "id": "kote_gaeshi",
    "nome": "Kote gaeshi",
    "col": "viola",
-   "req": [
-    "b",
-    "r"
-   ],
-   "freccia": 1,
-   "modo": "armato",
-   "eff": "proiezione",
-   "bonus": 0,
-   "costo": 3,
-   "testo": "Trappola: annulli il colpo, l'attaccante prende metà della somma e vola attorno a te, fino a 2 esagoni oltre.",
-   "seconda": {
-    "nome": "Kote a terra",
-    "req": [
-     "b",
-     "r"
-    ],
-    "eff": "immobilizza",
-    "bonus": 0,
-    "modo": "armato",
-    "freccia": 1,
-    "testo": "Trappola: annulli il colpo, un quarto della somma, 1 svantaggio, perde 1 dado."
-   },
    "anello": 2,
-   "entrambi": true
+   "azioni": [
+    {
+     "nome": "Kote gaeshi",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Kote gaeshi",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "danno": "meta",
+      "proietta": 2,
+      "a_terra": true,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma, lo proietti attorno a te di 3 esagoni, resta a terra."
+    },
+    {
+     "nome": "Kote a terra",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Kote a terra",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "danno": "quarto",
+      "svant": 1,
+      "togli": "caso",
+      "pot": {
+       "svant": 2
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende un quarto della somma, 1 svantaggio, perde il dado a caso.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende un quarto della somma, 2 svantaggi, perde il dado a caso."
+    }
+   ],
+   "entrambi": true,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "ikkyo",
    "nome": "Ikkyo",
    "col": "viola",
-   "req": [
-    "r",
-    "b"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Ikkyo",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Ikkyo",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "presa",
+      "danno": "quarto",
+      "svant": 1,
+      "togli": "caso",
+      "tieni": true,
+      "pot": {
+       "svant": 2
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende un quarto della somma, 1 svantaggio, perde il dado a caso, lo tieni (non può muoversi).",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende un quarto della somma, 2 svantaggi, perde il dado a caso, lo tieni (non può muoversi)."
+    }
    ],
-   "freccia": 1,
-   "modo": "armato",
-   "eff": "immobilizza",
-   "bonus": 0,
-   "costo": 5,
-   "testo": "Trappola: annulli il colpo, un quarto della somma in ferite, 1 svantaggio, perde 1 dado.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "kaiten_nage",
    "nome": "Kaiten nage",
    "col": "viola",
-   "req": [
-    "b",
-    "r"
-   ],
-   "freccia": 2,
-   "modo": "armato",
-   "eff": "proiezione",
-   "bonus": 0,
-   "costo": 1,
-   "testo": "Trappola: annulli il colpo, l'attaccante prende metà della somma e vola attorno a te, fino a 2 esagoni oltre.",
    "anello": 2,
-   "entrambi": true
+   "azioni": [
+    {
+     "nome": "Kaiten nage",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Kaiten nage",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "danno": "meta",
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 2,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": true,
+   "origine": "",
+   "costo": 1
   },
   {
    "id": "contrattacco",
    "nome": "Contrattacco",
    "col": "viola",
-   "req": [
-    "b",
-    "r"
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Contrattacco",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Contrattacco",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "colpo",
+      "riduci": 3,
+      "contra": true,
+      "pot": {
+       "riduci": 5
+      }
+     },
+     "testo": "Trappola contro i colpi: il colpo fa 3 danni in meno, e lo colpisci con la somma.",
+     "testo_pot": "Trappola contro i colpi: il colpo fa 5 danni in meno, e lo colpisci con la somma."
+    }
    ],
-   "freccia": 1,
-   "modo": "armato",
-   "eff": "contrattacco",
-   "bonus": 0,
-   "costo": 2,
-   "testo": "Trappola: subisci il colpo meno 3 e restituisci metà della somma.",
-   "anello": 2
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
   },
   {
-   "id": "tenchi_nage",
-   "nome": "Tenchi nage",
-   "col": "esterno",
-   "anello": 3,
-   "req": [
-    "x",
-    "x"
+   "id": "forza",
+   "nome": "Forza del soldato",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo a mani nude",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo a mani nude",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 0,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: colpo con il dado.",
+     "testo_pot": "A contatto: colpo con il dado +2."
+    },
+    {
+     "nome": "Spintone",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Spintone",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 1,
+      "piu": 0,
+      "spinta": 1,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: colpo da 1; se ferisce, spinta di 1 esagono.",
+     "testo_pot": "A contatto: colpo da 3; se ferisce, spinta di 1 esagono."
+    }
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "tenchi",
-   "bonus": 0,
-   "costo": 9,
-   "testo": "A contatto: metà della somma in ferite, vola di 3 esagoni, perde 1 dado ed è a terra."
+   "entrambi": false,
+   "origine": "forza",
+   "costo": 1
   },
   {
-   "id": "kiai",
-   "nome": "Kiai del maestro",
-   "col": "esterno",
-   "anello": 3,
-   "req": [
-    "x"
+   "id": "furia",
+   "nome": "Forza del berserker",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo cieco",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo cieco",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 3,
+      "piu": 0,
+      "pot": {
+       "danno": 5
+      }
+     },
+     "testo": "A contatto: colpo da 3.",
+     "testo_pot": "A contatto: colpo da 5."
+    },
+    {
+     "nome": "Urlo di guerra",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Urlo di guerra",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 1,
+      "vant": 1,
+      "pot": {
+       "pesca": 2
+      }
+     },
+     "testo": "+1 vantaggio, peschi 1 dado.",
+     "testo_pot": "+1 vantaggio, peschi 2 dadi."
+    }
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "kiai",
-   "bonus": 0,
-   "costo": 6,
-   "testo": "Disarma i token pronti del nemico, perde il dado più alto, 2 svantaggi a lui e 2 vantaggi a te."
+   "entrambi": false,
+   "origine": "furia",
+   "costo": 4
   },
   {
-   "id": "ritorno",
-   "nome": "Ritorno al centro",
-   "col": "esterno",
-   "anello": 3,
-   "req": [
-    "x",
-    "x"
+   "id": "potenza",
+   "nome": "Forza del colosso",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Schianto",
+     "req": [
+      "r"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Schianto",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "spinta": 1,
+      "freccia": 2,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con il dado +1; se ferisce, spinta di 1 esagono.",
+     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, spinta di 1 esagono."
+    },
+    {
+     "nome": "Sfondare la guardia",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sfondare la guardia",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "svant": 1,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con il dado +1; se ferisce, 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, 1 svantaggio."
+    }
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "ritorno",
-   "bonus": 0,
-   "costo": 6,
-   "testo": "Rimetti in mano 3 dadi nuovi."
+   "entrambi": false,
+   "origine": "potenza",
+   "costo": 3
   },
   {
-   "id": "shiho_nage",
-   "nome": "Shiho nage",
-   "col": "esterno",
-   "anello": 3,
-   "req": [
-    "x",
-    "x"
+   "id": "lottatore",
+   "nome": "Forza del lottatore",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Afferrare",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Afferrare",
+      "tipo": "presa",
+      "n": 1,
+      "danno": 1,
+      "togli": "alto",
+      "tieni": true,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: afferri (1 di danno), perde il dado più alto, lo tieni (non può muoversi).",
+     "testo_pot": "A contatto: afferri (3 di danno), perde il dado più alto, lo tieni (non può muoversi)."
+    },
+    {
+     "nome": "Rovesciare",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Rovesciare",
+      "tipo": "presa",
+      "n": 1,
+      "danno": 2,
+      "esposto": true,
+      "pot": {
+       "danno": 4
+      }
+     },
+     "testo": "A contatto: afferri (2 di danno), si gira e ti offre il fianco (+1 al tuo prossimo colpo).",
+     "testo_pot": "A contatto: afferri (4 di danno), si gira e ti offre il fianco (+1 al tuo prossimo colpo)."
+    }
    ],
-   "freccia": 1,
-   "modo": "armato",
-   "eff": "shiho",
-   "bonus": 0,
-   "costo": 9,
-   "testo": "Trappola: annulli il colpo, metà della somma, 1 svantaggio, lo proietti e resta a terra."
+   "entrambi": false,
+   "origine": "presa",
+   "costo": 1
   },
   {
-   "id": "kokyu_nage",
-   "nome": "Kokyu nage",
-   "col": "esterno",
-   "anello": 3,
-   "req": [
-    "x",
-    "x"
+   "id": "boscaiolo",
+   "nome": "Forza del boscaiolo",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo d'ascia",
+     "req": [
+      "r"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Colpo d'ascia",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "freccia": 2,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con il dado +1.",
+     "testo_pot": "A contatto: colpo con il dado +3."
+    },
+    {
+     "nome": "Spaccare la guardia",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Spaccare la guardia",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 1,
+      "piu": 0,
+      "svant": 2,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: colpo da 1; se ferisce, 2 svantaggi.",
+     "testo_pot": "A contatto: colpo da 3; se ferisce, 2 svantaggi."
+    }
    ],
-   "freccia": 1,
-   "modo": "armato",
-   "eff": "kokyu",
-   "bonus": 0,
-   "costo": 8,
-   "testo": "Trappola: annulli il colpo, metà della somma, lo lanci di 2 esagoni e resta a terra."
+   "entrambi": false,
+   "origine": "boscaiolo",
+   "costo": 1
   },
   {
-   "id": "juji_nage",
-   "nome": "Juji nage",
-   "col": "esterno",
-   "anello": 3,
-   "req": [
-    "x",
-    "x"
+   "id": "portatore",
+   "nome": "Forza del portatore",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Spinta",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Spinta",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 1,
+      "piu": 0,
+      "spinta": 2,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: colpo da 1; se ferisce, spinta di 2 esagoni.",
+     "testo_pot": "A contatto: colpo da 3; se ferisce, spinta di 2 esagoni."
+    },
+    {
+     "nome": "Riprendere il carico",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Riprendere il carico",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 1,
+      "pot": {
+       "pesca": 2
+      }
+     },
+     "testo": "Peschi 1 dado.",
+     "testo_pot": "Peschi 2 dadi."
+    }
    ],
-   "freccia": 1,
-   "modo": "armato",
-   "eff": "juji",
-   "bonus": 0,
-   "costo": 9,
-   "testo": "Trappola: annulli il colpo, metà della somma meno 1, perde 1 dado, lo proietti e resta a terra."
+   "entrambi": false,
+   "origine": "portatore",
+   "costo": 2
+  },
+  {
+   "id": "pugile",
+   "nome": "Forza del pugile",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Diretto",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Diretto",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "iniziativa": true,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con il dado +1, mantieni l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +3, mantieni l'iniziativa."
+    },
+    {
+     "nome": "Montante",
+     "req": [
+      "r"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Montante",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 0,
+      "togli": "alto",
+      "freccia": 2,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: colpo con il dado; se ferisce, perde il dado più alto.",
+     "testo_pot": "A contatto: colpo con il dado +2; se ferisce, perde il dado più alto."
+    }
+   ],
+   "entrambi": false,
+   "origine": "pugile",
+   "costo": 3
+  },
+  {
+   "id": "gladiatore",
+   "nome": "Forza del gladiatore",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo da arena",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo da arena",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 0,
+      "aggira": 1,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: colpo con il dado, gli giri attorno di 1 esagono.",
+     "testo_pot": "A contatto: colpo con il dado +2, gli giri attorno di 1 esagono."
+    },
+    {
+     "nome": "Ruggito della folla",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Ruggito della folla",
+      "tipo": "effetto",
+      "n": 1,
+      "svant": 1,
+      "togli": "alto",
+      "pot": {
+       "svant": 2
+      }
+     },
+     "testo": "1 svantaggio, perde il dado più alto.",
+     "testo_pot": "2 svantaggi, perde il dado più alto."
+    }
+   ],
+   "entrambi": false,
+   "origine": "gladiatore",
+   "costo": 1
+  },
+  {
+   "id": "fabbro",
+   "nome": "Forza del fabbro",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Martellata",
+     "req": [
+      "r"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Martellata",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 2,
+      "freccia": 2,
+      "pot": {
+       "piu": 4
+      }
+     },
+     "testo": "A contatto: colpo con il dado +2.",
+     "testo_pot": "A contatto: colpo con il dado +4."
+    },
+    {
+     "nome": "Temprare",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Temprare",
+      "tipo": "effetto",
+      "n": 1,
+      "ritocca": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "+1 a tutti i dadi che hai in mano.",
+     "testo_pot": "+1 vantaggio, +1 a tutti i dadi che hai in mano."
+    }
+   ],
+   "entrambi": false,
+   "origine": "fabbro",
+   "costo": 2
+  },
+  {
+   "id": "toro",
+   "nome": "Forza del toro",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Carica del toro rosso",
+     "req": [
+      "r",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Carica del toro rosso",
+      "tipo": "colpo",
+      "n": 2,
+      "danno": "somma",
+      "piu": 0,
+      "entra": 3,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "Da 3 esagoni: entri e colpisci con la somma.",
+     "testo_pot": "Da 3 esagoni: entri e colpisci con la somma +2."
+    },
+    {
+     "nome": "Incornata",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Incornata",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 2,
+      "piu": 0,
+      "spinta": 2,
+      "svant": 1,
+      "pot": {
+       "danno": 4
+      }
+     },
+     "testo": "A contatto: colpo da 2; se ferisce, spinta di 2 esagoni, 1 svantaggio.",
+     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 2 esagoni, 1 svantaggio."
+    }
+   ],
+   "entrambi": false,
+   "origine": "toro",
+   "costo": 1
+  },
+  {
+   "id": "furia_cieca",
+   "nome": "Furia cieca",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Furia cieca",
+     "req": [
+      "r",
+      "r"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Furia cieca",
+      "tipo": "colpo",
+      "n": 2,
+      "danno": "somma",
+      "piu": 1,
+      "freccia": 2,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con la somma +1.",
+     "testo_pot": "A contatto: colpo con la somma +3."
+    }
+   ],
+   "entrambi": false,
+   "origine": "furia_cieca",
+   "costo": 1
+  },
+  {
+   "id": "ferocia",
+   "nome": "Ferocia",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Ferocia",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Ferocia",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "spinta": 1,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con il dado +1; se ferisce, spinta di 1 esagono.",
+     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, spinta di 1 esagono."
+    }
+   ],
+   "entrambi": false,
+   "origine": "ferocia",
+   "costo": 3
+  },
+  {
+   "id": "ira_ferita",
+   "nome": "Ira del ferito",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Ira del ferito",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Ira del ferito",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "svant": 1,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con il dado +1; se ferisce, 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, 1 svantaggio."
+    }
+   ],
+   "entrambi": false,
+   "origine": "ira_ferita",
+   "costo": 4
+  },
+  {
+   "id": "colpo_dispari",
+   "nome": "Colpo dispari",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo dispari",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo dispari",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con il dado +1.",
+     "testo_pot": "A contatto: colpo con il dado +3."
+    }
+   ],
+   "entrambi": false,
+   "origine": "colpo_dispari",
+   "costo": 2
+  },
+  {
+   "id": "rompiguardia",
+   "nome": "Rompiguardia",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Sfondare",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sfondare",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "meta",
+      "piu": 0,
+      "svant": 2,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: colpo con metà della somma; se ferisce, 2 svantaggi.",
+     "testo_pot": "A contatto: colpo con metà della somma +2; se ferisce, 2 svantaggi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "rompiguardia",
+   "costo": 2
+  },
+  {
+   "id": "rabbia",
+   "nome": "Rabbia covata",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Covare rabbia",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Covare rabbia",
+      "tipo": "effetto",
+      "n": 1,
+      "vant": 2,
+      "pot": {
+       "vant": 3
+      }
+     },
+     "testo": "+2 vantaggi.",
+     "testo_pot": "+3 vantaggi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "rabbia",
+   "costo": 1
+  },
+  {
+   "id": "berserker",
+   "nome": "Sangue di berserker",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Sangue agli occhi",
+     "req": [
+      "r"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Sangue agli occhi",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 2,
+      "freccia": 2,
+      "pot": {
+       "piu": 4
+      }
+     },
+     "testo": "A contatto: colpo con il dado +2.",
+     "testo_pot": "A contatto: colpo con il dado +4."
+    }
+   ],
+   "entrambi": false,
+   "origine": "berserker",
+   "costo": 1
+  },
+  {
+   "id": "temerario",
+   "nome": "Temerario",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Provocare",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Provocare",
+      "tipo": "effetto",
+      "n": 1,
+      "svant": 1,
+      "togli": "alto",
+      "portata": 2,
+      "pot": {
+       "svant": 2
+      }
+     },
+     "testo": "Entro 2 esagoni: 1 svantaggio, perde il dado più alto.",
+     "testo_pot": "Entro 2 esagoni: 2 svantaggi, perde il dado più alto."
+    }
+   ],
+   "entrambi": false,
+   "origine": "temerario",
+   "costo": 8
+  },
+  {
+   "id": "att13",
+   "nome": "Colpo diretto alla testa",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo diretto alla testa",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo diretto alla testa",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 0,
+      "svant": 1,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: colpo con il dado; se ferisce, 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +2; se ferisce, 1 svantaggio."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att13",
+   "costo": 2
+  },
+  {
+   "id": "att15",
+   "nome": "Colpo all'addome",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo all'addome",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo all'addome",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": -1,
+      "togli": "alto",
+      "pot": {
+       "piu": 1
+      }
+     },
+     "testo": "A contatto: colpo con il dado -1; se ferisce, perde il dado più alto.",
+     "testo_pot": "A contatto: colpo con il dado +1; se ferisce, perde il dado più alto."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att15",
+   "costo": 6
+  },
+  {
+   "id": "att18",
+   "nome": "Colpo con colpo",
+   "col": "rosso",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo con colpo",
+     "req": [
+      "r",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo con colpo",
+      "tipo": "colpo",
+      "n": 2,
+      "danno": "somma",
+      "piu": 0,
+      "non_scarta": true,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: colpo con la somma (non si scarta).",
+     "testo_pot": "A contatto: colpo con la somma +2 (non si scarta)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att18",
+   "costo": 1
+  },
+  {
+   "id": "schermidore",
+   "nome": "Agilità dello schermidore",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Muoviti",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Muoviti",
+      "tipo": "effetto",
+      "n": 1,
+      "passo": 2,
+      "vant": 1,
+      "pot": {
+       "vant": 2
+      }
+     },
+     "testo": "+1 vantaggio, avanzi fino a 2 esagoni.",
+     "testo_pot": "+2 vantaggi, avanzi fino a 2 esagoni."
+    },
+    {
+     "nome": "Schivata",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Schivata",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "schiva": true,
+      "vant": 1,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "testo": "Trappola: schivi, +1 vantaggio.",
+     "testo_pot": "Trappola: schivi, 1 svantaggio; +1 vantaggio."
+    }
+   ],
+   "entrambi": false,
+   "origine": "agilita",
+   "costo": 1
+  },
+  {
+   "id": "ladro",
+   "nome": "Agilità del ladro",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo fulmineo",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo fulmineo",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 0,
+      "iniziativa": true,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: colpo con il dado, mantieni l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +2, mantieni l'iniziativa."
+    },
+    {
+     "nome": "Balzo indietro",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Balzo indietro",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "schiva": true,
+      "arretra": 1,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "testo": "Trappola: schivi, arretri di 1 esagono.",
+     "testo_pot": "Trappola: schivi, 1 svantaggio; arretri di 1 esagono."
+    }
+   ],
+   "entrambi": false,
+   "origine": "velocita",
+   "costo": 2
+  },
+  {
+   "id": "danzatore",
+   "nome": "Agilità del danzatore",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Taglio girando",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Taglio girando",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "meta",
+      "piu": 0,
+      "aggira": 2,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: colpo con metà della somma, gli giri attorno di 2 esagoni.",
+     "testo_pot": "A contatto: colpo con metà della somma +2, gli giri attorno di 2 esagoni."
+    },
+    {
+     "nome": "Passo di danza",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Passo di danza",
+      "tipo": "effetto",
+      "n": 1,
+      "passo": 2,
+      "iniziativa": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "Avanzi fino a 2 esagoni, mantieni l'iniziativa.",
+     "testo_pot": "+1 vantaggio, avanzi fino a 2 esagoni, mantieni l'iniziativa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "equilibrio",
+   "costo": 1
+  },
+  {
+   "id": "gatto",
+   "nome": "Agilità del gatto",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Scatto di lato",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Scatto di lato",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "schiva": true,
+      "vant": 1,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "testo": "Trappola: schivi, +1 vantaggio.",
+     "testo_pot": "Trappola: schivi, 1 svantaggio; +1 vantaggio."
+    },
+    {
+     "nome": "Riposizionarsi",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Riposizionarsi",
+      "tipo": "effetto",
+      "n": 1,
+      "passo": 1,
+      "iniziativa": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "Avanzi fino a 1 esagono, mantieni l'iniziativa.",
+     "testo_pot": "+1 vantaggio, avanzi fino a 1 esagono, mantieni l'iniziativa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "riflessi",
+   "costo": 1
+  },
+  {
+   "id": "cecchino",
+   "nome": "Agilità del cecchino",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo di gomito",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo di gomito",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 2,
+      "piu": 0,
+      "non_scarta": true,
+      "pot": {
+       "danno": 4
+      }
+     },
+     "testo": "A contatto: colpo da 2 (non si scarta).",
+     "testo_pot": "A contatto: colpo da 4 (non si scarta)."
+    },
+    {
+     "nome": "Prendere le distanze",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Prendere le distanze",
+      "tipo": "effetto",
+      "n": 1,
+      "passo": 2,
+      "arretra": 2,
+      "iniziativa": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "Ti allontani di 2 esagoni, mantieni l'iniziativa.",
+     "testo_pot": "+1 vantaggio, ti allontani di 2 esagoni, mantieni l'iniziativa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "precisione",
+   "costo": 1
+  },
+  {
+   "id": "cacciatore",
+   "nome": "Agilità del cacciatore",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Schivata d'istinto",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Schivata d'istinto",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "schiva": true,
+      "danno": 1,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "testo": "Trappola: schivi, l'attaccante prende 1.",
+     "testo_pot": "Trappola: schivi, l'attaccante prende 1, 1 svantaggio."
+    },
+    {
+     "nome": "Colpo nel varco",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo nel varco",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "non_scarta": true,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con il dado +1 (non si scarta).",
+     "testo_pot": "A contatto: colpo con il dado +3 (non si scarta)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "istinto",
+   "costo": 6
+  },
+  {
+   "id": "giocoliere",
+   "nome": "Agilità del giocoliere",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Ritocco",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Ritocco",
+      "tipo": "effetto",
+      "n": 1,
+      "ritocca": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "+1 a tutti i dadi che hai in mano.",
+     "testo_pot": "+1 vantaggio, +1 a tutti i dadi che hai in mano."
+    },
+    {
+     "nome": "Passo svelto",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Passo svelto",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "schiva": true,
+      "vant": 1,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "testo": "Trappola: schivi, +1 vantaggio.",
+     "testo_pot": "Trappola: schivi, 1 svantaggio; +1 vantaggio."
+    }
+   ],
+   "entrambi": false,
+   "origine": "destrezza",
+   "costo": 1
+  },
+  {
+   "id": "acrobata",
+   "nome": "Agilità dell'acrobata",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Capriola",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Capriola",
+      "tipo": "effetto",
+      "n": 1,
+      "passo": 3,
+      "vant": 1,
+      "iniziativa": true,
+      "pot": {
+       "vant": 2
+      }
+     },
+     "testo": "+1 vantaggio, avanzi fino a 3 esagoni, mantieni l'iniziativa.",
+     "testo_pot": "+2 vantaggi, avanzi fino a 3 esagoni, mantieni l'iniziativa."
+    },
+    {
+     "nome": "Calcio rotante",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Calcio rotante",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 2,
+      "piu": 0,
+      "esposto": true,
+      "pot": {
+       "danno": 4
+      }
+     },
+     "testo": "A contatto: colpo da 2; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo).",
+     "testo_pot": "A contatto: colpo da 4; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "acrobata",
+   "costo": 1
+  },
+  {
+   "id": "borseggiatore",
+   "nome": "Agilità del borseggiatore",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Sfilare",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sfilare",
+      "tipo": "effetto",
+      "n": 1,
+      "togli": "alto",
+      "portata": 1,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "A contatto: perde il dado più alto.",
+     "testo_pot": "A contatto: perde il dado più alto; +1 vantaggio."
+    },
+    {
+     "nome": "Mano lesta",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Mano lesta",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 1,
+      "pot": {
+       "pesca": 2
+      }
+     },
+     "testo": "Peschi 1 dado.",
+     "testo_pot": "Peschi 2 dadi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "borseggiatore",
+   "costo": 6
+  },
+  {
+   "id": "passo_rapido",
+   "nome": "Passo rapido",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Passo rapido",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Passo rapido",
+      "tipo": "effetto",
+      "n": 1,
+      "passo": 2,
+      "iniziativa": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "Avanzi fino a 2 esagoni, mantieni l'iniziativa.",
+     "testo_pot": "+1 vantaggio, avanzi fino a 2 esagoni, mantieni l'iniziativa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "passo_rapido",
+   "costo": 1
+  },
+  {
+   "id": "riflesso",
+   "nome": "Riflesso fortunato",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Riflesso fortunato",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Riflesso fortunato",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "schiva": true,
+      "vant": 2,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "testo": "Trappola: schivi, +2 vantaggi.",
+     "testo_pot": "Trappola: schivi, 1 svantaggio; +2 vantaggi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "riflesso",
+   "costo": 4
+  },
+  {
+   "id": "rapido",
+   "nome": "Rapido",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Primo colpo",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Primo colpo",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 2,
+      "piu": 0,
+      "iniziativa": true,
+      "pot": {
+       "danno": 4
+      }
+     },
+     "testo": "A contatto: colpo da 2, mantieni l'iniziativa.",
+     "testo_pot": "A contatto: colpo da 4, mantieni l'iniziativa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "rapido",
+   "costo": 1
+  },
+  {
+   "id": "colpo_volo",
+   "nome": "Colpo in volo",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo in volo",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo in volo",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "entra": 2,
+      "iniziativa": true,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "Da 2 esagoni: entri e colpisci con il dado +1, mantieni l'iniziativa.",
+     "testo_pot": "Da 2 esagoni: entri e colpisci con il dado +3, mantieni l'iniziativa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "colpo_volo",
+   "costo": 2
+  },
+  {
+   "id": "piccoli_passi",
+   "nome": "Piccoli passi",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Piccoli passi",
+     "req": [
+      "g",
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Piccoli passi",
+      "tipo": "effetto",
+      "n": 2,
+      "passo": 4,
+      "iniziativa": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "Avanzi fino a 4 esagoni, mantieni l'iniziativa.",
+     "testo_pot": "+1 vantaggio, avanzi fino a 4 esagoni, mantieni l'iniziativa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "piccoli_passi",
+   "costo": 1
+  },
+  {
+   "id": "passo_laterale",
+   "nome": "Passo laterale",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Passo laterale",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Passo laterale",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "schiva": true,
+      "vant": 1,
+      "aggira": 1,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "testo": "Trappola: schivi, +1 vantaggio, gli giri attorno di 1 esagono.",
+     "testo_pot": "Trappola: schivi, 1 svantaggio; +1 vantaggio, gli giri attorno di 1 esagono."
+    }
+   ],
+   "entrambi": false,
+   "origine": "passo_laterale",
+   "costo": 2
+  },
+  {
+   "id": "colpo_mirato",
+   "nome": "Colpo alle spalle",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo alle spalle",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo alle spalle",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 0,
+      "aggira": 2,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: colpo con il dado, gli giri attorno di 2 esagoni.",
+     "testo_pot": "A contatto: colpo con il dado +2, gli giri attorno di 2 esagoni."
+    }
+   ],
+   "entrambi": false,
+   "origine": "colpo_mirato",
+   "costo": 1
+  },
+  {
+   "id": "sgambetto_v",
+   "nome": "Sgambetto del cortile",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Sgambetto",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sgambetto",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 1,
+      "piu": 0,
+      "esposto": true,
+      "aggira": 1,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: colpo da 1; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo); gli giri attorno di 1 esagono.",
+     "testo_pot": "A contatto: colpo da 3; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo); gli giri attorno di 1 esagono."
+    }
+   ],
+   "entrambi": false,
+   "origine": "sgambetto",
+   "costo": 2
+  },
+  {
+   "id": "sesto_senso",
+   "nome": "Sesto senso",
+   "col": "giallo",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Sesto senso",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sesto senso",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 1,
+      "pot": {
+       "pesca": 2
+      }
+     },
+     "testo": "Peschi 1 dado.",
+     "testo_pot": "Peschi 2 dadi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "sesto_senso",
+   "costo": 6
+  },
+  {
+   "id": "veterano",
+   "nome": "Percezione del veterano",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Incassare",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Incassare",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "riduci": 3,
+      "pot": {
+       "riduci": 5
+      }
+     },
+     "testo": "Trappola: il colpo fa 3 danni in meno.",
+     "testo_pot": "Trappola: il colpo fa 5 danni in meno."
+    },
+    {
+     "nome": "Rigenerarsi",
+     "req": [
+      "b",
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Rigenerarsi",
+      "tipo": "effetto",
+      "n": 2,
+      "cura": 3,
+      "pot": {
+       "cura": 4
+      }
+     },
+     "testo": "Recuperi 3 ferite.",
+     "testo_pot": "Recuperi 4 ferite."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tempra",
+   "costo": 1
+  },
+  {
+   "id": "legionario",
+   "nome": "Percezione del legionario",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Riprendere fiato",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Riprendere fiato",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 1,
+      "pulisci": true,
+      "pot": {
+       "pesca": 2
+      }
+     },
+     "testo": "Togli i tuoi svantaggi, peschi 1 dado.",
+     "testo_pot": "Togli i tuoi svantaggi, peschi 2 dadi."
+    },
+    {
+     "nome": "Respinta",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Respinta",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "colpo",
+      "riduci": 2,
+      "spinta": 1,
+      "pot": {
+       "riduci": 4
+      }
+     },
+     "testo": "Trappola contro i colpi: il colpo fa 2 danni in meno, spinta di 1 esagono.",
+     "testo_pot": "Trappola contro i colpi: il colpo fa 4 danni in meno, spinta di 1 esagono."
+    }
+   ],
+   "entrambi": false,
+   "origine": "resistenza",
+   "costo": 8
+  },
+  {
+   "id": "monaco",
+   "nome": "Percezione del monaco",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Ostinazione",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Ostinazione",
+      "tipo": "effetto",
+      "n": 1,
+      "pulisci": true,
+      "vant": 1,
+      "pot": {
+       "vant": 2
+      }
+     },
+     "testo": "+1 vantaggio, togli i tuoi svantaggi.",
+     "testo_pot": "+2 vantaggi, togli i tuoi svantaggi."
+    },
+    {
+     "nome": "Non cedere",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Non cedere",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "riduci": 2,
+      "pot": {
+       "riduci": 4
+      }
+     },
+     "testo": "Trappola: il colpo fa 2 danni in meno.",
+     "testo_pot": "Trappola: il colpo fa 4 danni in meno."
+    }
+   ],
+   "entrambi": false,
+   "origine": "volonta",
+   "costo": 1
+  },
+  {
+   "id": "gigante",
+   "nome": "Percezione del gigante",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Pelle dura",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Pelle dura",
+      "tipo": "guardia",
+      "n": 1,
+      "riduci": 1,
+      "pot": {
+       "riduci": 2
+      }
+     },
+     "testo": "Guardia: il prossimo colpo che ricevi fa 1 danno in meno.",
+     "testo_pot": "Guardia: il prossimo colpo che ricevi fa 2 danni in meno."
+    },
+    {
+     "nome": "Spinta di peso",
+     "req": [
+      "b"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Spinta di peso",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 2,
+      "piu": 0,
+      "spinta": 2,
+      "freccia": 2,
+      "pot": {
+       "danno": 4
+      }
+     },
+     "testo": "A contatto: colpo da 2; se ferisce, spinta di 2 esagoni.",
+     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 2 esagoni."
+    }
+   ],
+   "entrambi": false,
+   "origine": "costituzione",
+   "costo": 1
+  },
+  {
+   "id": "montanaro",
+   "nome": "Percezione del montanaro",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Fiato di montagna",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Fiato di montagna",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 1,
+      "pot": {
+       "pesca": 2
+      }
+     },
+     "testo": "Peschi 1 dado.",
+     "testo_pot": "Peschi 2 dadi."
+    },
+    {
+     "nome": "Roccia",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Roccia",
+      "tipo": "guardia",
+      "n": 1,
+      "riduci": 2,
+      "pot": {
+       "riduci": 3
+      }
+     },
+     "testo": "Guardia: il prossimo colpo che ricevi fa 2 danni in meno.",
+     "testo_pot": "Guardia: il prossimo colpo che ricevi fa 3 danni in meno."
+    }
+   ],
+   "entrambi": false,
+   "origine": "montanaro",
+   "costo": 8
+  },
+  {
+   "id": "marinaio",
+   "nome": "Percezione del marinaio",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Gamba ferma",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Gamba ferma",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "riduci": 2,
+      "pot": {
+       "riduci": 4
+      }
+     },
+     "testo": "Trappola: il colpo fa 2 danni in meno.",
+     "testo_pot": "Trappola: il colpo fa 4 danni in meno."
+    },
+    {
+     "nome": "Rollio",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Rollio",
+      "tipo": "effetto",
+      "n": 1,
+      "rovescia": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "Il tuo dado più basso in mano si gira sulla faccia opposta.",
+     "testo_pot": "+1 vantaggio, il tuo dado più basso in mano si gira sulla faccia opposta."
+    }
+   ],
+   "entrambi": false,
+   "origine": "marinaio",
+   "costo": 1
+  },
+  {
+   "id": "orso",
+   "nome": "Percezione dell'orso",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Abbraccio",
+     "req": [
+      "b",
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Abbraccio",
+      "tipo": "presa",
+      "n": 2,
+      "danno": "somma",
+      "togli": "alto",
+      "tieni": true,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: afferri (la somma di danno), perde il dado più alto, lo tieni (non può muoversi).",
+     "testo_pot": "A contatto: afferri (la somma +2 di danno), perde il dado più alto, lo tieni (non può muoversi)."
+    },
+    {
+     "nome": "Pelliccia",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Pelliccia",
+      "tipo": "guardia",
+      "n": 1,
+      "riduci": 1,
+      "pot": {
+       "riduci": 2
+      }
+     },
+     "testo": "Guardia: il prossimo colpo che ricevi fa 1 danno in meno.",
+     "testo_pot": "Guardia: il prossimo colpo che ricevi fa 2 danni in meno."
+    }
+   ],
+   "entrambi": false,
+   "origine": "orso",
+   "costo": 1
+  },
+  {
+   "id": "penitente",
+   "nome": "Percezione del penitente",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Sopportare",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sopportare",
+      "tipo": "effetto",
+      "n": 1,
+      "cura": 2,
+      "pot": {
+       "cura": 3
+      }
+     },
+     "testo": "Recuperi 2 ferite.",
+     "testo_pot": "Recuperi 3 ferite."
+    },
+    {
+     "nome": "Carne dura",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Carne dura",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "riduci": 2,
+      "pot": {
+       "riduci": 4
+      }
+     },
+     "testo": "Trappola: il colpo fa 2 danni in meno.",
+     "testo_pot": "Trappola: il colpo fa 4 danni in meno."
+    }
+   ],
+   "entrambi": false,
+   "origine": "penitente",
+   "costo": 1
+  },
+  {
+   "id": "guardiano",
+   "nome": "Percezione del guardiano",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Muro",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Muro",
+      "tipo": "guardia",
+      "n": 1,
+      "riduci": 2,
+      "pot": {
+       "riduci": 3
+      }
+     },
+     "testo": "Guardia: il prossimo colpo che ricevi fa 2 danni in meno.",
+     "testo_pot": "Guardia: il prossimo colpo che ricevi fa 3 danni in meno."
+    },
+    {
+     "nome": "Non passare",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Non passare",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "colpo",
+      "riduci": 2,
+      "spinta": 1,
+      "pot": {
+       "riduci": 4
+      }
+     },
+     "testo": "Trappola contro i colpi: il colpo fa 2 danni in meno, spinta di 1 esagono.",
+     "testo_pot": "Trappola contro i colpi: il colpo fa 4 danni in meno, spinta di 1 esagono."
+    }
+   ],
+   "entrambi": false,
+   "origine": "guardiano",
+   "costo": 3
+  },
+  {
+   "id": "corridore",
+   "nome": "Percezione del corridore",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Lunga corsa",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Lunga corsa",
+      "tipo": "effetto",
+      "n": 1,
+      "passo": 3,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "Avanzi fino a 3 esagoni.",
+     "testo_pot": "+1 vantaggio, avanzi fino a 3 esagoni."
+    },
+    {
+     "nome": "Reggere il colpo",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Reggere il colpo",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "riduci": 2,
+      "pot": {
+       "riduci": 4
+      }
+     },
+     "testo": "Trappola: il colpo fa 2 danni in meno.",
+     "testo_pot": "Trappola: il colpo fa 4 danni in meno."
+    }
+   ],
+   "entrambi": false,
+   "origine": "corridore",
+   "costo": 1
+  },
+  {
+   "id": "cambio_guardia",
+   "nome": "Cambio di guardia",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Cambio di guardia",
+     "req": [
+      "b",
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Cambio di guardia",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "riduci": 4,
+      "pot": {
+       "riduci": 6
+      }
+     },
+     "testo": "Trappola: il colpo fa 4 danni in meno.",
+     "testo_pot": "Trappola: il colpo fa 6 danni in meno."
+    }
+   ],
+   "entrambi": false,
+   "origine": "cambio_guardia",
+   "costo": 1
+  },
+  {
+   "id": "guardia_alta",
+   "nome": "Guardia alta",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Guardia alta",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Guardia alta",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "riduci": 3,
+      "pot": {
+       "riduci": 5
+      }
+     },
+     "testo": "Trappola: il colpo fa 3 danni in meno.",
+     "testo_pot": "Trappola: il colpo fa 5 danni in meno."
+    }
+   ],
+   "entrambi": false,
+   "origine": "guardia_alta",
+   "costo": 3
+  },
+  {
+   "id": "ferro",
+   "nome": "Volontà di ferro",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Volontà di ferro",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Volontà di ferro",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "riduci": 3,
+      "pulisci": true,
+      "pot": {
+       "riduci": 5
+      }
+     },
+     "testo": "Trappola: il colpo fa 3 danni in meno, togli i tuoi svantaggi.",
+     "testo_pot": "Trappola: il colpo fa 5 danni in meno, togli i tuoi svantaggi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "ferro",
+   "costo": 2
+  },
+  {
+   "id": "riscossa",
+   "nome": "Riscossa",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Riscossa",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Riscossa",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 1,
+      "pulisci": true,
+      "pot": {
+       "pesca": 2
+      }
+     },
+     "testo": "Togli i tuoi svantaggi, peschi 1 dado.",
+     "testo_pot": "Togli i tuoi svantaggi, peschi 2 dadi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "riscossa",
+   "costo": 6
+  },
+  {
+   "id": "tenacia",
+   "nome": "Tenacia",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Stringere i denti",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Stringere i denti",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "riduci": 2,
+      "vant": 1,
+      "pot": {
+       "riduci": 4
+      }
+     },
+     "testo": "Trappola: il colpo fa 2 danni in meno, +1 vantaggio.",
+     "testo_pot": "Trappola: il colpo fa 4 danni in meno, +1 vantaggio."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tenacia",
+   "costo": 2
+  },
+  {
+   "id": "fiato_lungo",
+   "nome": "Fiato lungo",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Respiro",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Respiro",
+      "tipo": "effetto",
+      "n": 1,
+      "cura": 1,
+      "pesca": 1,
+      "pot": {
+       "cura": 2
+      }
+     },
+     "testo": "Recuperi 1 ferita, peschi 1 dado.",
+     "testo_pot": "Recuperi 2 ferite, peschi 1 dado."
+    }
+   ],
+   "entrambi": false,
+   "origine": "fiato_lungo",
+   "costo": 8
+  },
+  {
+   "id": "seconda_aria",
+   "nome": "Seconda aria",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Seconda aria",
+     "req": [
+      "b",
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Seconda aria",
+      "tipo": "effetto",
+      "n": 2,
+      "cura": 2,
+      "pesca": 1,
+      "pot": {
+       "cura": 3
+      }
+     },
+     "testo": "Recuperi 2 ferite, peschi 1 dado.",
+     "testo_pot": "Recuperi 3 ferite, peschi 1 dado."
+    }
+   ],
+   "entrambi": false,
+   "origine": "seconda_aria",
+   "costo": 1
+  },
+  {
+   "id": "cuore_leone",
+   "nome": "Cuore di leone",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Non arretrare",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Non arretrare",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "riduci": 2,
+      "vant": 1,
+      "pot": {
+       "riduci": 4
+      }
+     },
+     "testo": "Trappola: il colpo fa 2 danni in meno, +1 vantaggio.",
+     "testo_pot": "Trappola: il colpo fa 4 danni in meno, +1 vantaggio."
+    }
+   ],
+   "entrambi": false,
+   "origine": "cuore_leone",
+   "costo": 2
+  },
+  {
+   "id": "tenere",
+   "nome": "Tenere la guardia",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Rinsalda",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Rinsalda",
+      "tipo": "guardia",
+      "n": 1,
+      "riduci": 1,
+      "vant": 1,
+      "pot": {
+       "riduci": 2
+      }
+     },
+     "testo": "Guardia: il prossimo colpo che ricevi fa 1 danno in meno, +1 vantaggio.",
+     "testo_pot": "Guardia: il prossimo colpo che ricevi fa 2 danni in meno, +1 vantaggio."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tenere",
+   "costo": 1
+  },
+  {
+   "id": "respingere",
+   "nome": "Respingere",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Respingere",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Respingere",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "colpo",
+      "riduci": 2,
+      "spinta": 1,
+      "pot": {
+       "riduci": 4
+      }
+     },
+     "testo": "Trappola contro i colpi: il colpo fa 2 danni in meno, spinta di 1 esagono.",
+     "testo_pot": "Trappola contro i colpi: il colpo fa 4 danni in meno, spinta di 1 esagono."
+    }
+   ],
+   "entrambi": false,
+   "origine": "respingere",
+   "costo": 1
+  },
+  {
+   "id": "respiro_profondo_v",
+   "nome": "Respiro del vecchio maestro",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Respiro del maestro",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Respiro del maestro",
+      "tipo": "effetto",
+      "n": 1,
+      "cura": 2,
+      "pot": {
+       "cura": 3
+      }
+     },
+     "testo": "Recuperi 2 ferite.",
+     "testo_pot": "Recuperi 3 ferite."
+    }
+   ],
+   "entrambi": false,
+   "origine": "respiro_profondo",
+   "costo": 3
+  },
+  {
+   "id": "gestione_fiato",
+   "nome": "Gestione del fiato",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Espira",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Espira",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 1,
+      "pot": {
+       "pesca": 2
+      }
+     },
+     "testo": "Peschi 1 dado.",
+     "testo_pot": "Peschi 2 dadi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "gestione_del_fiato",
+   "costo": 7
+  },
+  {
+   "id": "raccogliere",
+   "nome": "Raccogliere le forze",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Raccogliere le forze",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Raccogliere le forze",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 2,
+      "pot": {
+       "pesca": 3
+      }
+     },
+     "testo": "Peschi 2 dadi.",
+     "testo_pot": "Peschi 3 dadi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "raccogliere_le_forze",
+   "costo": 8
+  },
+  {
+   "id": "sopravvivenza",
+   "nome": "Istinto di sopravvivenza",
+   "col": "blu",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Istinto",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Istinto",
+      "tipo": "effetto",
+      "n": 1,
+      "cura": 1,
+      "pesca": 1,
+      "pot": {
+       "cura": 2
+      }
+     },
+     "testo": "Recuperi 1 ferita, peschi 1 dado.",
+     "testo_pot": "Recuperi 2 ferite, peschi 1 dado."
+    }
+   ],
+   "entrambi": false,
+   "origine": "istinto_di_sopravvivenza",
+   "costo": 6
+  },
+  {
+   "id": "assalto",
+   "nome": "Assalto",
+   "col": "arancio",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Carica",
+     "req": [
+      "r",
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Carica",
+      "tipo": "colpo",
+      "n": 2,
+      "danno": "somma",
+      "piu": 1,
+      "entra": 4,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "Da 4 esagoni: entri e colpisci con la somma +1.",
+     "testo_pot": "Da 4 esagoni: entri e colpisci con la somma +3."
+    }
+   ],
+   "entrambi": false,
+   "origine": "assalto",
+   "costo": 1
+  },
+  {
+   "id": "spallata",
+   "nome": "Spallata di corsa",
+   "col": "arancio",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Spallata di corsa",
+     "req": [
+      "r",
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Spallata di corsa",
+      "tipo": "colpo",
+      "n": 2,
+      "danno": 2,
+      "piu": 0,
+      "spinta": 2,
+      "iniziativa": true,
+      "pot": {
+       "danno": 4
+      }
+     },
+     "testo": "A contatto: colpo da 2; se ferisce, spinta di 2 esagoni; mantieni l'iniziativa.",
+     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 2 esagoni; mantieni l'iniziativa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "spallata",
+   "costo": 1
+  },
+  {
+   "id": "tempesta",
+   "nome": "Tempesta di colpi",
+   "col": "arancio",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Raffica",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Raffica",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 2,
+      "piu": 0,
+      "iniziativa": true,
+      "pot": {
+       "danno": 4
+      }
+     },
+     "testo": "A contatto: colpo da 2, mantieni l'iniziativa.",
+     "testo_pot": "A contatto: colpo da 4, mantieni l'iniziativa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tempesta_colpi",
+   "costo": 1
+  },
+  {
+   "id": "doppio_pari",
+   "nome": "Doppio pari",
+   "col": "arancio",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Doppio pari",
+     "req": [
+      "r",
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Doppio pari",
+      "tipo": "colpo",
+      "n": 2,
+      "danno": "meta",
+      "piu": 1,
+      "iniziativa": true,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con metà della somma +1, mantieni l'iniziativa.",
+     "testo_pot": "A contatto: colpo con metà della somma +3, mantieni l'iniziativa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "doppio_pari",
+   "costo": 1
+  },
+  {
+   "id": "calibrato",
+   "nome": "Colpo calibrato",
+   "col": "arancio",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo calibrato",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo calibrato",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "non_scarta": true,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con il dado +1 (non si scarta).",
+     "testo_pot": "A contatto: colpo con il dado +3 (non si scarta)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "calibrato",
+   "costo": 3
+  },
+  {
+   "id": "affondo_v",
+   "nome": "Affondo e rientro del duellante",
+   "col": "arancio",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Affondo",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Affondo",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 0,
+      "entra": 2,
+      "arretra": 2,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "Da 2 esagoni: entri e colpisci con il dado, arretri di 2 esagoni.",
+     "testo_pot": "Da 2 esagoni: entri e colpisci con il dado +2, arretri di 2 esagoni."
+    }
+   ],
+   "entrambi": false,
+   "origine": "affondo_rientro",
+   "costo": 1
+  },
+  {
+   "id": "traverso",
+   "nome": "Colpo di traverso",
+   "col": "arancio",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo di traverso",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo di traverso",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 2,
+      "piu": 0,
+      "spinta": 2,
+      "esposto": true,
+      "pot": {
+       "danno": 4
+      }
+     },
+     "testo": "A contatto: colpo da 2; se ferisce, spinta di 2 esagoni, si gira e ti offre il fianco (+1 al tuo prossimo colpo).",
+     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 2 esagoni, si gira e ti offre il fianco (+1 al tuo prossimo colpo)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "traverso",
+   "costo": 1
+  },
+  {
+   "id": "danza_guerra",
+   "nome": "Danza di guerra",
+   "col": "arancio",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Girare attorno",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Girare attorno",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "aggira": 2,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con il dado +1, gli giri attorno di 2 esagoni.",
+     "testo_pot": "A contatto: colpo con il dado +3, gli giri attorno di 2 esagoni."
+    }
+   ],
+   "entrambi": false,
+   "origine": "danza_guerra",
+   "costo": 7
+  },
+  {
+   "id": "logoramento",
+   "nome": "Tecnica del logoramento",
+   "col": "arancio",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Sciogli la presa",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sciogli la presa",
+      "tipo": "effetto",
+      "n": 1,
+      "libera": true,
+      "vant": 1,
+      "pot": {
+       "vant": 2
+      }
+     },
+     "testo": "+1 vantaggio, ti liberi dalla presa.",
+     "testo_pot": "+2 vantaggi, ti liberi dalla presa."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tecnica_del_logoramento",
+   "costo": 1
+  },
+  {
+   "id": "att14",
+   "nome": "Colpo circolare alla testa",
+   "col": "arancio",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Colpo circolare alla testa",
+     "req": [
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo circolare alla testa",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": -1,
+      "esposto": true,
+      "pot": {
+       "piu": 1
+      }
+     },
+     "testo": "A contatto: colpo con il dado -1; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo).",
+     "testo_pot": "A contatto: colpo con il dado +1; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att14",
+   "costo": 3
+  },
+  {
+   "id": "att17",
+   "nome": "Presa con colpo",
+   "col": "arancio",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Presa con colpo",
+     "req": [
+      "r",
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Presa con colpo",
+      "tipo": "presa",
+      "n": 2,
+      "danno": "dado",
+      "togli": "alto",
+      "tieni": true,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: afferri (il dado di danno), perde il dado più alto, lo tieni (non può muoversi).",
+     "testo_pot": "A contatto: afferri (il dado +2 di danno), perde il dado più alto, lo tieni (non può muoversi)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att17",
+   "costo": 1
+  },
+  {
+   "id": "riposo_tattico",
+   "nome": "Riposo tattico",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Pausa tattica",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Pausa tattica",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 1,
+      "cura": 1,
+      "pot": {
+       "cura": 2
+      }
+     },
+     "testo": "Recuperi 1 ferita, peschi 1 dado.",
+     "testo_pot": "Recuperi 2 ferite, peschi 1 dado."
+    }
+   ],
+   "entrambi": false,
+   "origine": "riposo_tattico",
+   "costo": 8
+  },
+  {
+   "id": "disciplina",
+   "nome": "Disciplina del duellante",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Ritrovare il tempo",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Ritrovare il tempo",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 1,
+      "vant": 1,
+      "pot": {
+       "pesca": 2
+      }
+     },
+     "testo": "+1 vantaggio, peschi 1 dado.",
+     "testo_pot": "+1 vantaggio, peschi 2 dadi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "disciplina_del_duellante",
+   "costo": 8
+  },
+  {
+   "id": "preparazione",
+   "nome": "Preparazione del ritorno",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Messa a punto",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Messa a punto",
+      "tipo": "effetto",
+      "n": 1,
+      "ritocca": true,
+      "vant": 1,
+      "pot": {
+       "vant": 2
+      }
+     },
+     "testo": "+1 vantaggio, +1 a tutti i dadi che hai in mano.",
+     "testo_pot": "+2 vantaggi, +1 a tutti i dadi che hai in mano."
+    }
+   ],
+   "entrambi": false,
+   "origine": "preparazione_del_ritorno",
+   "costo": 1
+  },
+  {
+   "id": "torsione",
+   "nome": "Torsione",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Torsione",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Torsione",
+      "tipo": "effetto",
+      "n": 1,
+      "esposto": true,
+      "svant": 1,
+      "portata": 1,
+      "pot": {
+       "svant": 2
+      }
+     },
+     "testo": "A contatto: 1 svantaggio, si gira e ti offre il fianco (+1 al tuo prossimo colpo).",
+     "testo_pot": "A contatto: 2 svantaggi, si gira e ti offre il fianco (+1 al tuo prossimo colpo)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "torsione",
+   "costo": 2
+  },
+  {
+   "id": "pazienza",
+   "nome": "Pazienza",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Attendere",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Attendere",
+      "tipo": "effetto",
+      "n": 1,
+      "ritocca": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "+1 a tutti i dadi che hai in mano.",
+     "testo_pot": "+1 vantaggio, +1 a tutti i dadi che hai in mano."
+    }
+   ],
+   "entrambi": false,
+   "origine": "pazienza",
+   "costo": 1
+  },
+  {
+   "id": "cammino",
+   "nome": "Cammino del vento",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Cammino del vento",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Cammino del vento",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "schiva": true,
+      "vant": 2,
+      "aggira": 2,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "testo": "Trappola: schivi, +2 vantaggi, gli giri attorno di 2 esagoni.",
+     "testo_pot": "Trappola: schivi, 1 svantaggio; +2 vantaggi, gli giri attorno di 2 esagoni."
+    }
+   ],
+   "entrambi": false,
+   "origine": "",
+   "costo": 1
+  },
+  {
+   "id": "tattico",
+   "nome": "Mente del tattico",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Intimidire",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Intimidire",
+      "tipo": "effetto",
+      "n": 1,
+      "svant": 1,
+      "togli": "alto",
+      "portata": 4,
+      "pot": {
+       "svant": 2
+      }
+     },
+     "testo": "Entro 4 esagoni: 1 svantaggio, perde il dado più alto.",
+     "testo_pot": "Entro 4 esagoni: 2 svantaggi, perde il dado più alto."
+    },
+    {
+     "nome": "Leggere la mossa",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Leggere la mossa",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "riduci": 3,
+      "pot": {
+       "riduci": 5
+      }
+     },
+     "testo": "Trappola: il colpo fa 3 danni in meno.",
+     "testo_pot": "Trappola: il colpo fa 5 danni in meno."
+    }
+   ],
+   "entrambi": false,
+   "origine": "mente",
+   "costo": 7
+  },
+  {
+   "id": "imbroglione",
+   "nome": "Mente dell'imbroglione",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Finta",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Finta",
+      "tipo": "effetto",
+      "n": 1,
+      "togli": "alto",
+      "iniziativa": true,
+      "portata": 3,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "Entro 3 esagoni: perde il dado più alto; mantieni l'iniziativa.",
+     "testo_pot": "Entro 3 esagoni: perde il dado più alto; +1 vantaggio, mantieni l'iniziativa."
+    },
+    {
+     "nome": "Rovescio",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Rovescio",
+      "tipo": "effetto",
+      "n": 1,
+      "rovescia": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "Il tuo dado più basso in mano si gira sulla faccia opposta.",
+     "testo_pot": "+1 vantaggio, il tuo dado più basso in mano si gira sulla faccia opposta."
+    }
+   ],
+   "entrambi": false,
+   "origine": "astuzia",
+   "costo": 5
+  },
+  {
+   "id": "stratega",
+   "nome": "Mente dello stratega",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Eco della mente",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Eco della mente",
+      "tipo": "effetto",
+      "n": 1,
+      "ritocca": true,
+      "vant": 1,
+      "pot": {
+       "vant": 2
+      }
+     },
+     "testo": "+1 vantaggio, +1 a tutti i dadi che hai in mano.",
+     "testo_pot": "+2 vantaggi, +1 a tutti i dadi che hai in mano."
+    },
+    {
+     "nome": "Anticipare",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Anticipare",
+      "tipo": "guardia",
+      "n": 1,
+      "riduci": 2,
+      "pot": {
+       "riduci": 3
+      }
+     },
+     "testo": "Guardia: il prossimo colpo che ricevi fa 2 danni in meno.",
+     "testo_pot": "Guardia: il prossimo colpo che ricevi fa 3 danni in meno."
+    }
+   ],
+   "entrambi": false,
+   "origine": "intelletto",
+   "costo": 2
+  },
+  {
+   "id": "veggente",
+   "nome": "Mente del veggente",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Vedere il colpo",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Vedere il colpo",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "riduci": 3,
+      "vant": 1,
+      "pot": {
+       "riduci": 5
+      }
+     },
+     "testo": "Trappola: il colpo fa 3 danni in meno, +1 vantaggio.",
+     "testo_pot": "Trappola: il colpo fa 5 danni in meno, +1 vantaggio."
+    },
+    {
+     "nome": "Sogno premonitore",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sogno premonitore",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 1,
+      "pot": {
+       "pesca": 2
+      }
+     },
+     "testo": "Peschi 1 dado.",
+     "testo_pot": "Peschi 2 dadi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "veggente",
+   "costo": 5
+  },
+  {
+   "id": "azzardo",
+   "nome": "Mente del giocatore d'azzardo",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Puntata",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Puntata",
+      "tipo": "effetto",
+      "n": 1,
+      "rovescia": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "Il tuo dado più basso in mano si gira sulla faccia opposta.",
+     "testo_pot": "+1 vantaggio, il tuo dado più basso in mano si gira sulla faccia opposta."
+    },
+    {
+     "nome": "Bluff",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Bluff",
+      "tipo": "effetto",
+      "n": 1,
+      "togli": "caso",
+      "portata": 2,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "Entro 2 esagoni: perde il dado a caso.",
+     "testo_pot": "Entro 2 esagoni: perde il dado a caso; +1 vantaggio."
+    }
+   ],
+   "entrambi": false,
+   "origine": "azzardo",
+   "costo": 2
+  },
+  {
+   "id": "maestro_armi",
+   "nome": "Mente del maestro d'armi",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Lezione",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Lezione",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "vant": 1,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "testo": "A contatto: colpo con il dado +1, +1 vantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +3, +1 vantaggio."
+    },
+    {
+     "nome": "Studio",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Studio",
+      "tipo": "effetto",
+      "n": 1,
+      "ritocca": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "+1 a tutti i dadi che hai in mano.",
+     "testo_pot": "+1 vantaggio, +1 a tutti i dadi che hai in mano."
+    }
+   ],
+   "entrambi": false,
+   "origine": "maestro",
+   "costo": 7
+  },
+  {
+   "id": "ipnotista",
+   "nome": "Mente dell'ipnotista",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Sguardo fisso",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sguardo fisso",
+      "tipo": "effetto",
+      "n": 1,
+      "togli": "alto",
+      "svant": 1,
+      "portata": 2,
+      "pot": {
+       "svant": 2
+      }
+     },
+     "testo": "Entro 2 esagoni: 1 svantaggio, perde il dado più alto.",
+     "testo_pot": "Entro 2 esagoni: 2 svantaggi, perde il dado più alto."
+    },
+    {
+     "nome": "Suggestione",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Suggestione",
+      "tipo": "effetto",
+      "n": 1,
+      "esposto": true,
+      "portata": 2,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "Entro 2 esagoni: si gira e ti offre il fianco (+1 al tuo prossimo colpo).",
+     "testo_pot": "Entro 2 esagoni: si gira e ti offre il fianco (+1 al tuo prossimo colpo); +1 vantaggio."
+    }
+   ],
+   "entrambi": false,
+   "origine": "ipnotista",
+   "costo": 3
+  },
+  {
+   "id": "cacciatore_taglie",
+   "nome": "Mente del cacciatore di taglie",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Prevedere",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Prevedere",
+      "tipo": "guardia",
+      "n": 1,
+      "riduci": 2,
+      "pot": {
+       "riduci": 3
+      }
+     },
+     "testo": "Guardia: il prossimo colpo che ricevi fa 2 danni in meno.",
+     "testo_pot": "Guardia: il prossimo colpo che ricevi fa 3 danni in meno."
+    },
+    {
+     "nome": "Braccare",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Braccare",
+      "tipo": "effetto",
+      "n": 1,
+      "esposto": true,
+      "svant": 1,
+      "portata": 2,
+      "pot": {
+       "svant": 2
+      }
+     },
+     "testo": "Entro 2 esagoni: 1 svantaggio, si gira e ti offre il fianco (+1 al tuo prossimo colpo).",
+     "testo_pot": "Entro 2 esagoni: 2 svantaggi, si gira e ti offre il fianco (+1 al tuo prossimo colpo)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "cacciatore_taglie",
+   "costo": 4
+  },
+  {
+   "id": "monaco_guerriero",
+   "nome": "Mente del monaco guerriero",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Calma",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Calma",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 1,
+      "pulisci": true,
+      "pot": {
+       "pesca": 2
+      }
+     },
+     "testo": "Togli i tuoi svantaggi, peschi 1 dado.",
+     "testo_pot": "Togli i tuoi svantaggi, peschi 2 dadi."
+    },
+    {
+     "nome": "Palmo",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Palmo",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 2,
+      "piu": 0,
+      "spinta": 1,
+      "pot": {
+       "danno": 4
+      }
+     },
+     "testo": "A contatto: colpo da 2; se ferisce, spinta di 1 esagono.",
+     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 1 esagono."
+    }
+   ],
+   "entrambi": false,
+   "origine": "monaco_guerriero",
+   "costo": 8
+  },
+  {
+   "id": "proiezione_v",
+   "nome": "Proiezione",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Proiezione",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Proiezione",
+      "tipo": "presa",
+      "n": 2,
+      "danno": "meta",
+      "proietta": 3,
+      "a_terra": true,
+      "freccia": 2,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: afferri (metà della somma di danno), lo proietti attorno a te di 3 esagoni, resta a terra.",
+     "testo_pot": "A contatto: afferri (metà della somma +2 di danno), lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": true,
+   "origine": "proiezione",
+   "costo": 1
+  },
+  {
+   "id": "specchio",
+   "nome": "Specchio dell'anima",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Specchio",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Specchio",
+      "tipo": "effetto",
+      "n": 1,
+      "ritocca": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "testo": "+1 a tutti i dadi che hai in mano.",
+     "testo_pot": "+1 vantaggio, +1 a tutti i dadi che hai in mano."
+    }
+   ],
+   "entrambi": false,
+   "origine": "specchio",
+   "costo": 2
+  },
+  {
+   "id": "att01",
+   "nome": "Presa al polso",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Presa al polso",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Presa al polso",
+      "tipo": "presa",
+      "n": 1,
+      "danno": 1,
+      "togli": "caso",
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: afferri (1 di danno), perde il dado a caso.",
+     "testo_pot": "A contatto: afferri (3 di danno), perde il dado a caso."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att01",
+   "costo": 1
+  },
+  {
+   "id": "att02",
+   "nome": "Presa al polso in diagonale",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Presa al polso in diagonale",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Presa al polso in diagonale",
+      "tipo": "presa",
+      "n": 1,
+      "danno": 1,
+      "togli": "caso",
+      "esposto": true,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: afferri (1 di danno), perde il dado a caso, si gira e ti offre il fianco (+1 al tuo prossimo colpo).",
+     "testo_pot": "A contatto: afferri (3 di danno), perde il dado a caso, si gira e ti offre il fianco (+1 al tuo prossimo colpo)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att02",
+   "costo": 1
+  },
+  {
+   "id": "att03",
+   "nome": "Due mani su un braccio",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Due mani su un braccio",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Due mani su un braccio",
+      "tipo": "presa",
+      "n": 2,
+      "danno": 1,
+      "togli": "caso",
+      "ntogli": 2,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: afferri (1 di danno), perde 2 dadi (a caso).",
+     "testo_pot": "A contatto: afferri (3 di danno), perde 2 dadi (a caso)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att03",
+   "costo": 1
+  },
+  {
+   "id": "att04",
+   "nome": "Presa alle due braccia",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Presa alle due braccia",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Presa alle due braccia",
+      "tipo": "presa",
+      "n": 2,
+      "danno": 1,
+      "togli": "caso",
+      "ntogli": 2,
+      "svant": 1,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: afferri (1 di danno), 1 svantaggio, perde 2 dadi (a caso).",
+     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio, perde 2 dadi (a caso)."
+    }
+   ],
+   "entrambi": true,
+   "origine": "att04",
+   "costo": 1
+  },
+  {
+   "id": "att05",
+   "nome": "Presa alla spalla",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Presa alla spalla",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Presa alla spalla",
+      "tipo": "presa",
+      "n": 1,
+      "danno": 1,
+      "svant": 1,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: afferri (1 di danno), 1 svantaggio.",
+     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att05",
+   "costo": 1
+  },
+  {
+   "id": "att06",
+   "nome": "Presa alle due spalle",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Presa alle due spalle",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Presa alle due spalle",
+      "tipo": "presa",
+      "n": 2,
+      "danno": 2,
+      "svant": 2,
+      "pot": {
+       "danno": 4
+      }
+     },
+     "testo": "A contatto: afferri (2 di danno), 2 svantaggi.",
+     "testo_pot": "A contatto: afferri (4 di danno), 2 svantaggi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att06",
+   "costo": 2
+  },
+  {
+   "id": "att07",
+   "nome": "Polsi da dietro",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Polsi da dietro",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Polsi da dietro",
+      "tipo": "presa",
+      "n": 2,
+      "danno": 1,
+      "togli": "caso",
+      "ntogli": 2,
+      "tieni": true,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: afferri (1 di danno), perde 2 dadi (a caso), lo tieni (non può muoversi).",
+     "testo_pot": "A contatto: afferri (3 di danno), perde 2 dadi (a caso), lo tieni (non può muoversi)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att07",
+   "costo": 1
+  },
+  {
+   "id": "att08",
+   "nome": "Gomiti da dietro",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Gomiti da dietro",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Gomiti da dietro",
+      "tipo": "presa",
+      "n": 2,
+      "danno": 1,
+      "togli": "caso",
+      "ntogli": 2,
+      "svant": 1,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: afferri (1 di danno), 1 svantaggio, perde 2 dadi (a caso).",
+     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio, perde 2 dadi (a caso)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att08",
+   "costo": 1
+  },
+  {
+   "id": "att09",
+   "nome": "Spalle da dietro",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Spalle da dietro",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Spalle da dietro",
+      "tipo": "presa",
+      "n": 1,
+      "danno": 1,
+      "svant": 2,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: afferri (1 di danno), 2 svantaggi.",
+     "testo_pot": "A contatto: afferri (3 di danno), 2 svantaggi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att09",
+   "costo": 1
+  },
+  {
+   "id": "att10",
+   "nome": "Strangolamento",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Strangolamento",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Strangolamento",
+      "tipo": "presa",
+      "n": 2,
+      "danno": "dado",
+      "svant": 1,
+      "tieni": true,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "testo": "A contatto: afferri (il dado di danno), 1 svantaggio, lo tieni (non può muoversi).",
+     "testo_pot": "A contatto: afferri (il dado +2 di danno), 1 svantaggio, lo tieni (non può muoversi)."
+    }
+   ],
+   "entrambi": true,
+   "origine": "att10",
+   "costo": 2
+  },
+  {
+   "id": "att11",
+   "nome": "Cintura alta da dietro",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Cintura alta da dietro",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Cintura alta da dietro",
+      "tipo": "presa",
+      "n": 2,
+      "danno": 1,
+      "togli": "caso",
+      "ntogli": 3,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: afferri (1 di danno), perde 3 dadi (a caso).",
+     "testo_pot": "A contatto: afferri (3 di danno), perde 3 dadi (a caso)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att11",
+   "costo": 2
+  },
+  {
+   "id": "att12",
+   "nome": "Cintura bassa da dietro",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Cintura bassa da dietro",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Cintura bassa da dietro",
+      "tipo": "presa",
+      "n": 2,
+      "danno": 1,
+      "togli": "caso",
+      "ntogli": 2,
+      "svant": 1,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: afferri (1 di danno), 1 svantaggio, perde 2 dadi (a caso).",
+     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio, perde 2 dadi (a caso)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att12",
+   "costo": 2
+  },
+  {
+   "id": "att16",
+   "nome": "Presa con presa",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Presa con presa",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Presa con presa",
+      "tipo": "presa",
+      "n": 2,
+      "danno": 1,
+      "togli": "caso",
+      "ntogli": 2,
+      "svant": 1,
+      "pot": {
+       "danno": 3
+      }
+     },
+     "testo": "A contatto: afferri (1 di danno), 1 svantaggio, perde 2 dadi (a caso).",
+     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio, perde 2 dadi (a caso)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "att16",
+   "costo": 3
+  },
+  {
+   "id": "tec_i1",
+   "nome": "Controllo del braccio",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Controllo del braccio",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Controllo del braccio",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "danno": 1,
+      "svant": 2,
+      "togli": "caso",
+      "ntogli": 2,
+      "tieni": true,
+      "pot": {
+       "svant": 3
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi).",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_i1",
+   "costo": 1
+  },
+  {
+   "id": "tec_i2",
+   "nome": "Leva del polso piegato",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Leva del polso piegato",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Leva del polso piegato",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "presa",
+      "danno": 1,
+      "svant": 2,
+      "togli": "caso",
+      "ntogli": 2,
+      "pot": {
+       "svant": 3
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso).",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_i2",
+   "costo": 1
+  },
+  {
+   "id": "tec_i3",
+   "nome": "Torsione del polso in alto",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Torsione del polso in alto",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Torsione del polso in alto",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "presa",
+      "danno": 2,
+      "svant": 1,
+      "togli": "caso",
+      "pot": {
+       "svant": 2
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende 2, 1 svantaggio, perde il dado a caso.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende 2, 2 svantaggi, perde il dado a caso."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_i3",
+   "costo": 1
+  },
+  {
+   "id": "tec_i4",
+   "nome": "Pressione sull'avambraccio",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Pressione sull'avambraccio",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Pressione sull'avambraccio",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "danno": 1,
+      "svant": 2,
+      "togli": "alto",
+      "pot": {
+       "svant": 3
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde il dado più alto.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde il dado più alto."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_i4",
+   "costo": 2
+  },
+  {
+   "id": "tec_i5",
+   "nome": "Leva del gomito disteso",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Leva del gomito disteso",
+     "req": [
+      "b"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Leva del gomito disteso",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "colpo",
+      "danno": 1,
+      "svant": 2,
+      "pot": {
+       "svant": 3
+      }
+     },
+     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende 1, 2 svantaggi.",
+     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende 1, 3 svantaggi."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_i5",
+   "costo": 3
+  },
+  {
+   "id": "tec_i6",
+   "nome": "Chiave al gomito sul petto",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Chiave al gomito sul petto",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Chiave al gomito sul petto",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "danno": 2,
+      "svant": 1,
+      "togli": "caso",
+      "tieni": true,
+      "pot": {
+       "svant": 2
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 2, 1 svantaggio, perde il dado a caso, lo tieni (non può muoversi).",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 2, 2 svantaggi, perde il dado a caso, lo tieni (non può muoversi)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_i6",
+   "costo": 1
+  },
+  {
+   "id": "tec_i7",
+   "nome": "Leva alta ai quattro lati",
+   "col": "viola",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Leva alta ai quattro lati",
+     "req": [
+      "b",
+      "r"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Leva alta ai quattro lati",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "presa",
+      "danno": 1,
+      "svant": 2,
+      "togli": "caso",
+      "ntogli": 2,
+      "pot": {
+       "svant": 3
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso).",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso)."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_i7",
+   "costo": 1
+  },
+  {
+   "id": "tec_p1",
+   "nome": "Proiezione a spirale",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Proiezione a spirale",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Proiezione a spirale",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "danno": "meta",
+      "piu": 1,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 2,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p1",
+   "costo": 1
+  },
+  {
+   "id": "tec_p2",
+   "nome": "Proiezione ai quattro lati",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Proiezione ai quattro lati",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Proiezione ai quattro lati",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "presa",
+      "danno": "meta",
+      "piu": 1,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 2,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p2",
+   "costo": 1
+  },
+  {
+   "id": "tec_p3",
+   "nome": "Proiezione rotatoria",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Proiezione rotatoria",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Proiezione rotatoria",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p3",
+   "costo": 8
+  },
+  {
+   "id": "tec_p4",
+   "nome": "Proiezione d'anca",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Proiezione d'anca",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Proiezione d'anca",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "presa",
+      "danno": "meta",
+      "piu": 2,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 2,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +2, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +2, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p4",
+   "costo": 1
+  },
+  {
+   "id": "tec_p5",
+   "nome": "Cielo e terra",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Cielo e terra",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Cielo e terra",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p5",
+   "costo": 2
+  },
+  {
+   "id": "tec_p6",
+   "nome": "Torsione del polso",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Torsione del polso",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Torsione del polso",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p6",
+   "costo": 1
+  },
+  {
+   "id": "tec_p7",
+   "nome": "Spinta al collo",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Spinta al collo",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Spinta al collo",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -2,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p7",
+   "costo": 1
+  },
+  {
+   "id": "tec_p8",
+   "nome": "Proiezione del respiro",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Proiezione del respiro",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Proiezione del respiro",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "colpo",
+      "danno": "dado",
+      "piu": -2,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p8",
+   "costo": 8
+  },
+  {
+   "id": "tec_p9",
+   "nome": "Proiezione entrando",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Proiezione entrando",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Proiezione entrando",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p9",
+   "costo": 1
+  },
+  {
+   "id": "tec_p10",
+   "nome": "Caduta d'angolo",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Caduta d'angolo",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Caduta d'angolo",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p10",
+   "costo": 2
+  },
+  {
+   "id": "tec_p11",
+   "nome": "Proiezione dal basso",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Proiezione dal basso",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Proiezione dal basso",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p11",
+   "costo": 8
+  },
+  {
+   "id": "tec_p12",
+   "nome": "Braccio in alto",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Braccio in alto",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Braccio in alto",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "colpo",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p12",
+   "costo": 8
+  },
+  {
+   "id": "tec_p13",
+   "nome": "Raccolta delle gambe",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Raccolta delle gambe",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Raccolta delle gambe",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "presa",
+      "danno": "meta",
+      "piu": 1,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 2,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p13",
+   "costo": 1
+  },
+  {
+   "id": "tec_p14",
+   "nome": "Braccia incrociate",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Braccia incrociate",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Braccia incrociate",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p14",
+   "costo": 1
+  },
+  {
+   "id": "tec_p15",
+   "nome": "Ruota completa",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Ruota completa",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Ruota completa",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p15",
+   "costo": 1
+  },
+  {
+   "id": "tec_p16",
+   "nome": "Doppia estensione",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Doppia estensione",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Doppia estensione",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "presa",
+      "danno": "meta",
+      "piu": 1,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 2,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p16",
+   "costo": 1
+  },
+  {
+   "id": "tec_p17",
+   "nome": "Trascinamento a terra",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Trascinamento a terra",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Trascinamento a terra",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -2,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p17",
+   "costo": 2
+  },
+  {
+   "id": "tec_p18",
+   "nome": "Caduta all'indietro circolare",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Caduta all'indietro circolare",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Caduta all'indietro circolare",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "danno": "meta",
+      "piu": 1,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 2,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p18",
+   "costo": 1
+  },
+  {
+   "id": "tec_p19",
+   "nome": "Sotto il baricentro",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Sotto il baricentro",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sotto il baricentro",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p19",
+   "costo": 2
+  },
+  {
+   "id": "tec_p20",
+   "nome": "Taglio orizzontale",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Taglio orizzontale",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Taglio orizzontale",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p20",
+   "costo": 1
+  },
+  {
+   "id": "tec_p21",
+   "nome": "Arco sopra la spalla",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Arco sopra la spalla",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Arco sopra la spalla",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p21",
+   "costo": 1
+  },
+  {
+   "id": "tec_p22",
+   "nome": "Quattro lati da dietro",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Quattro lati da dietro",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Quattro lati da dietro",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p22",
+   "costo": 2
+  },
+  {
+   "id": "tec_p23",
+   "nome": "Sopra la schiena",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Sopra la schiena",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sopra la schiena",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p23",
+   "costo": 1
+  },
+  {
+   "id": "tec_p24",
+   "nome": "Caduta distesa",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Caduta distesa",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Caduta distesa",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -2,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -2, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p24",
+   "costo": 1
+  },
+  {
+   "id": "tec_p25",
+   "nome": "Proiezione in diagonale",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Proiezione in diagonale",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Proiezione in diagonale",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "colpo",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p25",
+   "costo": 8
+  },
+  {
+   "id": "tec_p26",
+   "nome": "Ribaltamento dal basso",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Ribaltamento dal basso",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Ribaltamento dal basso",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "danno": "meta",
+      "piu": 1,
+      "proietta": 1,
+      "a_terra": true,
+      "freccia": 2,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p26",
+   "costo": 2
+  },
+  {
+   "id": "tec_p27",
+   "nome": "Grande rotazione",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Grande rotazione",
+     "req": [
+      "g"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Grande rotazione",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "piu": -1,
+      "proietta": 3,
+      "a_terra": true,
+      "freccia": 1,
+      "pot": {
+       "proietta": 4
+      }
+     },
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 3 esagoni, resta a terra.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado -1, lo proietti attorno a te di 4 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p27",
+   "costo": 1
+  },
+  {
+   "id": "tec_p28",
+   "nome": "Proiezione universale",
+   "col": "verde",
+   "anello": 2,
+   "azioni": [
+    {
+     "nome": "Proiezione universale",
+     "req": [
+      "g",
+      "b"
+     ],
+     "freccia": 2,
+     "a": {
+      "nome": "Proiezione universale",
+      "tipo": "trappola",
+      "n": 2,
+      "contro": "tutto",
+      "danno": "meta",
+      "piu": 1,
+      "proietta": 2,
+      "a_terra": true,
+      "freccia": 2,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +1, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "entrambi": false,
+   "origine": "tec_p28",
+   "costo": 1
+  },
+  {
+   "id": "assalto_finale",
+   "nome": "Assalto finale",
+   "col": "rosso-arancio",
+   "coppia": [
+    "rosso",
+    "arancio"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Colpo di grazia",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo di grazia",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 2,
+      "svant": 1,
+      "pot": {
+       "piu": 4
+      }
+     },
+     "col": "rosso",
+     "testo": "A contatto: colpo con il dado +2; se ferisce, 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +4; se ferisce, 1 svantaggio."
+    },
+    {
+     "nome": "Ultima carica",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Ultima carica",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 2,
+      "entra": 4,
+      "spinta": 1,
+      "pot": {
+       "piu": 4
+      }
+     },
+     "col": "arancio",
+     "testo": "Da 4 esagoni: entri e colpisci con il dado +2; se ferisce, spinta di 1 esagono.",
+     "testo_pot": "Da 4 esagoni: entri e colpisci con il dado +4; se ferisce, spinta di 1 esagono."
+    }
+   ],
+   "cond": "ferito",
+   "origine": "ultimo_respiro",
+   "testo_cond": "Si potenzia se hai metà delle ferite o meno.",
+   "costo": 4
   },
   {
    "id": "atemi",
    "nome": "Atemi decisivo",
-   "col": "esterno",
-   "anello": 3,
-   "req": [
-    "x",
-    "x"
+   "col": "rosso-arancio",
+   "coppia": [
+    "rosso",
+    "arancio"
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "atemi",
-   "bonus": 0,
-   "costo": 7,
-   "testo": "Entro 2 esagoni: entri e colpisci con la somma +4; se ferisce, 2 svantaggi, perde il dado più alto e va a terra."
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Atemi al plesso",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Atemi al plesso",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 2,
+      "svant": 2,
+      "togli": "alto",
+      "pot": {
+       "piu": 4
+      }
+     },
+     "col": "rosso",
+     "testo": "A contatto: colpo con il dado +2; se ferisce, 2 svantaggi, perde il dado più alto.",
+     "testo_pot": "A contatto: colpo con il dado +4; se ferisce, 2 svantaggi, perde il dado più alto."
+    },
+    {
+     "nome": "Entrata decisa",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Entrata decisa",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "entra": 2,
+      "a_terra": true,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "col": "arancio",
+     "testo": "Da 2 esagoni: entri e colpisci con il dado +1; se ferisce, resta a terra.",
+     "testo_pot": "Da 2 esagoni: entri e colpisci con il dado +3; se ferisce, resta a terra."
+    }
+   ],
+   "cond": "uguali",
+   "origine": "",
+   "testo_cond": "Si potenzia se i due dadi delle sue metà sono uguali.",
+   "costo": 8
+  },
+  {
+   "id": "furia_del_toro",
+   "nome": "Furia del toro",
+   "col": "rosso-arancio",
+   "coppia": [
+    "rosso",
+    "arancio"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Corna basse",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Corna basse",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "spinta": 2,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "col": "rosso",
+     "testo": "A contatto: colpo con il dado +1; se ferisce, spinta di 2 esagoni.",
+     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, spinta di 2 esagoni."
+    },
+    {
+     "nome": "Travolgere",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Travolgere",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "entra": 4,
+      "a_terra": true,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "col": "arancio",
+     "testo": "Da 4 esagoni: entri e colpisci con il dado +1; se ferisce, resta a terra.",
+     "testo_pot": "Da 4 esagoni: entri e colpisci con il dado +3; se ferisce, resta a terra."
+    }
+   ],
+   "cond": "alto",
+   "origine": "furia_cieca",
+   "testo_cond": "Si potenzia se sei più in alto dell'avversario.",
+   "costo": 4
+  },
+  {
+   "id": "turbine",
+   "nome": "Turbine",
+   "col": "arancio-giallo",
+   "coppia": [
+    "arancio",
+    "giallo"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Calcio a turbine",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Calcio a turbine",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 2,
+      "aggira": 2,
+      "pot": {
+       "piu": 4
+      }
+     },
+     "col": "arancio",
+     "testo": "A contatto: colpo con il dado +2, gli giri attorno di 2 esagoni.",
+     "testo_pot": "A contatto: colpo con il dado +4, gli giri attorno di 2 esagoni."
+    },
+    {
+     "nome": "Danza del turbine",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Danza del turbine",
+      "tipo": "effetto",
+      "n": 1,
+      "vant": 2,
+      "iniziativa": true,
+      "pot": {
+       "vant": 3
+      }
+     },
+     "col": "giallo",
+     "testo": "+2 vantaggi, mantieni l'iniziativa.",
+     "testo_pot": "+3 vantaggi, mantieni l'iniziativa."
+    }
+   ],
+   "cond": "catena",
+   "origine": "",
+   "testo_cond": "Si potenzia se le due metà si caricano nello stesso scambio.",
+   "costo": 2
+  },
+  {
+   "id": "volo_della_gru",
+   "nome": "Volo della gru",
+   "col": "arancio-giallo",
+   "coppia": [
+    "arancio",
+    "giallo"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Calcio dall'alto",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Calcio dall'alto",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 2,
+      "entra": 3,
+      "pot": {
+       "piu": 4
+      }
+     },
+     "col": "arancio",
+     "testo": "Da 3 esagoni: entri e colpisci con il dado +2.",
+     "testo_pot": "Da 3 esagoni: entri e colpisci con il dado +4."
+    },
+    {
+     "nome": "Atterraggio alle spalle",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Atterraggio alle spalle",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 0,
+      "alle_spalle": true,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "col": "giallo",
+     "testo": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado.",
+     "testo_pot": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado +2."
+    }
+   ],
+   "cond": "alto",
+   "origine": "",
+   "testo_cond": "Si potenzia se sei più in alto dell'avversario.",
+   "costo": 4
   },
   {
    "id": "zanshin",
    "nome": "Zanshin",
-   "col": "esterno",
-   "anello": 3,
-   "req": [
-    "x"
+   "col": "arancio-giallo",
+   "coppia": [
+    "arancio",
+    "giallo"
    ],
-   "freccia": 1,
-   "modo": "subito",
-   "eff": "zanshin",
-   "bonus": 0,
-   "costo": 6,
-   "testo": "+2 vantaggi, recuperi 1 ferita, un dado nuovo in mano; per due scambi i ritiri falliscono solo con 1."
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Mente presente",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Mente presente",
+      "tipo": "effetto",
+      "n": 1,
+      "vant": 2,
+      "cura": 1,
+      "pot": {
+       "cura": 2
+      }
+     },
+     "col": "arancio",
+     "testo": "+2 vantaggi, recuperi 1 ferita.",
+     "testo_pot": "+2 vantaggi, recuperi 2 ferite."
+    },
+    {
+     "nome": "Corpo pronto",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Corpo pronto",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 1,
+      "iniziativa": true,
+      "pot": {
+       "pesca": 2
+      }
+     },
+     "col": "giallo",
+     "testo": "Peschi 1 dado, mantieni l'iniziativa.",
+     "testo_pot": "Peschi 2 dadi, mantieni l'iniziativa."
+    }
+   ],
+   "cond": "vantaggi",
+   "origine": "",
+   "testo_cond": "Si potenzia se hai almeno 3 vantaggi.",
+   "costo": 6
+  },
+  {
+   "id": "kokyu_nage",
+   "nome": "Kokyu nage",
+   "col": "giallo-verde",
+   "coppia": [
+    "giallo",
+    "verde"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Respiro che svuota",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Respiro che svuota",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "schiva": true,
+      "vant": 1,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "col": "giallo",
+     "testo": "Trappola: schivi, +1 vantaggio.",
+     "testo_pot": "Trappola: schivi, 1 svantaggio; +1 vantaggio."
+    },
+    {
+     "nome": "Kokyu nage",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Kokyu nage",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "danno": "dado",
+      "proietta": 2,
+      "a_terra": true,
+      "pot": {
+       "proietta": 3
+      }
+     },
+     "col": "verde",
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 2 esagoni, resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "cond": "catena",
+   "origine": "",
+   "testo_cond": "Si potenzia se le due metà si caricano nello stesso scambio.",
+   "costo": 9
+  },
+  {
+   "id": "fortuna_matto",
+   "nome": "Fortuna del matto",
+   "col": "giallo-verde",
+   "coppia": [
+    "giallo",
+    "verde"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Riflesso del matto",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Riflesso del matto",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "schiva": true,
+      "danno": 2,
+      "pot": {
+       "svant": 1
+      }
+     },
+     "col": "giallo",
+     "testo": "Trappola: schivi, l'attaccante prende 2.",
+     "testo_pot": "Trappola: schivi, l'attaccante prende 2, 1 svantaggio."
+    },
+    {
+     "nome": "Risata",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Risata",
+      "tipo": "effetto",
+      "n": 1,
+      "vant": 2,
+      "pulisci": true,
+      "pot": {
+       "vant": 3
+      }
+     },
+     "col": "verde",
+     "testo": "+2 vantaggi, togli i tuoi svantaggi.",
+     "testo_pot": "+3 vantaggi, togli i tuoi svantaggi."
+    }
+   ],
+   "cond": "ferito",
+   "origine": "fortuna_matto",
+   "testo_cond": "Si potenzia se hai metà delle ferite o meno.",
+   "costo": 2
+  },
+  {
+   "id": "passo_ombra",
+   "nome": "Passo d'ombra",
+   "col": "giallo-verde",
+   "coppia": [
+    "giallo",
+    "verde"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Sparire",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sparire",
+      "tipo": "effetto",
+      "n": 1,
+      "passo": 3,
+      "iniziativa": true,
+      "pot": {
+       "vant": 1
+      }
+     },
+     "col": "giallo",
+     "testo": "Avanzi fino a 3 esagoni, mantieni l'iniziativa.",
+     "testo_pot": "+1 vantaggio, avanzi fino a 3 esagoni, mantieni l'iniziativa."
+    },
+    {
+     "nome": "Riapparire alle spalle",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Riapparire alle spalle",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 1,
+      "alle_spalle": true,
+      "pot": {
+       "piu": 3
+      }
+     },
+     "col": "verde",
+     "testo": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado +1.",
+     "testo_pot": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado +3."
+    }
+   ],
+   "cond": "spalle",
+   "origine": "",
+   "testo_cond": "Si potenzia se sei alle spalle dell'avversario.",
+   "costo": 2
+  },
+  {
+   "id": "shiho_nage",
+   "nome": "Shiho nage",
+   "col": "verde-blu",
+   "coppia": [
+    "verde",
+    "blu"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Taglio ai quattro lati",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Taglio ai quattro lati",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "danno": "dado",
+      "proietta": 1,
+      "a_terra": true,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "col": "verde",
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 2 esagoni, resta a terra."
+    },
+    {
+     "nome": "Chiusura",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Chiusura",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "svant": 1,
+      "togli": "caso",
+      "pot": {
+       "svant": 2
+      }
+     },
+     "col": "blu",
+     "testo": "Trappola: annulli l'attacco, 1 svantaggio, perde il dado a caso.",
+     "testo_pot": "Trappola: annulli l'attacco, 2 svantaggi, perde il dado a caso."
+    }
+   ],
+   "cond": "presa",
+   "origine": "",
+   "testo_cond": "Si potenzia se l'avversario ti tiene o lo tieni tu.",
+   "costo": 10
+  },
+  {
+   "id": "ritorno",
+   "nome": "Ritorno al centro",
+   "col": "verde-blu",
+   "coppia": [
+    "verde",
+    "blu"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Ritorno al centro",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Ritorno al centro",
+      "tipo": "effetto",
+      "n": 1,
+      "pesca": 2,
+      "pot": {
+       "pesca": 3
+      }
+     },
+     "col": "verde",
+     "testo": "Peschi 2 dadi.",
+     "testo_pot": "Peschi 3 dadi."
+    },
+    {
+     "nome": "Centro calmo",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Centro calmo",
+      "tipo": "effetto",
+      "n": 1,
+      "cura": 2,
+      "pulisci": true,
+      "pot": {
+       "cura": 3
+      }
+     },
+     "col": "blu",
+     "testo": "Recuperi 2 ferite, togli i tuoi svantaggi.",
+     "testo_pot": "Recuperi 3 ferite, togli i tuoi svantaggi."
+    }
+   ],
+   "cond": "ferito",
+   "origine": "",
+   "testo_cond": "Si potenzia se hai metà delle ferite o meno.",
+   "costo": 9
+  },
+  {
+   "id": "ultima_risorsa",
+   "nome": "Ultima risorsa",
+   "col": "verde-blu",
+   "coppia": [
+    "verde",
+    "blu"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Ultima risorsa",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Ultima risorsa",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "riduci": 4,
+      "cura": 1,
+      "pot": {
+       "riduci": 6
+      }
+     },
+     "col": "verde",
+     "testo": "Trappola: il colpo fa 4 danni in meno, recuperi 1 ferita.",
+     "testo_pot": "Trappola: il colpo fa 6 danni in meno, recuperi 1 ferita."
+    },
+    {
+     "nome": "Rialzarsi dentro",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Rialzarsi dentro",
+      "tipo": "effetto",
+      "n": 1,
+      "cura": 3,
+      "pot": {
+       "cura": 4
+      }
+     },
+     "col": "blu",
+     "testo": "Recuperi 3 ferite.",
+     "testo_pot": "Recuperi 4 ferite."
+    }
+   ],
+   "cond": "ferito",
+   "origine": "ultima_risorsa",
+   "testo_cond": "Si potenzia se hai metà delle ferite o meno.",
+   "costo": 2
+  },
+  {
+   "id": "kiai",
+   "nome": "Kiai del maestro",
+   "col": "blu-viola",
+   "coppia": [
+    "blu",
+    "viola"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Kiai",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Kiai",
+      "tipo": "effetto",
+      "n": 1,
+      "disarma": true,
+      "svant": 2,
+      "pot": {
+       "svant": 3
+      }
+     },
+     "col": "blu",
+     "testo": "2 svantaggi; disarma i suoi token pronti.",
+     "testo_pot": "3 svantaggi; disarma i suoi token pronti."
+    },
+    {
+     "nome": "Sguardo del maestro",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sguardo del maestro",
+      "tipo": "effetto",
+      "n": 1,
+      "togli": "alto",
+      "vant": 2,
+      "portata": 3,
+      "pot": {
+       "vant": 3
+      }
+     },
+     "col": "viola",
+     "testo": "Entro 3 esagoni: perde il dado più alto; +2 vantaggi.",
+     "testo_pot": "Entro 3 esagoni: perde il dado più alto; +3 vantaggi."
+    }
+   ],
+   "cond": "vantaggi",
+   "origine": "",
+   "testo_cond": "Si potenzia se hai almeno 3 vantaggi.",
+   "costo": 1
+  },
+  {
+   "id": "juji_nage",
+   "nome": "Juji nage",
+   "col": "blu-viola",
+   "coppia": [
+    "blu",
+    "viola"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Braccia in croce",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Braccia in croce",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "danno": "dado",
+      "togli": "caso",
+      "pot": {
+       "svant": 1
+      }
+     },
+     "col": "blu",
+     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado, perde il dado a caso.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende il dado, 1 svantaggio, perde il dado a caso."
+    },
+    {
+     "nome": "Juji nage",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Juji nage",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "danno": "dado",
+      "proietta": 1,
+      "a_terra": true,
+      "pot": {
+       "proietta": 2
+      }
+     },
+     "col": "viola",
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende il dado, lo proietti attorno a te di 2 esagoni, resta a terra."
+    }
+   ],
+   "cond": "presa",
+   "origine": "",
+   "testo_cond": "Si potenzia se l'avversario ti tiene o lo tieni tu.",
+   "costo": 1
+  },
+  {
+   "id": "ira_repressa",
+   "nome": "Ira repressa",
+   "col": "blu-viola",
+   "coppia": [
+    "blu",
+    "viola"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Incassare in silenzio",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Incassare in silenzio",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "tutto",
+      "riduci": 3,
+      "pesca": 1,
+      "pot": {
+       "riduci": 5
+      }
+     },
+     "col": "blu",
+     "testo": "Trappola: il colpo fa 3 danni in meno, peschi 1 dado.",
+     "testo_pot": "Trappola: il colpo fa 5 danni in meno, peschi 1 dado."
+    },
+    {
+     "nome": "Esplodere",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Esplodere",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 3,
+      "pot": {
+       "piu": 5
+      }
+     },
+     "col": "viola",
+     "testo": "A contatto: colpo con il dado +3.",
+     "testo_pot": "A contatto: colpo con il dado +5."
+    }
+   ],
+   "cond": "ferito",
+   "origine": "ira",
+   "testo_cond": "Si potenzia se hai metà delle ferite o meno.",
+   "costo": 3
+  },
+  {
+   "id": "tenchi_nage",
+   "nome": "Tenchi nage",
+   "col": "viola-rosso",
+   "coppia": [
+    "viola",
+    "rosso"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Cielo",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Cielo",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "presa",
+      "svant": 1,
+      "togli": "caso",
+      "pot": {
+       "svant": 2
+      }
+     },
+     "col": "viola",
+     "testo": "Trappola contro le prese: annulli l'attacco, 1 svantaggio, perde il dado a caso.",
+     "testo_pot": "Trappola contro le prese: annulli l'attacco, 2 svantaggi, perde il dado a caso."
+    },
+    {
+     "nome": "Terra",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Terra",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 0,
+      "proietta": 3,
+      "a_terra": true,
+      "pot": {
+       "piu": 2
+      }
+     },
+     "col": "rosso",
+     "testo": "A contatto: colpo con il dado; se ferisce, lo proietti attorno a te di 3 esagoni, resta a terra.",
+     "testo_pot": "A contatto: colpo con il dado +2; se ferisce, lo proietti attorno a te di 3 esagoni, resta a terra."
+    }
+   ],
+   "cond": "svantaggi",
+   "origine": "",
+   "testo_cond": "Si potenzia se l'avversario ha almeno 2 svantaggi.",
+   "costo": 2
+  },
+  {
+   "id": "agguato",
+   "nome": "Agguato",
+   "col": "viola-rosso",
+   "coppia": [
+    "viola",
+    "rosso"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Attesa nascosta",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Attesa nascosta",
+      "tipo": "trappola",
+      "n": 1,
+      "contro": "colpo",
+      "riduci": 2,
+      "contra": true,
+      "pot": {
+       "riduci": 4
+      }
+     },
+     "col": "viola",
+     "testo": "Trappola contro i colpi: il colpo fa 2 danni in meno, e lo colpisci con la somma.",
+     "testo_pot": "Trappola contro i colpi: il colpo fa 4 danni in meno, e lo colpisci con la somma."
+    },
+    {
+     "nome": "Colpo dall'ombra",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Colpo dall'ombra",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": "dado",
+      "piu": 2,
+      "non_scarta": true,
+      "pot": {
+       "piu": 4
+      }
+     },
+     "col": "rosso",
+     "testo": "A contatto: colpo con il dado +2 (non si scarta).",
+     "testo_pot": "A contatto: colpo con il dado +4 (non si scarta)."
+    }
+   ],
+   "cond": "spalle",
+   "origine": "agguato",
+   "testo_cond": "Si potenzia se sei alle spalle dell'avversario.",
+   "costo": 1
+  },
+  {
+   "id": "somma_perfetta",
+   "nome": "Somma perfetta",
+   "col": "viola-rosso",
+   "coppia": [
+    "viola",
+    "rosso"
+   ],
+   "anello": 3,
+   "azioni": [
+    {
+     "nome": "Calcolo",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Calcolo",
+      "tipo": "effetto",
+      "n": 1,
+      "ritocca": true,
+      "vant": 1,
+      "pot": {
+       "vant": 2
+      }
+     },
+     "col": "viola",
+     "testo": "+1 vantaggio, +1 a tutti i dadi che hai in mano.",
+     "testo_pot": "+2 vantaggi, +1 a tutti i dadi che hai in mano."
+    },
+    {
+     "nome": "Sette perfetto",
+     "req": [
+      "x"
+     ],
+     "freccia": 1,
+     "a": {
+      "nome": "Sette perfetto",
+      "tipo": "colpo",
+      "n": 1,
+      "danno": 6,
+      "piu": 0,
+      "non_scarta": true,
+      "non_para": true,
+      "pot": {
+       "danno": 8
+      }
+     },
+     "col": "rosso",
+     "testo": "A contatto: colpo da 6 (non si scarta, non si para).",
+     "testo_pot": "A contatto: colpo da 8 (non si scarta, non si para)."
+    }
+   ],
+   "cond": "uguali",
+   "origine": "somma_perfetta",
+   "testo_cond": "Si potenzia se i due dadi delle sue metà sono uguali.",
+   "costo": 2
   }
  ],
  "rari": [],
@@ -742,13 +7246,19 @@
    "C": 3,
    "R": 2,
    "coll": [
-    "kote_gaeshi",
-    "irimi",
+    "raccogliere",
+    "sopravvivenza",
+    "tec_p22",
+    "att10",
     "calcio_girato",
+    "carica_toro",
+    "cecchino",
     "respiro",
-    "uscire_linea",
-    "contrattacco",
-    "kokyu_nage"
+    "irimi",
+    "ritorno",
+    "ira_repressa",
+    "fortuna_matto",
+    "agguato"
    ],
    "raro": "",
    "aspetto": "donna",
@@ -762,12 +7272,21 @@
    "C": 3,
    "R": 2,
    "coll": [
-    "carica_toro",
-    "spallata",
-    "gomitata",
-    "raffica",
+    "temerario",
+    "att15",
+    "affondo_v",
+    "affondo",
+    "tec_i4",
+    "balzo",
+    "tenkan",
+    "veterano",
     "calcio_girato",
-    "atemi"
+    "carica_toro",
+    "atemi",
+    "tenchi_nage",
+    "turbine",
+    "fortuna_matto",
+    "juji_nage"
    ],
    "raro": "",
    "aspetto": "uomo2",
@@ -781,13 +7300,22 @@
    "C": 2,
    "R": 2,
    "coll": [
+    "sesto_senso",
+    "riflesso",
+    "calibrato",
+    "att14",
+    "tec_p17",
+    "gladiatore",
+    "veterano",
+    "kote_gaeshi",
     "balzo",
-    "passi_danza",
-    "calcio_volante",
-    "uscire_linea",
-    "irimi",
-    "respiro",
-    "zanshin"
+    "carica_toro",
+    "zanshin",
+    "passo_ombra",
+    "furia_del_toro",
+    "ultima_risorsa",
+    "kiai",
+    "agguato"
    ],
    "raro": "",
    "aspetto": "snella",
@@ -801,11 +7329,19 @@
    "C": 1,
    "R": 3,
    "coll": [
-    "tenkan",
-    "ukemi",
-    "irimi",
+    "calma",
+    "guardia_ferrea",
+    "tec_p5",
+    "tec_i4",
+    "gladiatore",
+    "carica_toro",
+    "acrobata",
     "respiro",
-    "shiho_nage"
+    "irimi",
+    "ultima_risorsa",
+    "ira_repressa",
+    "kokyu_nage",
+    "agguato"
    ],
    "raro": "",
    "aspetto": "uomo3",
@@ -819,12 +7355,19 @@
    "C": 4,
    "R": 2,
    "coll": [
-    "guardia_ferrea",
-    "kaiten_nage",
-    "contrattacco",
+    "fiato_lungo",
+    "sopravvivenza",
+    "tec_i4",
+    "calcio_girato",
+    "irimi",
+    "carica_toro",
+    "acrobata",
     "respiro",
-    "ukemi",
-    "juji_nage"
+    "kote_gaeshi",
+    "juji_nage",
+    "ritorno",
+    "tenchi_nage",
+    "furia_del_toro"
    ],
    "raro": "",
    "aspetto": "formosa",
@@ -838,12 +7381,22 @@
    "C": 2,
    "R": 2,
    "coll": [
-    "salto_mortale",
-    "passi_danza",
-    "uscire_linea",
-    "respiro",
-    "raffica",
-    "ritorno"
+    "sesto_senso",
+    "riflesso",
+    "calibrato",
+    "att14",
+    "torsione",
+    "gladiatore",
+    "corridore",
+    "kote_gaeshi",
+    "balzo",
+    "carica_toro",
+    "turbine",
+    "fortuna_matto",
+    "atemi",
+    "ultima_risorsa",
+    "juji_nage",
+    "agguato"
    ],
    "raro": "",
    "aspetto": "bionda",
@@ -857,12 +7410,19 @@
    "C": 2,
    "R": 2,
    "coll": [
-    "gomitata",
-    "provocazione",
-    "irimi",
-    "ikkyo",
-    "respiro",
-    "kiai"
+    "temerario",
+    "att15",
+    "ferro",
+    "specchio",
+    "tempesta",
+    "sgambetto",
+    "tec_p5",
+    "danzatore",
+    "calcio_girato",
+    "juji_nage",
+    "agguato",
+    "assalto_finale",
+    "ritorno"
    ],
    "raro": "",
    "aspetto": "mora",
@@ -876,11 +7436,20 @@
    "C": 3,
    "R": 2,
    "coll": [
-    "irimi",
-    "contrattacco",
+    "fiato_lungo",
+    "sopravvivenza",
+    "torsione",
+    "specchio",
+    "cecchino",
+    "carica_toro",
+    "calcio_girato",
     "respiro",
-    "uscire_linea",
-    "tenchi_nage"
+    "irimi",
+    "ultima_risorsa",
+    "ira_repressa",
+    "passo_ombra",
+    "zanshin",
+    "agguato"
    ],
    "raro": "",
    "aspetto": "barbuto",
@@ -894,10 +7463,19 @@
    "C": 2,
    "R": 2,
    "coll": [
-    "calma",
-    "guardia_ferrea",
+    "raccogliere",
+    "riscossa",
+    "tec_p26",
+    "att10",
+    "gladiatore",
+    "carica_toro",
+    "schermidore",
     "respiro",
-    "zanshin"
+    "irimi",
+    "ritorno",
+    "ira_repressa",
+    "passo_ombra",
+    "somma_perfetta"
    ],
    "raro": "",
    "aspetto": "uomo",

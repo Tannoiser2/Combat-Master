@@ -104,6 +104,9 @@ var _sf_avversario := false
 var _sf_sel := {}
 var _sf_esagoni := {}
 var _sf_piazza: Array = []
+var _off_filtro_anello := "tutti"
+var _off_filtro_col := "tutti"
+var _off_filtri_b: Array = []
 var _sf_timer := 0.0
 var _sf_fine_mostrata := false
 var _sf_prep_arena := 0
@@ -2615,7 +2618,7 @@ func _sf_messaggio(umano: int) -> String:
 			var pend: Dictionary = ms.s["pend"]
 			return "%s ti attacca con %s: %d danni. Come reagisci?" % [ms.s["g"][pend["att"]]["nome"], pend["nome"], pend["danno"]]
 		"pausa":
-			return "Pausa: scegli i token da mettere sulla sfera (fino a %d)." % ms.posti_da_piazzare(umano)
+			return "Pausa: con il Ritmo puoi cambiare %s del mediano." % Motore.plurale(ms.posti_da_piazzare(umano), "token", "token")
 	return "Tocca a te: scegli un dado al centro, un dado fermo o un token pronto."
 
 func _sf_bottoni(voci: Array) -> void:
@@ -2736,15 +2739,21 @@ func _sf_premuto(cosa: Dictionary) -> void:
 			elif e["pronto"]:
 				stato = " Pronto."
 			var dove := ""
-			if ms.anello(e) == 3 and not String(e["id"]).begins_with("scena_"):
-				dove = " Anello esterno: lo carica il dado più alto di ogni token dei misti che scatta."
-			elif String(t["col"]) in ["arancio", "verde", "viola"]:
+			if t.get("eff", "") == "comp":
+				dove = " Potenziato: %s" % t["testo_pot"]
+				if ms.anello(e) == 3:
+					dove += " " + String(t.get("testo_cond", "")) + " Lo carica il dado più alto dei token del mediano del suo colore che scattano."
+				else:
+					dove += " Si potenzia con tutti i dadi uguali, o con un 6 se vuole un dado solo."
+			if ms.anello(e) == 3 and String(e["id"]).begins_with("scena_"):
+				pass
+			elif String(t["col"]) in ["arancio", "verde", "viola"] and ms.anello(e) == 2:
 				var due: String = Sfera.SETTORI_COL[t["col"]]
 				var nomi_c := {"F": "rosso", "A": "giallo", "P": "blu"}
 				if t.get("entrambi", false):
-					dove = " Vuole un dado %s e uno %s." % [nomi_c[due[0]], nomi_c[due[1]]]
+					dove += " Vuole un dado %s e uno %s." % [nomi_c[due[0]], nomi_c[due[1]]]
 				else:
-					dove = " Ogni posto prende un dado %s o %s (o bianco)." % [nomi_c[due[0]], nomi_c[due[1]]]
+					dove += " Ogni posto prende un dado %s o %s (o bianco)." % [nomi_c[due[0]], nomi_c[due[1]]]
 			_sf_info.text = "%s (freccia -%d): %s%s%s" % [t["nome"], int(t.get("freccia", 1)), t["testo"], dove, stato]
 		"raro":
 			var r: Dictionary = g["raro"]
@@ -2867,27 +2876,43 @@ func _sf_reagisci(d: int, scelta: Dictionary) -> void:
 	arena.accoda(ms.prendi_eventi())
 	_sf_aggiorna()
 
-func _sf_scelte_pausa(p: int) -> void:
-	var n := ms.posti_da_piazzare(p)
-	var disp := ms.token_disponibili(p)
-	_sf_piazza = _sf_piazza.filter(func(id): return disp.has(id))
+func _sf_scelte_pausa(p: int, entra := "") -> void:
+	var n := int(ms.s["g"][p].get("cambi", 0))
+	var cambi := ms.cambi_possibili(p)
 	var voci := []
-	for id in disp:
-		var scelto := _sf_piazza.has(id)
-		var nome_t := String(ms.tok(id)["nome"]) + (" (2 azioni)" if ms.tok(id).has("seconda") else "")
-		voci.append([("[x] " if scelto else "") + nome_t, func():
-			if _sf_piazza.has(id):
-				_sf_piazza.erase(id)
-			elif _sf_piazza.size() < n:
-				_sf_piazza.append(id)
-			_sf_scelte_pausa(p)])
-	voci.append(["Conferma", func():
-		ms.piazza(p, _sf_piazza.duplicate())
-		_sf_piazza = []
-		arena.accoda(ms.prendi_eventi())
-		_sf_aggiorna()])
-	_sf_info.text = "Scelti %d di %d. Sopra un rialzo hai un posto in più; i token già carichi restano." % [_sf_piazza.size(), n]
+	if entra == "":
+		var visti := {}
+		for c in cambi:
+			var id: String = c[1]
+			if visti.has(id):
+				continue
+			visti[id] = true
+			var t := ms.tok(id)
+			var nome_t := "%s (%s, %s)" % [t["nome"], t["col"], "2 azioni" if t["azioni"].size() == 2 else "1 azione"]
+			voci.append([nome_t, func(): _sf_scelte_pausa(p, id)])
+		_sf_info.text = "Pausa: puoi fare ancora %s. Scegli il token da mettere in campo, o Fine." % Motore.plurale(n, "cambio", "cambi") if n > 0 else "Pausa: niente più cambi."
+	else:
+		for c in cambi:
+			if c[1] != entra:
+				continue
+			var vecchio: String = c[0]
+			var testo := "Nel posto libero" if vecchio == "" else "Al posto di " + String(ms.tok(vecchio)["nome"])
+			voci.append([testo, func():
+				ms._cambia(p, vecchio, entra)
+				_sf_aggiorna_vista()
+				_sf_scelte_pausa(p)])
+		voci.append(["Indietro", func(): _sf_scelte_pausa(p)])
+		_sf_info.text = "%s: %s" % [ms.tok(entra)["nome"], ms.te({"id": entra, "parte": 0})["testo"]]
+	if entra == "":
+		voci.append(["Fine", func():
+			ms.piazza(p, [])
+			arena.accoda(ms.prendi_eventi())
+			_sf_aggiorna()])
 	_sf_bottoni(voci)
+
+func _sf_aggiorna_vista() -> void:
+	if _sf_vista != null and is_instance_valid(_sf_vista):
+		_sf_vista.queue_redraw()
 
 func _sf_esegui(op: Dictionary) -> void:
 	var p := _sf_umano()
@@ -3012,6 +3037,31 @@ func sf_officina() -> void:
 	_off_sf_sommario = _label("", 17, Disegno.ORO)
 	_off_sf_sommario.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(_off_sf_sommario)
+	# filtri: anello e colore
+	_off_filtri_b = []
+	var filtri := HFlowContainer.new()
+	filtri.add_theme_constant_override("h_separation", 8)
+	filtri.add_theme_constant_override("v_separation", 6)
+	v.add_child(filtri)
+	for fa in [["tutti", "Tutti"], ["2", "Mediano"], ["3", "Esterno"], ["scelti", "Scelti"]]:
+		var b := _bottone(fa[1], func():
+			_off_filtro_anello = fa[0]
+			_sf_off_filtra(), 110)
+		b.toggle_mode = true
+		b.button_pressed = _off_filtro_anello == fa[0]
+		filtri.add_child(b)
+		_off_filtri_b.append([b, "a", fa[0]])
+	for fc in ["tutti", "rosso", "arancio", "giallo", "verde", "blu", "viola"]:
+		var b := _bottone("Ogni colore" if fc == "tutti" else fc.capitalize(), func():
+			_off_filtro_col = fc
+			_sf_off_filtra(), 110)
+		b.toggle_mode = true
+		b.button_pressed = _off_filtro_col == fc
+		if fc != "tutti":
+			b.add_theme_color_override("font_color", SferaVista.COL_TOKEN[fc].lightened(0.35))
+			b.add_theme_color_override("font_pressed_color", SferaVista.COL_TOKEN[fc].lightened(0.6))
+		filtri.add_child(b)
+		_off_filtri_b.append([b, "c", fc])
 	var sc := ScrollContainer.new()
 	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -3027,13 +3077,34 @@ func sf_officina() -> void:
 		tc.scelto = _off_sf["coll"].has(t["id"])
 		tc.cambiato.connect(func(on):
 			if on and not _off_sf["coll"].has(t["id"]):
+				# nell'anello esterno un solo token per coppia di colori: quello nuovo prende il posto
+				if int(t.get("anello", 2)) == 3:
+					for altro in _off_sf_token:
+						var ta: Dictionary = altro.t
+						if ta["id"] != t["id"] and int(ta.get("anello", 2)) == 3 and ta["col"] == t["col"] and _off_sf["coll"].has(ta["id"]):
+							_off_sf["coll"].erase(ta["id"])
+							altro.scelto = false
+							altro.queue_redraw()
 				_off_sf["coll"].append(t["id"])
 			elif not on:
 				_off_sf["coll"].erase(t["id"])
 			_sf_off_sommario())
 		griglia.add_child(tc)
 		_off_sf_token.append(tc)
+	_sf_off_filtra()
 	_sf_off_sommario()
+
+func _sf_off_filtra() -> void:
+	for x in _off_filtri_b:
+		if is_instance_valid(x[0]):
+			x[0].set_pressed_no_signal(x[2] == (_off_filtro_anello if x[1] == "a" else _off_filtro_col))
+	for tc in _off_sf_token:
+		var t: Dictionary = tc.t
+		var an := str(int(t.get("anello", 2)))
+		var ok_a: bool = _off_filtro_anello == "tutti" or _off_filtro_anello == an or (_off_filtro_anello == "scelti" and _off_sf["coll"].has(t["id"]))
+		var cols: Array = t.get("coppia", [t["col"]])
+		var ok_c: bool = _off_filtro_col == "tutti" or cols.has(_off_filtro_col)
+		tc.visible = ok_a and ok_c
 
 func _sf_off_car(k: String, d: int) -> void:
 	_off_sf[k] = clampi(int(_off_sf[k]) + d, 1, 4)
@@ -3041,7 +3112,7 @@ func _sf_off_car(k: String, d: int) -> void:
 
 func _sf_off_sommario() -> void:
 	var c := _sf_motore().conto(_off_sf)
-	var t := "Caratteristiche %d/%d  -  Token dei misti %d/%d  -  Anello esterno %d/%d" % [c["punti"], c["max_punti"], c["budget"], c["max_budget"], c.get("budget3", 0), c.get("max_budget3", 0)]
+	var t := "Caratteristiche %d/%d  -  Token del mediano %d/%d  -  Anello esterno %d/%d" % [c["punti"], c["max_punti"], c["budget"], c["max_budget"], c.get("budget3", 0), c.get("max_budget3", 0)]
 	if not c["problemi"].is_empty():
 		t += "\nDa sistemare: " + "; ".join(c["problemi"]) + "."
 	else:

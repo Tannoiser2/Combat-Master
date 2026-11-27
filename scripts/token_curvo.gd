@@ -14,7 +14,13 @@ var con_testo := true
 func _init(tok: Dictionary = {}, col := "") -> void:
 	t = tok
 	colore = col
-	custom_minimum_size = Vector2(250, 235)
+	# l'altezza segue il testo: circa 34 caratteri per riga a 13-14 punti
+	var lettere := 0
+	for az in tok.get("azioni", []):
+		lettere += String(az.get("testo", "")).length() + String(az.get("nome", "")).length() + 4
+	lettere += String(tok.get("testo_cond", "")).length() + (30 if int(tok.get("anello", 2)) == 3 else 0)
+	var righe: int = int(ceil(lettere / 34.0)) + tok.get("azioni", []).size() - 1
+	custom_minimum_size = Vector2(250, maxf(235.0, 140.0 + righe * 18.5))
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 func _draw() -> void:
@@ -30,17 +36,14 @@ func _draw() -> void:
 	sb.set_border_width_all(3 if scelto else 1)
 	sb.set_corner_radius_all(10)
 	draw_style_box(sb, Rect2(Vector2.ZERO, size))
-	if t.has("seconda"):
+	var n_az: int = t["azioni"].size() if t.has("azioni") else 1
+	if n_az == 2:
 		# due azioni: due metà dello stesso pezzo d'anello
-		var t2 := t.duplicate()
-		t2.erase("seconda")
-		for k in t["seconda"]:
-			t2[k] = t["seconda"][k]
-		SferaVista.disegna_token(self, c, ri, ro, -90 - 38, -90 - 0.5, t, {}, scelto, colore)
-		SferaVista.disegna_token(self, c, ri, ro, -90 + 0.5, -90 + 38, t2, {}, scelto, colore)
+		SferaVista.disegna_token(self, c, ri, ro, -90 - 38, -90 - 0.5, Sfera.parte_di(t, 0), {}, scelto, colore)
+		SferaVista.disegna_token(self, c, ri, ro, -90 + 0.5, -90 + 38, Sfera.parte_di(t, 1), {}, scelto, colore)
 	else:
 		# un'azione sola: mezzo pezzo, come sulla sfera
-		SferaVista.disegna_token(self, c, ri, ro, -90 - 19, -90 + 19, t, {}, scelto, colore)
+		SferaVista.disegna_token(self, c, ri, ro, -90 - 19, -90 + 19, Sfera.parte_di(t, 0), {}, scelto, colore)
 	if t.has("costo"):
 		var cr := Rect2(w - 44, 8, 36, 30)
 		var sc := StyleBoxFlat.new()
@@ -51,20 +54,17 @@ func _draw() -> void:
 		draw_style_box(sc, cr)
 		Disegno.testo(self, cr.position + Vector2(0, 22), str(int(t["costo"])), 18, Disegno.ORO, Disegno.font_titolo(), cr.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	if con_testo:
-		var modo := ""
-		match String(t.get("modo", "")):
-			"armato":
-				modo = ""
-			"subito":
-				modo = "Scatta subito. "
-		var testo := modo + String(t.get("testo", ""))
+		var righe := []
+		for k in n_az:
+			var pz := Sfera.parte_di(t, k)
+			var r := String(pz["testo"])
+			if n_az == 2:
+				r = String(pz["nome"]) + ": " + r
+			righe.append(r)
+		var testo := "\n".join(righe)
 		if int(t.get("anello", 2)) == 3:
-			testo = "Anello esterno, %s. %s" % ["1 dado" if t["req"].size() == 1 else "%d dadi" % t["req"].size(), testo]
-		elif t.get("entrambi", false):
-			testo += " Vuole un dado di ciascuno dei due colori."
-		if t.has("seconda"):
-			testo = String(t["nome"]) + ": " + testo + "\n" + String(t["seconda"]["nome"]) + ": " + String(t["seconda"]["testo"])
-		Disegno.testo_a_capo(self, Vector2(10, alto + 14), testo, 14 if not t.has("seconda") else 12, Disegno.PERGAMENA, w - 20, 6)
+			testo = "Anello esterno, %s. %s %s" % [" | ".join(t.get("coppia", [])), testo, String(t.get("testo_cond", ""))]
+		Disegno.testo_a_capo(self, Vector2(10, alto + 14), testo, 13 if n_az == 2 else 14, Disegno.PERGAMENA, w - 20, 14)
 
 func _gui_input(ev: InputEvent) -> void:
 	if not selezionabile:

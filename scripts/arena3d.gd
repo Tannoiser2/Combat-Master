@@ -1212,8 +1212,14 @@ func _process(dt: float) -> void:
 			q.y *= 1.6
 			if q.length() < 3.6 * S:
 				sotto = true
+		# la telecamera dentro o a ridosso della chioma: quasi trasparente, altrimenti copre tutto
+		var dentro := false
+		var dc := cam_p - chioma
+		dc.y *= 1.6
+		if dc.length() < 5.0 * S:
+			dentro = true
 		var mt: StandardMaterial3D = c[1]
-		var a := move_toward(mt.albedo_color.a, 0.45 if sotto else 1.0, dt * 2.0)
+		var a := move_toward(mt.albedo_color.a, 0.08 if dentro else (0.18 if sotto else 1.0), dt * 2.0)
 		mt.albedo_color.a = a
 
 func ha_modello(p: int) -> bool:
