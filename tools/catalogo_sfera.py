@@ -103,7 +103,7 @@ def _seguiti(a, ferendo=False):
     if a.get("pulisci"):
         mie.append("togli i tuoi svantaggi")
     if a.get("pesca"):
-        mie.append("peschi " + _num(a["pesca"], "dado", "dadi"))
+        mie.append("riprendi " + _num(a["pesca"], "dado", "dadi") + " dall'Attesa")
     if a.get("ritocca"):
         mie.append("+1 a tutti i dadi che hai in mano")
     if a.get("rovescia"):
@@ -118,10 +118,14 @@ def _seguiti(a, ferendo=False):
         mie.append("gli giri attorno di " + _num(a["aggira"], "esagono", "esagoni"))
     if a.get("arretra") and not a.get("passo"):
         mie.append("arretri di " + _num(a["arretra"], "esagono", "esagoni"))
-    if a.get("iniziativa"):
-        mie.append("mantieni l'iniziativa")
+    if a.get("iniziativa") and a["tipo"] == "trappola":
+        mie.append("prendi l'iniziativa")
     if mie:
         s += ("; " if s else ", ") + ", ".join(mie)
+    if a.get("sicuro"):
+        s += ". Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio"
+    if a.get("cede_svant"):
+        s += ". Se hai almeno %s, dopo cedi l'iniziativa" % _num(a["cede_svant"], "svantaggio", "svantaggi")
     return s
 
 
@@ -401,20 +405,20 @@ MEDIANO = [
     token("att12", "Cintura bassa da dietro", VI, [presa("Cintura bassa da dietro", n=2, danno=1, togli="caso", ntogli=2, svant=1)], origine="att12"),
     token("att16", "Presa con presa", VI, [presa("Presa con presa", n=2, danno=1, togli="caso", ntogli=2, svant=1)], origine="att16"),
     # le 7 immobilizzazioni (trappole viola)
-    token("tec_i1", "Controllo del braccio", VI, [trappola("Controllo del braccio", n=2, danno=1, svant=2, togli="caso", ntogli=2, tieni=True)], origine="tec_i1"),
-    token("tec_i2", "Leva del polso piegato", VI, [trappola("Leva del polso piegato", n=2, contro="presa", danno=1, svant=2, togli="caso", ntogli=2)], origine="tec_i2"),
-    token("tec_i3", "Torsione del polso in alto", VI, [trappola("Torsione del polso in alto", n=2, contro="presa", danno=2, svant=1, togli="caso")], origine="tec_i3"),
-    token("tec_i4", "Pressione sull'avambraccio", VI, [trappola("Pressione sull'avambraccio", n=2, danno=1, svant=2, togli="alto")], origine="tec_i4"),
-    token("tec_i5", "Leva del gomito disteso", VI, [trappola("Leva del gomito disteso", contro="colpo", danno=1, svant=2)], origine="tec_i5"),
-    token("tec_i6", "Chiave al gomito sul petto", VI, [trappola("Chiave al gomito sul petto", n=2, danno=2, svant=1, togli="caso", tieni=True)], origine="tec_i6"),
-    token("tec_i7", "Leva alta ai quattro lati", VI, [trappola("Leva alta ai quattro lati", n=2, contro="presa", danno=1, svant=2, togli="caso", ntogli=2)], origine="tec_i7"),
+    token("tec_i1", "Controllo del braccio", VI, [trappola("Controllo del braccio", n=2, danno=1, svant=2, togli="caso", ntogli=2, tieni=True, a_terra=True)], origine="tec_i1"),
+    token("tec_i2", "Leva del polso piegato", VI, [trappola("Leva del polso piegato", n=2, danno=1, svant=2, togli="caso", ntogli=2, tieni=True, a_terra=True)], origine="tec_i2"),
+    token("tec_i3", "Torsione del polso in alto", VI, [trappola("Torsione del polso in alto", n=2, danno=2, svant=1, togli="caso", tieni=True, a_terra=True)], origine="tec_i3"),
+    token("tec_i4", "Pressione sull'avambraccio", VI, [trappola("Pressione sull'avambraccio", n=2, danno=1, svant=2, togli="alto", tieni=True, a_terra=True)], origine="tec_i4"),
+    token("tec_i5", "Leva del gomito disteso", VI, [trappola("Leva del gomito disteso", contro="colpo", danno=1, svant=2, tieni=True, a_terra=True)], origine="tec_i5"),
+    token("tec_i6", "Chiave al gomito sul petto", VI, [trappola("Chiave al gomito sul petto", n=2, danno=2, svant=1, togli="caso", tieni=True, a_terra=True)], origine="tec_i6"),
+    token("tec_i7", "Leva alta ai quattro lati", VI, [trappola("Leva alta ai quattro lati", n=2, danno=1, svant=2, togli="caso", ntogli=2, tieni=True, a_terra=True)], origine="tec_i7"),
 ]
 
 # le 28 proiezioni del libro (verdi: Agilità e Percezione). Contro chi valgono (prese, colpi o tutto),
 # quanto proiettano e quanto fanno male vengono dagli attacchi del vecchio regolamento.
 PROIEZIONI = [
     ("tec_p1", "Proiezione a spirale", "tutto", 2, 1, 2), ("tec_p2", "Proiezione ai quattro lati", "presa", 1, 1, 2),
-    ("tec_p3", "Proiezione rotatoria", "tutto", 2, 1, 1), ("tec_p4", "Proiezione d'anca", "presa", 1, 2, 2),
+    ("tec_p3", "Proiezione rotatoria", "tutto", 2, 1, 1), ("tec_p4", "Proiezione d'anca", "tutto", 1, 2, 2),
     ("tec_p5", "Cielo e terra", "presa", 2, 1, 1), ("tec_p6", "Torsione del polso", "presa", 1, 1, 1),
     ("tec_p7", "Spinta al collo", "presa", 2, 0, 1), ("tec_p8", "Proiezione del respiro", "colpo", 2, 0, 1),
     ("tec_p9", "Proiezione entrando", "presa", 1, 1, 1), ("tec_p10", "Caduta d'angolo", "presa", 1, 1, 1),
@@ -518,24 +522,30 @@ def personaggi(d):
         budget = r["budget"] - (r["ritmo3_budget"] if pg.get("R", 2) == 3 else 0)
         coll = []
         per_col = {c: [t for t in d["esterni"] if t["anello"] == 2 and t["col"] == c] for c in ORDINE}
-        # i posti più affini scelgono per primi, con i token migliori per costo
-        for c in sorted(ORDINE, key=lambda c: -aff[c]):
+        # ogni posto del mediano va riempito (due azioni): i più affini scelgono tra i token migliori,
+        # gli altri si accontentano dei più economici che stanno nel budget rimasto
+        posti = sorted(ORDINE, key=lambda c: -aff[c])
+        for q, c in enumerate(posti):
             lista = per_col[c][:]
             rnd.shuffle(lista)
-            lista.sort(key=lambda t: -(t["costo"] / len(t["azioni"])) if aff[c] >= 2.5 else t["costo"] / len(t["azioni"]))
-            resto = len([x for x in ORDINE if x not in [tok[i]["col"] for i in coll]]) - 1
+            resto = len(posti) - q - 1
             pz = 0
-            for t in lista:
-                n = len(t["azioni"])
-                if pz + n <= 2 and t["costo"] <= budget - resto * 2:
-                    coll.append(t["id"]); budget -= t["costo"]; pz += n
-                if pz >= 2:
-                    break
-        for c in sorted(ORDINE, key=lambda c: -aff[c])[:2]:
-            for t in sorted(per_col[c], key=lambda t: t["costo"]):
-                if t["id"] not in coll and t["costo"] <= budget:
-                    coll.append(t["id"]); budget -= t["costo"]
-                    break
+            for cerca in (2, 1):
+                for t in sorted(lista, key=lambda t: (-t["costo"] if aff[c] >= 2.5 else abs(t["costo"] - 2), rnd.random())):
+                    n = len(t["azioni"])
+                    if t["id"] in coll or n != cerca or pz + n > 2:
+                        continue
+                    if t["costo"] <= budget - resto * 2:
+                        coll.append(t["id"]); budget -= t["costo"]; pz += n
+                    if pz >= 2:
+                        break
+            if pz < 2:
+                for t in sorted(lista, key=lambda t: t["costo"] / len(t["azioni"])):
+                    n = len(t["azioni"])
+                    if t["id"] not in coll and pz + n <= 2:
+                        coll.append(t["id"]); budget -= t["costo"]; pz += n
+                    if pz >= 2:
+                        break
         b3 = r["budget_esterno"]
         coppie = sorted(range(6), key=lambda k: -(aff[COPPIE[k][0]] + aff[COPPIE[k][1]]))
         for k in coppie:
@@ -547,11 +557,47 @@ def personaggi(d):
         pg["raro"] = ""
 
 
+def _h(x):
+    return sum(ord(c) * (i + 1) for i, c in enumerate(x))
+
+
+def flusso(t):
+    """Costi e regole d'iniziativa propri di ogni token: quanti vantaggi per girarlo o sbloccarlo,
+    quali azioni fanno perdere l'iniziativa con gli svantaggi e quali la tengono a caro prezzo."""
+    h = _h(t["id"])
+    doppio = len(t["azioni"]) == 2
+    if t["anello"] == 3:
+        t["gira"] = 3 if h % 3 else 2
+        t["sblocca"] = 3
+    else:
+        t["gira"] = min(3, max(1, (2 if doppio else 1) + (1 if t.get("costo", 1) >= 4 else 0) + (h % 3 == 0) - (h % 5 == 0)))
+        t["sblocca"] = min(3, max(1, (3 if doppio else 2) - (h % 4 == 0)))
+    for k, az in enumerate(t["azioni"]):
+        a = az["a"]
+        for x in ("sicuro", "cede_svant"):
+            a.pop(x, None)
+        hk = h + k * 7
+        if a["tipo"] in ("colpo", "presa"):
+            if a.get("iniziativa"):
+                a["sicuro"] = True
+                a.pop("iniziativa")
+            elif a.get("entra") or a.get("alle_spalle") or a.get("danno") == "somma":
+                a["cede_svant"] = 2
+            elif hk % 3 == 0:
+                a["sicuro"] = True
+            else:
+                a["cede_svant"] = 3
+        elif a["tipo"] == "effetto" and (a.get("cura") or a.get("pesca")):
+            a["cede_svant"] = 2
+
+
 def costruisci():
     d = json.load(open(SFERA))
     vecchi = {t["id"]: t for t in d.get("esterni", [])}
     tutti = []
     for t in MEDIANO + ESTERNO:
+        t["costo"] = int(vecchi[t["id"]]["costo"]) if t["id"] in vecchi and vecchi[t["id"]].get("azioni") else _costo(t)
+        flusso(t)
         for az in t["azioni"]:
             az["testo"] = testo(az["a"])
             az["testo_pot"] = testo_pot(az["a"])

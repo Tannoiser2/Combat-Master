@@ -2291,7 +2291,7 @@ func sf_descrivi(pg: Dictionary) -> String:
 				nomi3.append(mm.tokp[id]["nome"])
 			else:
 				nomi.append(mm.tokp[id]["nome"])
-	var t := "Forza %d, Agilità %d, Percezione %d, Costituzione %d, Ritmo %d.\nToken: %s." % [pg["F"], pg["A"], pg["P"], pg["C"], pg["R"], ", ".join(nomi)]
+	var t := "Forza %d, Agilità %d, Percezione %d, Costituzione %d.\nToken: %s." % [pg["F"], pg["A"], pg["P"], pg["C"], ", ".join(nomi)]
 	if not nomi3.is_empty():
 		t += "\nAnello esterno: %s." % ", ".join(nomi3)
 	if String(pg.get("raro", "")) != "":
@@ -2467,7 +2467,7 @@ func _sf_costruisci_hud() -> void:
 	var hb := HFlowContainer.new()
 	hb.add_theme_constant_override("h_separation", 6)
 	v.add_child(hb)
-	_sf_passa_btn = _bottone("Passa fino alla pausa", func(): _sf_esegui({"t": "passa"}), 150)
+	_sf_passa_btn = _bottone("Cedi l'iniziativa", func(): _sf_esegui({"t": "passa"}), 150)
 	hb.add_child(_sf_passa_btn)
 	_sf_avv_btn = _bottone("Sfera avversaria", func():
 		_sf_avversario = not _sf_avversario
@@ -2517,13 +2517,13 @@ func _sf_layout() -> void:
 			_sf_barra.offset_bottom = 52 + vw.y * 0.11 + 64
 			(_sf_barra.get_child(0) as BoxContainer).vertical = false
 	else:
-		var w := clampf(vw.x * 0.36, 380.0, 560.0)
+		var w := clampf(vw.x * 0.42, 400.0, 680.0)
 		_sf_pan.set_anchors_preset(Control.PRESET_LEFT_WIDE)
 		_sf_pan.offset_left = 6
 		_sf_pan.offset_right = 6 + w
 		_sf_pan.offset_top = 6
 		_sf_pan.offset_bottom = -6
-		lato = minf(w - 24, vw.y * 0.56)
+		lato = minf(w - 24, vw.y - 270)
 		if pd != null:
 			pd.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 			pd.offset_left = -minf(420.0, vw.x * 0.3)
@@ -2597,11 +2597,11 @@ func _sf_aggiorna() -> void:
 	_sf_vista.attiva = umano == mostra_p
 	_sf_avv_btn.text = "La mia sfera" if _sf_avversario else "Sfera avversaria"
 	var g: Dictionary = ms.s["g"][mostra_p]
-	_sf_testa.text = _sf_testo_giocatore(mostra_p) + "\nRitmo %d  -  token in campo fino a %d" % [g["R"], g["slot"]]
+	_sf_testa.text = _sf_testo_giocatore(mostra_p) + ("\nHai l'iniziativa." if int(ms.s["attivo"]) == mostra_p else "\nL'iniziativa è dell'avversario.")
 	_sf_testa.add_theme_color_override("font_color", Disegno.GIOCATORI[mostra_p])
 	var log_: Array = ms.s["log"]
 	_sf_diario.text = "\n".join(log_.slice(maxi(0, log_.size() - 9)))
-	_sf_msg.text = "Scambio %d  -  %s\n%s" % [ms.s["scambio"], _sf_testo_giocatore(1 - base), _sf_messaggio(umano)]
+	_sf_msg.text = "Iniziativa %d  -  %s\n%s" % [ms.s["scambio"], _sf_testo_giocatore(1 - base), _sf_messaggio(umano)]
 	_sf_passa_btn.disabled = not (umano >= 0 and ms.s["fase"] == "azione")
 	if _sf_sel.is_empty():
 		_sf_scelte_base(umano)
@@ -2617,9 +2617,7 @@ func _sf_messaggio(umano: int) -> String:
 		"reazione":
 			var pend: Dictionary = ms.s["pend"]
 			return "%s ti attacca con %s: %d danni. Come reagisci?" % [ms.s["g"][pend["att"]]["nome"], pend["nome"], pend["danno"]]
-		"pausa":
-			return "Pausa: con il Ritmo puoi cambiare %s del mediano." % Motore.plurale(ms.posti_da_piazzare(umano), "token", "token")
-	return "Tocca a te: scegli un dado al centro, un dado fermo o un token pronto."
+	return "Hai l'iniziativa: tocca un dado e poi una zona illuminata."
 
 func _sf_bottoni(voci: Array) -> void:
 	for c in _sf_scelte.get_children():
@@ -2639,125 +2637,212 @@ func _sf_azzera() -> void:
 		_sf_vista.evid_azioni = []
 		_sf_vista.evid_token = []
 		_sf_vista.evid_fermi = []
+		_sf_vista.evid_dadi = []
+		_sf_vista.evid_attesa = false
+		_sf_vista.filtro = false
 		_sf_vista.evid_raro = false
 
+const _NOMI_COL := {"r": "rosso", "g": "giallo", "b": "blu", "n": "bianco"}
+
+func _sf_desc_dado(dd: Dictionary) -> String:
+	return "Dado %s da %d" % [_NOMI_COL.get(String(dd["c"]), "bianco"), int(dd["v"])]
+
+## Nessuna scelta in corso: si illuminano i dadi che possono fare qualcosa e i token pronti.
 func _sf_scelte_base(umano: int) -> void:
 	if umano < 0 or ms.s["vinc"] >= 0:
 		_sf_bottoni([])
 		if ms.s["vinc"] < 0:
 			_sf_info.text = "Tocca la sfera per leggere azioni e token."
 		return
-	match String(ms.s["fase"]):
-		"reazione":
-			_sf_scelte_reazione(umano)
-		"pausa":
-			_sf_scelte_pausa(umano)
-		_:
-			_sf_info.text = "Tocca un dado al centro della sfera, poi l'azione. I dadi fermi sulle azioni possono salire su un token o girare l'azione."
-			var voci := []
-			var g: Dictionary = ms.s["g"][umano]
-			var est: Array = g["esterni"]
-			var evid := []
-			for i in est.size():
-				var e: Dictionary = est[i]
-				if e["pronto"] and not e["bloccato"] and ms.te(e)["modo"] == "subito" and ms.in_portata(e):
-					evid.append(i)
-					voci.append(["Fai scattare %s" % ms.te(e)["nome"], func(): _sf_esegui({"t": "scatta", "tok": i})])
-			if not g["raro"].is_empty() and g["raro"]["pronto"] and ms.contatto():
-				voci.append(["Scatena %s" % ms.rarip[g["raro"]["id"]]["nome"], func(): _sf_esegui({"t": "raro"})])
-				_sf_vista.evid_raro = true
-			_sf_vista.evid_token = evid
-			var ef := []
-			for j in g["fermi"].size():
-				ef.append(j)
-			_sf_vista.evid_fermi = ef
-			_sf_bottoni(voci)
+	if String(ms.s["fase"]) == "reazione":
+		_sf_scelte_reazione(umano)
+		return
+	var g: Dictionary = ms.s["g"][umano]
+	var dadi := []
+	for dd in g["mano"]:
+		if not _sf_mete_dado(umano, dd).is_empty():
+			dadi.append(int(dd["id"]))
+	_sf_vista.evid_dadi = dadi
+	var ef := []
+	for j in g["fermi"].size():
+		var f: Dictionary = g["fermi"][j]
+		if not ms.bersagli_salita(umano, f["c"], Sfera.AZ_SETTORE[f["az"]]).is_empty() or not g["girate"].has(f["az"]):
+			ef.append(j)
+	_sf_vista.evid_fermi = ef
+	var et := []
+	for i in g["esterni"].size():
+		var e: Dictionary = g["esterni"][i]
+		if e["pronto"] and not e["bloccato"] and ms.te(e)["modo"] == "subito" and ms.in_portata(e):
+			et.append(i)
+	_sf_vista.evid_token = et
+	_sf_info.text = "Tocca un dado illuminato: si accendono i posti dove puoi metterlo. I dadi fermi sulle azioni possono salire su un token o girare l'azione. Tocca un token per leggerlo%s." % (" o girarlo con i vantaggi" if int(g["vantaggi"]) > 0 else "")
+	_sf_bottoni([])
+
+## Dove può andare un dado in mano: azioni base, token da sbloccare con i vantaggi, l'Attesa (sacrificio).
+func _sf_mete_dado(p: int, dd: Dictionary) -> Dictionary:
+	var out := {}
+	var az := ms.azioni_dado(p, dd)
+	if not az.is_empty():
+		out["azioni"] = az
+	var g: Dictionary = ms.s["g"][p]
+	var tk := []
+	for i in g["esterni"].size():
+		var e: Dictionary = g["esterni"][i]
+		var cs := ms.costo_sblocca(e)
+		if cs > 0 and cs <= int(g["vantaggi"]) and ms.puo_sbloccare(e, String(dd["c"])):
+			tk.append(i)
+	if not tk.is_empty():
+		out["token"] = tk
+	out["attesa"] = true
+	return out
 
 func _sf_premuto(cosa: Dictionary) -> void:
 	var umano := _sf_umano()
 	var p := _sf_vista.p
 	var g: Dictionary = ms.s["g"][p]
+	var mio := umano == p and umano >= 0
+	var reaz := mio and String(ms.s["fase"]) == "reazione"
+	var turno := mio and String(ms.s["fase"]) == "azione"
+	var modo := String(_sf_sel.get("tipo", ""))
 	match String(cosa["tipo"]):
+		"vuoto":
+			if modo != "salita":
+				_sf_azzera()
+				_sf_aggiorna()
 		"dado":
 			var i := ms.dado_in_mano(p, int(cosa["id"]))
 			if i < 0:
 				return
 			var dd: Dictionary = g["mano"][i]
-			if umano != p or ms.s["fase"] != "azione":
-				_sf_info.text = "Dado %s da %d." % [Sfera.NOMI_DADO[dd["c"]], dd["v"]]
+			if modo == "salita":
+				return
+			if reaz:
+				_sf_reazione_dado(p, dd)
+				return
+			if not turno:
+				_sf_info.text = _sf_desc_dado(dd) + "."
+				return
+			if modo == "dado" and int(_sf_sel["id"]) == int(dd["id"]):
+				_sf_azzera()
+				_sf_aggiorna()
 				return
 			_sf_azzera()
 			_sf_sel = {"tipo": "dado", "id": dd["id"]}
 			_sf_vista.sel_dado = int(dd["id"])
-			var azioni := ms.azioni_dado(p, dd)
-			_sf_vista.evid_azioni = azioni
+			_sf_vista.filtro = true
+			var mete := _sf_mete_dado(p, dd)
+			_sf_vista.evid_azioni = mete.get("azioni", [])
+			_sf_vista.evid_token = mete.get("token", [])
+			_sf_vista.evid_attesa = true
+			var righe := [_sf_desc_dado(dd) + ": tocca un posto illuminato."]
+			if not mete.has("azioni"):
+				righe.append("Nessuna azione base possibile ora.")
+			if mete.has("token"):
+				righe.append("I token illuminati si sbloccano con i vantaggi: il dado ci va dritto.")
+			righe.append("L'Attesa: sacrifichi il dado per 1 vantaggio.")
+			if ms.a_terra(p):
+				righe.append("Sei a terra: ti rialzi con un dado qualsiasi; con un giallo o un bianco il dado prosegue.")
+			_sf_info.text = "\n".join(righe)
 			var voci := []
-			for az in azioni:
-				voci.append([_sf_nome_azione(az), func(): _sf_scegli_azione(az)])
-			voci.append(["Annulla", func():
-				_sf_azzera()
-				_sf_aggiorna()])
-			_sf_info.text = "Dado %s da %d: scegli l'azione.%s%s" % [Sfera.NOMI_DADO[dd["c"]], dd["v"], "" if not azioni.is_empty() else " Nessuna azione possibile ora.", "\nSei a terra: ti rialzi con un dado qualsiasi; con un giallo o un bianco il dado prosegue e può salire." if ms.a_terra(p) else ""]
+			if int(g["vantaggi"]) >= 1 and int(dd["v"]) < 6:
+				voci.append(["+1 al dado (1 vantaggio)", func(): _sf_esegui({"t": "aumenta", "dado": dd["id"]}, {"tipo": "dado", "id": dd["id"]})])
 			_sf_bottoni(voci)
 			_sf_vista.queue_redraw()
 		"azione":
 			var az: String = cosa["az"]
 			var b := _sf_base(az)
-			_sf_info.text = "%s: %s\nFaccia potenziata, %s: %s" % [b["nome"], b["testo"], b["faccia"], b["testo_faccia"]]
-			if _sf_sel.get("tipo", "") == "dado" and _sf_vista.evid_azioni.has(az):
+			if reaz and az in ["parata", "scarto"]:
+				_sf_reazione_zona(p, az)
+				return
+			if modo == "dado" and _sf_vista.evid_azioni.has(az):
 				_sf_scegli_azione(az)
+				return
+			if modo == "fermo" and _sf_vista.evid_azioni.has(az):
+				var j := int(_sf_sel["j"])
+				_sf_info.text = "%s: %s" % [b["faccia"], b["testo_faccia"]]
+				_sf_bottoni([["Gira: %s" % b["faccia"], func(): _sf_esegui({"t": "gira", "fermo": j})]])
+				return
+			_sf_info.text = "%s: %s\nFaccia potenziata, %s: %s" % [b["nome"], b["testo"], b["faccia"], b["testo_faccia"]]
 		"fermo":
 			var j := int(cosa["j"])
 			var f: Dictionary = g["fermi"][j]
 			var b := _sf_base(f["az"])
-			if umano != p or ms.s["fase"] != "azione":
+			if not turno or modo == "salita":
 				_sf_info.text = "Dado fermo su %s." % b["nome"]
 				return
 			_sf_azzera()
 			_sf_sel = {"tipo": "fermo", "j": j}
 			_sf_vista.sel_fermo = j
-			var voci := []
+			_sf_vista.filtro = true
 			var sett: String = Sfera.AZ_SETTORE[f["az"]]
-			if not ms.bersagli_salita(p, f["c"], sett).is_empty():
-				voci.append(["Sali verso un token", func(): _sf_chiedi_salita(p, f["c"], sett, int(f["v"]), func(sal): _sf_esegui({"t": "sali", "fermo": j, "salita": sal}))])
+			_sf_vista.evid_token = ms.bersagli_salita(p, f["c"], sett)
 			if not g["girate"].has(f["az"]):
-				voci.append(["Gira: %s" % b["faccia"], func(): _sf_esegui({"t": "gira", "fermo": j})])
-			voci.append(["Annulla", func():
-				_sf_azzera()
-				_sf_aggiorna()])
-			_sf_info.text = "Dado %s da %d fermo su %s.\n%s: %s" % [Sfera.NOMI_DADO[f["c"]], f["v"], b["nome"], b["faccia"], b["testo_faccia"]]
-			if voci.size() == 1 and g["mano"].is_empty():
-				_sf_info.text += "\nQuesto dado non può salire né girare: premi Passa fino alla pausa."
-			_sf_bottoni(voci)
+				_sf_vista.evid_azioni = [f["az"]]
+			var righe := ["%s fermo su %s." % [_sf_desc_dado(f), b["nome"]]]
+			if not _sf_vista.evid_token.is_empty():
+				righe.append("Tocca un token illuminato per farlo salire.")
+			if not g["girate"].has(f["az"]):
+				righe.append("Tocca %s per girarla: %s." % [b["nome"], b["faccia"]])
+			_sf_info.text = "\n".join(righe)
+			_sf_bottoni([])
 			_sf_vista.queue_redraw()
+		"attesa":
+			if modo == "dado" and turno:
+				var id := int(_sf_sel["id"])
+				_sf_info.text = "Sacrificio: il dado aspetta in Attesa finché non cedi l'iniziativa, e tu prendi 1 vantaggio."
+				_sf_bottoni([["Sacrifica il dado", func(): _sf_esegui({"t": "sacrifica", "dado": id})]])
+			else:
+				_sf_info.text = "Attesa: i dadi liberati aspettano qui; tornano al centro, ritirati, quando cedi l'iniziativa."
 		"token":
-			var e: Dictionary = g["esterni"][int(cosa["i"])]
+			var ti := int(cosa["i"])
+			var e: Dictionary = g["esterni"][ti]
 			var t := ms.te(e)
-			var stato := ""
-			if e["bloccato"]:
-				stato = " Bloccato fino alla pausa."
-			elif e["pronto"]:
-				stato = " Pronto."
-			var dove := ""
-			if t.get("eff", "") == "comp":
-				dove = " Potenziato: %s" % t["testo_pot"]
-				if ms.anello(e) == 3:
-					dove += " " + String(t.get("testo_cond", "")) + " Lo carica il dado più alto dei token del mediano del suo colore che scattano."
-				else:
-					dove += " Si potenzia con tutti i dadi uguali, o con un 6 se vuole un dado solo."
-			if ms.anello(e) == 3 and String(e["id"]).begins_with("scena_"):
-				pass
-			elif String(t["col"]) in ["arancio", "verde", "viola"] and ms.anello(e) == 2:
-				var due: String = Sfera.SETTORI_COL[t["col"]]
-				var nomi_c := {"F": "rosso", "A": "giallo", "P": "blu"}
-				if t.get("entrambi", false):
-					dove += " Vuole un dado %s e uno %s." % [nomi_c[due[0]], nomi_c[due[1]]]
-				else:
-					dove += " Ogni posto prende un dado %s o %s (o bianco)." % [nomi_c[due[0]], nomi_c[due[1]]]
-			_sf_info.text = "%s (freccia -%d): %s%s%s" % [t["nome"], int(t.get("freccia", 1)), t["testo"], dove, stato]
+			if modo == "salita" and _sf_vista.evid_token.has(ti):
+				_sf_salita_token(ti)
+				return
+			if modo == "fermo" and turno and _sf_vista.evid_token.has(ti):
+				var j := int(_sf_sel["j"])
+				var f: Dictionary = g["fermi"][j]
+				_sf_sel = {"tipo": "salita", "v": int(f["v"]), "cb": func(sal): _sf_esegui({"t": "sali", "fermo": j, "salita": sal})}
+				_sf_salita_token(ti)
+				return
+			if modo == "dado" and turno and _sf_vista.evid_token.has(ti):
+				var id := int(_sf_sel["id"])
+				var cs := ms.costo_sblocca(e)
+				_sf_info.text = "Sblocco (%s): il dado va dritto su %s.\n%s" % [Motore.plurale(cs, "vantaggio", "vantaggi"), t["nome"], t["testo"]]
+				_sf_bottoni([["Sblocca (%s)" % Motore.plurale(cs, "vantaggio", "vantaggi"), func(): _sf_esegui({"t": "sblocca", "dado": id, "tok": ti})]])
+				return
+			_sf_info.text = _sf_testo_token(e)
+			var voci := []
+			if turno:
+				if e["pronto"] and not e["bloccato"] and t["modo"] == "subito" and ms.in_portata(e):
+					voci.append(["Fai scattare %s" % t["nome"], func(): _sf_esegui({"t": "scatta", "tok": ti})])
+				var cg := ms.costo_gira(e)
+				if cg > 0 and not e.get("pot", false) and int(g["vantaggi"]) >= cg:
+					voci.append(["Gira sulla faccia potenziata (%s)" % Motore.plurale(cg, "vantaggio", "vantaggi"), func(): _sf_esegui({"t": "potenzia", "tok": ti})])
+			_sf_bottoni(voci)
 		"raro":
 			var r: Dictionary = g["raro"]
-			_sf_info.text = "Token raro %s: %s Si carica con i dadi che scattano dai token esterni (4 o più)." % [ms.rarip[r["id"]]["nome"], ms.rarip[r["id"]]["testo"]]
+			_sf_info.text = "Token raro %s: %s" % [ms.rarip[r["id"]]["nome"], ms.rarip[r["id"]]["testo"]]
+
+func _sf_testo_token(e: Dictionary) -> String:
+	var t := ms.te(e)
+	var righe := ["%s (freccia -%d): %s" % [t["nome"], int(t.get("freccia", 1)), t["testo"]]]
+	if t.get("eff", "") == "comp":
+		righe.append("Potenziato: %s" % t["testo_pot"])
+		var cg := ms.costo_gira(e)
+		var cs := ms.costo_sblocca(e)
+		if cg > 0:
+			righe.append("Si gira con %s, si sblocca con %s." % [Motore.plurale(cg, "vantaggio", "vantaggi"), Motore.plurale(cs, "vantaggio", "vantaggi")])
+		if ms.anello(e) == 3:
+			righe.append(String(t.get("testo_cond", "")) + " Lo carica il dado più alto dei token del mediano del suo colore che scattano.")
+		else:
+			righe.append("Si potenzia anche con tutti i dadi uguali, o con un 6 se vuole un dado solo.")
+	if e["bloccato"]:
+		righe.append("Bloccato.")
+	elif e["pronto"]:
+		righe.append("Pronto.")
+	return "\n".join(righe)
 
 func _sf_base(az: String) -> Dictionary:
 	for b in sf["base"]:
@@ -2770,6 +2855,7 @@ func _sf_nome_azione(az: String) -> String:
 		return "Rialzati"
 	return String(_sf_base(az)["nome"])
 
+## Il dado scelto su un'azione base illuminata: sotto compare che cosa fa, con i modi possibili.
 func _sf_scegli_azione(az: String) -> void:
 	var p := _sf_umano()
 	if p < 0 or _sf_sel.get("tipo", "") != "dado":
@@ -2778,22 +2864,26 @@ func _sf_scegli_azione(az: String) -> void:
 	var g: Dictionary = ms.s["g"][p]
 	var dd: Dictionary = g["mano"][ms.dado_in_mano(p, id)]
 	var v := int(dd["v"])
+	var b := _sf_base(az)
+	_sf_vista.evid_azioni = [az]
+	_sf_vista.evid_token = []
+	_sf_vista.evid_attesa = false
+	_sf_vista.queue_redraw()
 	match az:
 		"colpo":
-			var dopo := func(pesante: bool) -> void:
-				_sf_chiedi_salita(p, dd["c"], "F", v, func(sal): _sf_esegui({"t": "colpo", "dado": id, "pesante": pesante, "salita": sal}))
+			var danno := int(ceil((v + (int(ms.reg.get("colpo_rosso", 2)) if dd["c"] == "r" else 0)) / 2.0))
+			_sf_info.text = "Colpo con il %d: circa %d danni (più i vantaggi che spendi). Il dado poi può salire su un token." % [v, danno]
+			var voci := [["Colpisci", func(): _sf_poi_salita(p, dd["c"], "F", v, func(sal): _sf_esegui({"t": "colpo", "dado": id, "salita": sal}))]]
 			if int(g["vantaggi"]) >= 1 and not g["girate"].has("colpo"):
-				_sf_info.text = "Colpo con un %d. Vuoi girarlo in Colpo pesante (1 vantaggio, danno +2)?" % v
-				_sf_bottoni([["Colpo", func(): dopo.call(false)], ["Colpo pesante", func(): dopo.call(true)]])
-			else:
-				dopo.call(false)
+				voci.append(["Colpo pesante (1 vantaggio, +2)", func(): _sf_poi_salita(p, dd["c"], "F", v, func(sal): _sf_esegui({"t": "colpo", "dado": id, "pesante": true, "salita": sal}))])
+			_sf_bottoni(voci)
 		"passo":
 			var k := 2 if v >= 5 else 1
 			if ms.contatto():
-				_sf_info.text = "A contatto il Passo aggira il nemico verso le sue spalle (con 4+ di due esagoni). Oppure ti allontani."
+				_sf_info.text = "Passo con il %d: a contatto aggiri l'avversario verso le sue spalle (con 4 o più di due esagoni), oppure ti allontani." % v
 				_sf_bottoni([["Aggira", func(): _sf_esegui({"t": "passo", "dado": id})], ["Allontanati", func(): _sf_esegui({"t": "passo", "dado": id, "via": true})]])
 			else:
-				var vis := ms.cammino(p, k)
+				var vis := ms.cammino(p, 1 if dd["c"] == "r" else k)
 				var hs := []
 				for h in vis:
 					if h != g["pos"]:
@@ -2801,15 +2891,20 @@ func _sf_scegli_azione(az: String) -> void:
 				_sf_esagoni = {"dado": id, "hex": hs}
 				arena.pulisci_evidenza()
 				arena.evidenzia(hs, Color("#5aa0d8"))
-				_sf_info.text = "Tocca l'esagono dove andare (fino a %s), oppure lascia scegliere." % plurale_es(k)
-				_sf_bottoni([["Avanza verso di lui", func(): _sf_esegui({"t": "passo", "dado": id})], ["Allontanati", func(): _sf_esegui({"t": "passo", "dado": id, "via": true})]])
+				_sf_info.text = "Passo con il %d: tocca l'esagono illuminato dove andare." % v
+				var voci := [["Avanza verso di lui", func(): _sf_esegui({"t": "passo", "dado": id})]]
+				if dd["c"] != "r":
+					voci.append(["Allontanati", func(): _sf_esegui({"t": "passo", "dado": id, "via": true})])
+				_sf_bottoni(voci)
 		"rialza":
+			_sf_info.text = "Ti rialzi con il %d.%s" % [v, " Il dado prosegue e può salire." if dd["c"] in ["g", "n"] else ""]
 			if dd["c"] in ["g", "n"]:
-				_sf_chiedi_salita(p, dd["c"], "A", v, func(sal): _sf_esegui({"t": "rialza", "dado": id, "salita": sal}))
+				_sf_bottoni([["Rialzati", func(): _sf_poi_salita(p, dd["c"], "A", v, func(sal): _sf_esegui({"t": "rialza", "dado": id, "salita": sal}))]])
 			else:
-				_sf_esegui({"t": "rialza", "dado": id})
+				_sf_bottoni([["Rialzati", func(): _sf_esegui({"t": "rialza", "dado": id})]])
 		_:
-			_sf_esegui({"t": az, "dado": id})
+			_sf_info.text = "%s con il %d: %s" % [b["nome"], v, b["testo"]]
+			_sf_bottoni([[String(b["nome"]), func(): _sf_esegui({"t": az, "dado": id})]])
 
 func plurale_es(k: int) -> String:
 	return "1 esagono" if k == 1 else "%d esagoni" % k
@@ -2819,54 +2914,101 @@ func _sf_esagono(h: Vector2i) -> void:
 		return
 	_sf_esegui({"t": "passo", "dado": int(_sf_esagoni["dado"]), "dest": h})
 
-## Chiede dove e come salire: per ogni token possibile, scalando (sicuro, il turno passa) o ritirando (continui; 1 o 2 fallisce).
-func _sf_chiedi_salita(p: int, colore: String, sett: String, v: int, cb: Callable) -> void:
+## Dopo un'azione il dado può salire: si illuminano i token raggiungibili; toccandone uno si sceglie
+## se scalare (sicuro) o ritirare (+1 vantaggio; con 1 o 2 il dado va in Attesa e perdi l'iniziativa).
+func _sf_poi_salita(p: int, colore: String, sett: String, v: int, cb: Callable) -> void:
 	var cand := ms.bersagli_salita(p, colore, sett)
 	if cand.is_empty():
 		cb.call({"modo": "no"})
 		return
-	var est: Array = ms.s["g"][p]["esterni"]
-	var voci := []
-	for i in cand:
-		var e: Dictionary = est[i]
-		var nome: String = ms.te(e)["nome"]
-		var sc := maxi(1, v - ms.freccia(e))
-		voci.append(["%s: scala a %d" % [nome, sc], func(): cb.call({"tok": i, "modo": "scala"})])
-		voci.append(["%s: ritira" % nome, func(): cb.call({"tok": i, "modo": "ritira"})])
-	voci.append(["Non salire", func(): cb.call({"modo": "no"})])
+	_sf_azzera()
+	_sf_sel = {"tipo": "salita", "v": v, "cb": cb}
+	_sf_vista.filtro = true
 	_sf_vista.evid_token = cand
 	_sf_vista.queue_redraw()
-	_sf_info.text = "Il dado (%d) può salire verso l'esterno. Scalando sale sicuro ma perdi l'iniziativa; ritirando continui a giocare e prendi 1 vantaggio, ma con 1 o 2 il dado va in Attesa." % v
-	_sf_bottoni(voci)
+	_sf_info.text = "Dopo l'azione il dado (%d) può salire: tocca un token illuminato." % v
+	_sf_bottoni([["Non salire", func(): cb.call({"modo": "no"})]])
 
+func _sf_salita_token(ti: int) -> void:
+	var p := _sf_vista.p
+	var e: Dictionary = ms.s["g"][p]["esterni"][ti]
+	var v := int(_sf_sel["v"])
+	var cb: Callable = _sf_sel["cb"]
+	var sc := maxi(1, v - ms.freccia(e))
+	_sf_vista.evid_token = [ti]
+	_sf_vista.queue_redraw()
+	_sf_info.text = "Sale su %s: %s\nScalando entra con %d. Ritirando prendi 1 vantaggio, ma con 1 o 2 il dado va in Attesa e perdi l'iniziativa." % [ms.te(e)["nome"], ms.te(e)["testo"], sc]
+	_sf_bottoni([["Scala a %d" % sc, func(): cb.call({"tok": ti, "modo": "scala"})], ["Ritira", func(): cb.call({"tok": ti, "modo": "ritira"})], ["Non salire", func(): cb.call({"modo": "no"})]])
+
+## Reazione: si illuminano i dadi e le zone (Parata, Scarto) possibili contro l'attacco.
 func _sf_scelte_reazione(d: int) -> void:
 	var opz := ms.opzioni_reazione(d)
-	var g: Dictionary = ms.s["g"][d]
-	var voci := []
+	var pend: Dictionary = ms.s["pend"]
+	var dadi := []
+	var zone := []
 	for op in opz:
-		var dd: Dictionary = g["mano"][ms.dado_in_mano(d, int(op["dado"]))]
-		var nome := "Para con il %d %s (-%d)" % [dd["v"], Sfera.NOMI_DADO[dd["c"]], op["riduce"]] if op["t"] == "parata" else "Scarta con il %d %s" % [dd["v"], Sfera.NOMI_DADO[dd["c"]]]
-		voci.append([nome, func(): _sf_reazione_passo2(d, op, dd)])
-	voci.append(["Nessuna reazione", func(): _sf_reagisci(d, {"t": "nessuna"})])
-	_sf_info.text = "Parata (dadi blu o bianchi): riduci il danno di metà del dado. Scarto (gialli o bianchi, non alle spalle): schivi tutto. Il dado poi può salire su un token."
-	_sf_bottoni(voci)
+		dadi.append(int(op["dado"]))
+		if not zone.has(op["t"]):
+			zone.append(op["t"])
+	_sf_vista.filtro = true
+	_sf_vista.evid_dadi = dadi
+	_sf_vista.evid_azioni = zone
+	_sf_vista.evid_token = []
+	_sf_info.text = "%s ti attacca con %s: %d danni.%s" % [ms.s["g"][pend["att"]]["nome"], pend["nome"], int(pend["danno"]), " Tocca un dado o una reazione illuminata. Una reazione che annulla l'attacco ti dà l'iniziativa." if not opz.is_empty() else " Non hai reazioni possibili."]
+	_sf_bottoni([["Nessuna reazione", func(): _sf_reagisci(d, {"t": "nessuna"})]])
+	_sf_vista.queue_redraw()
 
-func _sf_reazione_passo2(d: int, op: Dictionary, dd: Dictionary) -> void:
-	_sf_sel = {"tipo": "reazione"}
+func _sf_reazione_dado(d: int, dd: Dictionary) -> void:
+	var zone := []
+	for op in ms.opzioni_reazione(d):
+		if int(op["dado"]) == int(dd["id"]) and not zone.has(op["t"]):
+			zone.append(op["t"])
+	_sf_sel = {"tipo": "reazione", "id": dd["id"]}
+	_sf_vista.sel_dado = int(dd["id"])
+	_sf_vista.evid_azioni = zone
+	_sf_info.text = "%s: %s" % [_sf_desc_dado(dd), "tocca la reazione illuminata." if not zone.is_empty() else "non può reagire a questo attacco."]
+	_sf_vista.queue_redraw()
+
+func _sf_reazione_zona(d: int, az: String) -> void:
+	var opz := ms.opzioni_reazione(d).filter(func(o): return o["t"] == az)
+	if opz.is_empty():
+		return
+	var op: Dictionary = opz[0]
+	if _sf_sel.get("tipo", "") == "reazione":
+		for o in opz:
+			if int(o["dado"]) == int(_sf_sel["id"]):
+				op = o
+	else:
+		# senza dado scelto: il migliore per quella reazione
+		var g0: Dictionary = ms.s["g"][d]
+		for o in opz:
+			if int(g0["mano"][ms.dado_in_mano(d, int(o["dado"]))]["v"]) > int(g0["mano"][ms.dado_in_mano(d, int(op["dado"]))]["v"]):
+				op = o
 	var g: Dictionary = ms.s["g"][d]
-	var sett := "P" if op["t"] == "parata" else "A"
-	var fine := func(gira: bool) -> void:
-		_sf_chiedi_salita(d, dd["c"], sett, int(dd["v"]), func(sal):
+	var dd: Dictionary = g["mano"][ms.dado_in_mano(d, int(op["dado"]))]
+	var sett := "P" if az == "parata" else "A"
+	var fai := func(gira: bool) -> void:
+		_sf_poi_salita(d, dd["c"], sett, int(dd["v"]), func(sal):
 			var sc: Dictionary = op.duplicate()
 			sc["gira"] = gira
 			sc["salita"] = sal
 			_sf_reagisci(d, sc))
-	var faccia := "Parata ferrea (1 vantaggio: -1 in più e 1 ferita a lui)" if op["t"] == "parata" else "Riposizionarsi (1 vantaggio, ne riprendi 2)"
-	if int(g["vantaggi"]) >= 1 and not g["girate"].has(op["t"]):
-		_sf_info.text = "Vuoi girare l'azione sulla faccia potenziata?"
-		_sf_bottoni([["Normale", func(): fine.call(false)], [faccia, func(): fine.call(true)]])
+	_sf_vista.sel_dado = int(dd["id"])
+	_sf_vista.evid_azioni = [az]
+	_sf_vista.queue_redraw()
+	var voci := []
+	if az == "parata":
+		_sf_info.text = "Parata con il %d: riduci il danno di %d. Se lo annulli prendi l'iniziativa." % [int(dd["v"]), int(op["riduce"])]
+		voci.append(["Para", func(): fai.call(false)])
+		if int(g["vantaggi"]) >= 1 and not g["girate"].has("parata"):
+			voci.append(["Parata ferrea (1 vantaggio)", func(): fai.call(true)])
 	else:
-		fine.call(false)
+		_sf_info.text = "Scarto con il %d: schivi tutto, arretri, prendi 1 vantaggio e l'iniziativa." % int(dd["v"])
+		voci.append(["Scarta", func(): fai.call(false)])
+		if int(g["vantaggi"]) >= 1 and not g["girate"].has("scarto"):
+			voci.append(["Riposizionarsi (1 vantaggio)", func(): fai.call(true)])
+	voci.append(["Nessuna reazione", func(): _sf_reagisci(d, {"t": "nessuna"})])
+	_sf_bottoni(voci)
 
 func _sf_reagisci(d: int, scelta: Dictionary) -> void:
 	var e := ms.reagisci(d, scelta)
@@ -2876,45 +3018,11 @@ func _sf_reagisci(d: int, scelta: Dictionary) -> void:
 	arena.accoda(ms.prendi_eventi())
 	_sf_aggiorna()
 
-func _sf_scelte_pausa(p: int, entra := "") -> void:
-	var n := int(ms.s["g"][p].get("cambi", 0))
-	var cambi := ms.cambi_possibili(p)
-	var voci := []
-	if entra == "":
-		var visti := {}
-		for c in cambi:
-			var id: String = c[1]
-			if visti.has(id):
-				continue
-			visti[id] = true
-			var t := ms.tok(id)
-			var nome_t := "%s (%s, %s)" % [t["nome"], t["col"], "2 azioni" if t["azioni"].size() == 2 else "1 azione"]
-			voci.append([nome_t, func(): _sf_scelte_pausa(p, id)])
-		_sf_info.text = "Pausa: puoi fare ancora %s. Scegli il token da mettere in campo, o Fine." % Motore.plurale(n, "cambio", "cambi") if n > 0 else "Pausa: niente più cambi."
-	else:
-		for c in cambi:
-			if c[1] != entra:
-				continue
-			var vecchio: String = c[0]
-			var testo := "Nel posto libero" if vecchio == "" else "Al posto di " + String(ms.tok(vecchio)["nome"])
-			voci.append([testo, func():
-				ms._cambia(p, vecchio, entra)
-				_sf_aggiorna_vista()
-				_sf_scelte_pausa(p)])
-		voci.append(["Indietro", func(): _sf_scelte_pausa(p)])
-		_sf_info.text = "%s: %s" % [ms.tok(entra)["nome"], ms.te({"id": entra, "parte": 0})["testo"]]
-	if entra == "":
-		voci.append(["Fine", func():
-			ms.piazza(p, [])
-			arena.accoda(ms.prendi_eventi())
-			_sf_aggiorna()])
-	_sf_bottoni(voci)
-
 func _sf_aggiorna_vista() -> void:
 	if _sf_vista != null and is_instance_valid(_sf_vista):
 		_sf_vista.queue_redraw()
 
-func _sf_esegui(op: Dictionary) -> void:
+func _sf_esegui(op: Dictionary, riprendi: Dictionary = {}) -> void:
 	var p := _sf_umano()
 	if p < 0:
 		return
@@ -2924,6 +3032,9 @@ func _sf_esegui(op: Dictionary) -> void:
 		_sf_info.text = e
 	arena.accoda(ms.prendi_eventi())
 	_sf_aggiorna()
+	# dopo un +1 al dado resta scelto lo stesso dado
+	if e == "" and riprendi.get("tipo", "") == "dado" and ms.dado_in_mano(p, int(riprendi["id"])) >= 0 and int(ms.s["attivo"]) == p:
+		_sf_premuto({"tipo": "dado", "id": int(riprendi["id"])})
 
 func _sf_fine() -> void:
 	_sf_fine_mostrata = true
@@ -3015,7 +3126,10 @@ func sf_officina() -> void:
 	var rit := OptionButton.new()
 	rit.add_item("Ritmo 2")
 	rit.add_item("Ritmo 3 (2 punti e 3 di budget)")
-	rit.select(int(_off_sf["R"]) - 2)
+	# con il flusso continuo il Ritmo non c'è più: tutti i personaggi hanno Ritmo 2
+	_off_sf["R"] = 2
+	rit.visible = false
+	rit.select(0)
 	rit.item_selected.connect(func(i):
 		_off_sf["R"] = i + 2
 		sf_officina())

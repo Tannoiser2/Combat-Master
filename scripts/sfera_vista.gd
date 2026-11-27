@@ -37,6 +37,16 @@ var evid_azioni: Array = []
 var evid_token: Array = []
 var evid_fermi: Array = []
 var evid_raro := false
+var evid_dadi: Array = []
+var evid_attesa := false
+## con una scelta in corso, tutto ciò che non è illuminato si spegne
+var filtro := false
+## token che si capovolgono sulla faccia potenziata: chiave -> avanzamento 0..1
+var _flip := {}
+var _pot_prima := {}
+const DURATA_FLIP := 0.55
+## Trasformazione di base per i disegni (serve al capovolgimento dei token).
+static var _base := Transform2D.IDENTITY
 ## Dadi che scivolano da un posto all'altro: [{da, a, c, v, t}] e chiavi dei posti d'arrivo da non disegnare.
 var _scivoli: Array = []
 var _prima: Array = []
@@ -45,12 +55,20 @@ var _nascosti := {}
 const DURATA_SCIVOLO := 0.42
 
 func _process(dt: float) -> void:
-	if _scivoli.is_empty():
+	if _scivoli.is_empty() and _flip.is_empty():
 		return
 	for x in _scivoli:
 		x["t"] = float(x["t"]) + dt / DURATA_SCIVOLO
 	_scivoli = _scivoli.filter(func(x): return float(x["t"]) < 1.0)
+	for k in _flip.keys():
+		_flip[k] = float(_flip[k]) + dt / DURATA_FLIP
+		if float(_flip[k]) >= 1.0:
+			_flip.erase(k)
 	queue_redraw()
+
+## Misura unica dei dadi su tutta la sfera.
+func lato_dado() -> float:
+	return clampf(_R() * 0.088, 14.0, 30.0)
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -116,10 +134,10 @@ static func testo_arco(ci: CanvasItem, c: Vector2, r: float, a_gradi: float, lar
 		var am := start + verso * (x + cw / 2.0) / r
 		var pos := c + Vector2(cos(am), sin(am)) * r
 		var rot := am + PI / 2.0 if not giu else am - PI / 2.0
-		ci.draw_set_transform(pos, rot, Vector2.ONE)
+		ci.draw_set_transform_matrix(_base * Transform2D(rot, pos))
 		ci.draw_string(f, Vector2(-cw / 2.0, dim * 0.36), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, dim, col)
 		x += cw
-	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	ci.draw_set_transform_matrix(_base)
 
 static func freccia_su(ci: CanvasItem, pos: Vector2, a_gradi: float, l: float, col: Color) -> void:
 	var a := deg_to_rad(a_gradi)
@@ -129,68 +147,108 @@ static func freccia_su(ci: CanvasItem, pos: Vector2, a_gradi: float, l: float, c
 
 ## Un token curvo: settore d'anello colorato, nome lungo l'arco, posti per i dadi, freccia e stato.
 ## e può essere vuoto (token di catalogo, senza stato di gioco).
-static func disegna_token(ci: CanvasItem, c: Vector2, ri: float, ro: float, a0: float, a1: float, t: Dictionary, e: Dictionary, evid := false, colore := "", nascosti: Array = []) -> void:
+static func disegna_token(ci: CanvasItem, c: Vector2, ri: float, ro: float, a0: float, a1: float, t: Dictionary, e: Dictionary, evid := false, colore := "", nascosti: Array = [], ds := 0.0, spento := false) -> void:
 	var col: Color = COL_TOKEN.get(colore if colore != "" else String(t.get("col", "scena")), COL_TOKEN["scena"])
 	var pronto: bool = e.get("pronto", false)
 	var bloccato: bool = e.get("bloccato", false)
+	var pot: bool = e.get("pot", false)
 	var base := col.darkened(0.55) if not bloccato else Color(0.25, 0.23, 0.21)
+	var alto := col.darkened(0.3) if not bloccato else Color(0.32, 0.3, 0.28)
+	if pot:
+		# faccia potenziata: colori più accesi, bordo d'oro
+		base = col.darkened(0.25)
+		alto = col.lightened(0.05)
+	if evid:
+		base = base.lightened(0.22)
+		alto = alto.lightened(0.22)
+	if spento:
+		base = base.darkened(0.55)
+		alto = alto.darkened(0.55)
 	ci.draw_colored_polygon(settore(c, ri, ro, a0, a1), base)
-	ci.draw_colored_polygon(settore(c, ri + (ro - ri) * 0.55, ro, a0, a1), col.darkened(0.3) if not bloccato else Color(0.32, 0.3, 0.28))
-	var bordo := Disegno.ORO if (pronto or evid) else col.lightened(0.2)
+	ci.draw_colored_polygon(settore(c, ri + (ro - ri) * 0.58, ro, a0, a1), alto)
+	var bordo := Disegno.ORO if (pronto or evid or pot) else col.lightened(0.2)
+	if spento:
+		bordo = bordo.darkened(0.5)
 	var pts := settore(c, ri, ro, a0, a1)
 	pts.append(pts[0])
-	ci.draw_polyline(pts, bordo, 3.0 if (pronto or evid) else 1.5, true)
+	ci.draw_polyline(pts, bordo, 3.5 if evid else (2.5 if (pronto or pot) else 1.5), true)
 	var am := (a0 + a1) / 2.0
 	var span := absf(a1 - a0)
-	var fs := int(clampf((ro - ri) * 0.28, 10, 18))
-	testo_arco(ci, c, ri + (ro - ri) * 0.74, am, span, String(t.get("nome", "")), fs, Color.WHITE)
-	# posti per i dadi lungo l'arco interno
-	var req: Array = t.get("req", [])
+	var testo_col := Color.WHITE if not spento else Color(1, 1, 1, 0.45)
+	var fs := int(clampf((ro - ri) * 0.3, 10, 18))
+	testo_arco(ci, c, ri + (ro - ri) * 0.8, am, span, String(t.get("nome", "")), fs, testo_col)
+	testo_arco(ci, c, ri + (ro - ri) * 0.5, am, span, breve(t, pot), maxi(10, fs - 1), Disegno.ORO if pot else Color(1, 0.96, 0.86, 1.0 if not spento else 0.4), Disegno.font_testo())
+	# solo i dadi che ci sono, della misura di tutti gli altri
 	var dadi: Array = e.get("dadi", [])
-	var n := maxi(req.size(), dadi.size())
-	if t.has("dadi") and req.is_empty():
-		n = int(t["dadi"])
-	var rects := rect_dadi(c, ri, ro, a0, a1, n)
-	var ds := clampf((ro - ri) * 0.36, 12, 26)
-	for i in n:
-		var rect: Rect2 = rects[i]
-		if i < dadi.size() and nascosti.has(i):
-			pass
-		elif i < dadi.size():
-			Disegno.dado(ci, rect, COL_DADO.get(String(dadi[i]["c"]), "bianco"), int(dadi[i]["v"]))
-		else:
-			var rq: String = String(req[i]) if i < req.size() else "x"
-			var cc: Color = Disegno.colore(COL_DADO.get(rq, "bianco")) if rq != "x" else Color(0.8, 0.75, 0.65)
-			if String(t.get("col", "")) in ["arancio", "verde", "viola"] and not t.get("entrambi", false):
-				# misto: ogni posto prende l'uno o l'altro colore
-				cc = col.lightened(0.25)
-			if rq == "n":
-				cc = Color(0.85, 0.82, 0.74)
-			var sb := StyleBoxFlat.new()
-			sb.bg_color = Color(0, 0, 0, 0.35)
-			sb.border_color = cc
-			sb.set_border_width_all(2)
-			sb.set_corner_radius_all(int(ds * 0.18))
-			ci.draw_style_box(sb, rect)
-	# freccia: di quanto scala il dado che sale
-	var fr := int(t.get("freccia", 0))
-	if fr > 0:
-		# la freccia di passaggio: un triangolino sull'arco interno, all'estremità, con quanto scala il dado
-		var af := a1 - signf(a1 - a0) * minf(6.0, span * 0.14)
-		var pf := punto(c, ri + (ro - ri) * 0.12, af)
-		freccia_su(ci, pf, af, 5.0, Disegno.ORO)
-		var pt := punto(c, ri + (ro - ri) * 0.33, af)
-		Disegno.testo(ci, pt + Vector2(-8, 5), "-%d" % fr, 11, Disegno.ORO, Disegno.font_titolo(), 16, HORIZONTAL_ALIGNMENT_CENTER)
+	if ds <= 0.0:
+		ds = clampf((ro - ri) * 0.42, 12, 26)
+	var rects := rect_dadi(c, ri, ro, a0, a1, dadi.size(), ds)
+	for i in dadi.size():
+		if not nascosti.has(i):
+			Disegno.dado(ci, rects[i], COL_DADO.get(String(dadi[i]["c"]), "bianco"), int(dadi[i]["v"]))
 	# stato
 	var st := ""
 	if bloccato:
 		st = "BLOCCATO"
 	elif pronto:
 		st = "ARMATA" if String(t.get("modo", "")) == "armato" else "PRONTO"
-	elif e.get("pot", false):
-		st = "POTENZIATA"
 	if st != "":
 		testo_arco(ci, c, ro + 9, am, span, st, 11, Disegno.ORO if not bloccato else Color(0.7, 0.7, 0.7))
+
+## L'effetto di un'azione in poche parole, da scrivere sul token.
+static func breve(t: Dictionary, pot := false) -> String:
+	if not t.has("a"):
+		return String(t.get("breve", ""))
+	var a: Dictionary = t["a"].duplicate()
+	if pot:
+		for k in a.get("pot", {}):
+			a[k] = a["pot"][k]
+	var dn := ""
+	var d = a.get("danno", null)
+	if d != null:
+		if typeof(d) == TYPE_STRING:
+			dn = {"dado": "dado", "somma": "somma", "meta": "metà", "quarto": "un quarto"}.get(String(d), "")
+		else:
+			dn = str(int(d))
+		var piu := int(a.get("piu", 0))
+		if piu != 0:
+			dn += ("+%d" % piu) if piu > 0 else str(piu)
+	var extra := []
+	if int(a.get("proietta", 0)) > 0:
+		extra.append("proietta %d" % int(a["proietta"]))
+	if int(a.get("spinta", 0)) > 0:
+		extra.append("spinge %d" % int(a["spinta"]))
+	if int(a.get("svant", 0)) > 0:
+		extra.append("%d svant." % int(a["svant"]))
+	if int(a.get("vant", 0)) > 0:
+		extra.append("+%d vant." % int(a["vant"]))
+	if int(a.get("cura", 0)) > 0:
+		extra.append("cura %d" % int(a["cura"]))
+	if int(a.get("pesca", 0)) > 0:
+		extra.append("riprendi %d" % int(a["pesca"]))
+	if a.get("a_terra", false):
+		extra.append("a terra")
+	if a.has("togli"):
+		extra.append("toglie un dado")
+	var out := ""
+	match String(a.get("tipo", "")):
+		"colpo":
+			out = ("Carica " if int(a.get("entra", 0)) > 0 else ("Alle spalle " if a.get("alle_spalle", false) else "Colpo ")) + dn
+		"presa":
+			out = "Presa" + ((" " + dn) if dn != "" else "")
+		"trappola":
+			out = "Trappola" + (" prese" if String(a.get("contro", "")) == "presa" else (" colpi" if String(a.get("contro", "")) == "colpo" else ""))
+			if int(a.get("riduci", 0)) > 0:
+				extra.push_front("-%d" % int(a["riduci"]))
+			elif a.get("schiva", false):
+				extra.push_front("schiva")
+		"guardia":
+			out = "Guardia -%d" % int(a.get("riduci", 0))
+		"effetto":
+			out = ""
+	if extra.size() > 0:
+		out = (out + ", " if out != "" else "") + ", ".join(extra.slice(0, 2))
+	return out
 
 # ------------------------------------------------------------------ disposizione
 
@@ -261,21 +319,26 @@ func _unita(anello: int) -> float:
 	return u * mid2 / mid3
 
 ## Posti dei dadi di un token, lungo l'arco interno.
-static func rect_dadi(c: Vector2, ri: float, ro: float, a0: float, a1: float, n: int) -> Array:
+static func rect_dadi(c: Vector2, ri: float, ro: float, a0: float, a1: float, n: int, ds := 0.0) -> Array:
 	var out := []
 	var am := (a0 + a1) / 2.0
-	var ds := clampf((ro - ri) * 0.36, 12, 26)
-	var rr := ri + (ro - ri) * 0.33
-	var passo := minf(rad_to_deg(ds * 1.25 / rr), absf(a1 - a0) * 0.9 / maxi(1, n))
-	var dd := minf(ds, deg_to_rad(passo) * rr * 0.85)
+	if ds <= 0.0:
+		ds = clampf((ro - ri) * 0.42, 12, 26)
+	var rr := ri + ds * 0.62
+	# sempre della stessa misura: se non stanno in fila si accavallano un poco
+	var passo := minf(rad_to_deg(ds * 1.12 / rr), absf(a1 - a0) * 0.92 / maxi(1, n))
 	for i in n:
 		var pc := punto(c, rr, am + (float(i) - (n - 1) / 2.0) * passo)
-		out.append(Rect2(pc - Vector2(dd, dd) / 2.0, Vector2(dd, dd)))
+		out.append(Rect2(pc - Vector2(ds, ds) / 2.0, Vector2(ds, ds)))
 	return out
 
 ## Zona d'Attesa: settore tratteggiato con i dadi che aspettano la pausa.
 func _attesa(c: Vector2, ri: float, ro: float, a0: float, a1: float, dadi: Array) -> void:
-	draw_colored_polygon(settore(c, ri, ro, a0, a1), Color(0.2, 0.17, 0.14, 0.95))
+	draw_colored_polygon(settore(c, ri, ro, a0, a1), Color(0.2, 0.17, 0.14, 0.95) if not evid_attesa else Color(0.36, 0.28, 0.16, 0.95))
+	if evid_attesa:
+		var pe := settore(c, ri, ro, a0, a1)
+		pe.append(pe[0])
+		draw_polyline(pe, Disegno.ORO, 3.0, true)
 	# tratteggio diagonale: brevi segmenti dentro il settore
 	var passi := 9
 	for k in passi:
@@ -285,7 +348,7 @@ func _attesa(c: Vector2, ri: float, ro: float, a0: float, a1: float, dadi: Array
 	pts.append(pts[0])
 	draw_polyline(pts, Color(0.6, 0.5, 0.35, 0.7), 1.2, true)
 	testo_arco(self, c, ri + (ro - ri) * 0.78, (a0 + a1) / 2.0, absf(a1 - a0), "ATTESA", 10, Color(0.85, 0.78, 0.62, 0.8))
-	_dadi_attesa(c, (ri + ro) / 2.0 - (ro - ri) * 0.08, (a0 + a1) / 2.0, absf(a1 - a0), (ro - ri) * 0.32, dadi)
+	_dadi_attesa(c, (ri + ro) / 2.0 - (ro - ri) * 0.08, (a0 + a1) / 2.0, absf(a1 - a0), lato_dado(), dadi)
 
 func _dadi_attesa(c: Vector2, r: float, am: float, span: float, ds: float, dadi: Array) -> void:
 	var rects := _rect_attesa(c, r, am, span, ds, dadi.size())
@@ -301,7 +364,7 @@ func _rect_attesa(c: Vector2, r: float, am: float, span: float, ds: float, n: in
 		return out
 	var per_fila := maxi(1, int(span * 0.85 / rad_to_deg(ds * 1.1 / r)))
 	var file := int(ceil(n / float(per_fila)))
-	var dd := ds if file == 1 else ds * 0.72
+	var dd := ds
 	for i in n:
 		var f := i / per_fila
 		var nf := mini(per_fila, n - f * per_fila)
@@ -333,9 +396,10 @@ func _posizioni_dadi() -> Array:
 	var r := raggi()
 	var cols := 2 if n <= 4 else 3
 	var righe := int(ceil(n / float(cols)))
-	var r0: float = r[0]
-	var ds: float = minf(r0 * 0.62, r0 * 1.5 / maxi(cols, righe))
-	var gap := ds * 0.18
+	cols = 2 if n <= 4 else (3 if n <= 9 else 4)
+	righe = int(ceil(n / float(cols)))
+	var ds: float = lato_dado()
+	var gap := ds * 0.16
 	var c := _centro()
 	for i in n:
 		var riga := i / cols
@@ -353,13 +417,13 @@ func _posizioni_fermi() -> Array:
 	var fermi: Array = m.s["g"][p]["fermi"]
 	var r := raggi()
 	var conta := {}
-	var ds: float = (float(r[1]) - float(r[0])) * 0.3
+	var ds: float = lato_dado()
 	for j in fermi.size():
 		var az: String = fermi[j]["az"]
 		var k: int = conta.get(az, 0)
 		conta[az] = k + 1
 		var aa: Array = AZ_ANG[az]
-		var a := float(aa[0]) + 10 + k * 13
+		var a := float(aa[0]) + 9 + k * rad_to_deg(ds * 1.1 / (r[0] + (r[1] - r[0]) * 0.28))
 		var pc := punto(_centro(), r[0] + (r[1] - r[0]) * 0.28, a)
 		out.append({"j": j, "rect": Rect2(pc - Vector2(ds, ds) / 2.0, Vector2(ds, ds)), "f": fermi[j]})
 	return out
@@ -382,7 +446,7 @@ func _draw() -> void:
 		var sett: String = Sfera.AZ_SETTORE[az]
 		var col: Color = COL_TOKEN[COL_SETTORE[sett]]
 		var evid: bool = evid_azioni.has(az)
-		draw_colored_polygon(settore(c, r[0] + 2, r[1] - 2, aa[0] + 0.8, aa[1] - 0.8), col.darkened(0.25 if evid else 0.62))
+		draw_colored_polygon(settore(c, r[0] + 2, r[1] - 2, aa[0] + 0.8, aa[1] - 0.8), col.darkened(0.12 if evid else (0.8 if filtro else 0.62)))
 		var pts := settore(c, r[0] + 2, r[1] - 2, aa[0] + 0.8, aa[1] - 0.8)
 		pts.append(pts[0])
 		draw_polyline(pts, Disegno.ORO if evid else col.darkened(0.2), 2.5 if evid else 1.0, true)
@@ -402,7 +466,10 @@ func _draw() -> void:
 	for x in pd:
 		if _nascosti.has("mano:%d" % int(x["id"])):
 			continue
-		Disegno.dado(self, x["rect"], COL_DADO[String(x["d"]["c"])], int(x["d"]["v"]), "pronto", int(x["id"]) == sel_dado)
+		var spento: bool = filtro and not evid_dadi.has(int(x["id"])) and int(x["id"]) != sel_dado
+		Disegno.dado(self, x["rect"], COL_DADO[String(x["d"]["c"])], int(x["d"]["v"]), "usato" if spento else "pronto", int(x["id"]) == sel_dado)
+		if evid_dadi.has(int(x["id"])) and int(x["id"]) != sel_dado:
+			draw_rect(x["rect"].grow(3), Disegno.ORO, false, 2.0)
 	# dadi fermi sulle azioni base
 	for x in _posizioni_fermi():
 		if _nascosti.has("fermo:%d" % int(x["j"])):
@@ -431,8 +498,35 @@ func _draw() -> void:
 			_posto_vuoto(c, ri, ro, pt["a0"], pt["a1"], pt["colori"], "scattato" if pt.get("vuoto", "") == "scattato" else ("posto libero" if pt["anello"] == 3 else "libero"))
 			continue
 		var e: Dictionary = est[pt["i"]]
-		disegna_token(self, c, ri, ro, pt["a0"], pt["a1"], m.te(e), e, evid_token.has(int(pt["i"])), "", _nascosti.get("tok:%d" % int(pt["i"]), []))
+		var chiave := "%s:%d" % [e["id"], int(e.get("parte", 0))]
+		var ev: bool = evid_token.has(int(pt["i"]))
+		var spento: bool = filtro and not ev
+		if _flip.has(chiave):
+			# capovolgimento: il pezzo si stringe sul suo asse, si gira e torna con la faccia potenziata
+			var t := float(_flip[chiave])
+			var mid := (float(pt["a0"]) + float(pt["a1"])) / 2.0
+			var cp := punto(c, (ri + ro) / 2.0, mid)
+			var ang := deg_to_rad(mid)
+			var sc := absf(cos(PI * t))
+			_base = Transform2D(0, cp) * Transform2D(ang, Vector2.ZERO) * Transform2D(0, Vector2(1, maxf(0.04, sc)), 0, Vector2.ZERO) * Transform2D(-ang, Vector2.ZERO) * Transform2D(0, -cp)
+			draw_set_transform_matrix(_base)
+			var faccia := e.duplicate()
+			faccia["pot"] = t >= 0.5
+			disegna_token(self, c, ri, ro, pt["a0"], pt["a1"], m.te(e), faccia, ev, "", [], lato_dado(), spento)
+			_base = Transform2D.IDENTITY
+			draw_set_transform_matrix(_base)
+		else:
+			disegna_token(self, c, ri, ro, pt["a0"], pt["a1"], m.te(e), e, ev, "", _nascosti.get("tok:%d" % int(pt["i"]), []), lato_dado(), spento)
+		if pt["anello"] == 2 or true:
+			_pot_nota(chiave, e)
 	_scivola_disegna()
+
+## Segna quando un token passa alla faccia potenziata, per farlo capovolgere.
+func _pot_nota(chiave: String, e: Dictionary) -> void:
+	var ora: bool = e.get("pot", false)
+	if _pot_prima.has(chiave) and ora and not _pot_prima[chiave]:
+		_flip[chiave] = 0.0
+	_pot_prima[chiave] = ora
 
 # ------------------------------------------------------------------ dadi che scivolano
 
@@ -455,8 +549,7 @@ func _istantanea(pos: Array, ri2: float, ro2: float, ri3: float, ro3: float) -> 
 			continue
 		var ri: float = ri2 if pt["anello"] == 2 else ri3
 		var ro: float = ro2 if pt["anello"] == 2 else ro3
-		var n := maxi(m.te(e)["req"].size(), dadi.size())
-		var rects := rect_dadi(c, ri, ro, pt["a0"], pt["a1"], n)
+		var rects := rect_dadi(c, ri, ro, pt["a0"], pt["a1"], dadi.size(), lato_dado())
 		for j in dadi.size():
 			out.append({"k": "tok:%d" % int(pt["i"]), "j": j, "id": "%s:%d" % [e["id"], int(e.get("parte", 0))], "c": String(dadi[j]["c"]), "v": int(dadi[j]["v"]), "rect": rects[j]})
 	var att: Dictionary = g.get("attesa", {})
@@ -465,7 +558,7 @@ func _istantanea(pos: Array, ri2: float, ro2: float, ri3: float, ro3: float) -> 
 		var am: float = POSTO_MISTO[posto]
 		var dadi: Array = att.get(posto, [])
 		var rr := (ri3 + ro3) / 2.0 - (ro3 - ri3) * 0.08
-		var rects := _rect_attesa(c, rr, am, 2.0 * buco - 1.6, (ro3 - ri3) * 0.32, dadi.size())
+		var rects := _rect_attesa(c, rr, am, 2.0 * buco - 1.6, lato_dado(), dadi.size())
 		for j in dadi.size():
 			out.append({"k": "att:%d:%d" % [int(am), j], "c": String(dadi[j]), "v": 0, "rect": rects[j]})
 	return out
@@ -535,7 +628,7 @@ func _scivola_disegna() -> void:
 		var mezzo := (p0 + p1) / 2.0
 		var fuori := (mezzo - cc).normalized() * minf(30.0, (p1 - p0).length() * 0.18)
 		var pc := p0.lerp(mezzo + fuori, e).lerp((mezzo + fuori).lerp(p1, e), e)
-		var dim := da.size.lerp(a.size, e) * (1.0 + 0.12 * sin(PI * t))
+		var dim := Vector2(lato_dado(), lato_dado())
 		Disegno.dado(self, Rect2(pc - dim / 2.0, dim), COL_DADO.get(String(sc["c"]), "bianco"), int(sc["v"]), "pronto" if int(sc["v"]) > 0 else "usato")
 
 # ------------------------------------------------------------------ tocco
@@ -554,6 +647,8 @@ func _gui_input(ev: InputEvent) -> void:
 	if not premi:
 		return
 	var cosa := cosa_in(pos)
+	if cosa.is_empty() and (pos - _centro()).length() <= _R():
+		cosa = {"tipo": "vuoto"}
 	if not cosa.is_empty():
 		accept_event()
 		premuto.emit(cosa)
@@ -576,6 +671,11 @@ func cosa_in(pos: Vector2) -> Dictionary:
 		for az in AZ_ANG:
 			if a >= AZ_ANG[az][0] and a < AZ_ANG[az][1]:
 				return {"tipo": "azione", "az": az}
+	if d >= r[2] and d <= r[3]:
+		var buco := 30.0 - _unita(3)
+		for posto in POSTO_MISTO:
+			if absf(wrapf(a - float(POSTO_MISTO[posto]), -180.0, 180.0)) <= buco:
+				return {"tipo": "attesa", "posto": posto}
 	if d >= r[1] and d <= r[3]:
 		var anello := 2 if d < r[2] else 3
 		for pt in posizioni_token():

@@ -49,7 +49,7 @@ func _init() -> void:
 	var ms := Time.get_ticks_msec() - t0
 	print("duelli %d  vinti %s  pari %d  scambi medi %.2f  ms %d" % [n, vinti, pari, float(scambi) / n, ms])
 	print("movimenti: sulla casella avversaria %d, salti di casella %d, figure fuori posto %d (su %d movimenti)" % [sovrapposti, teletrasporti, fuori_posto, mosse_viste])
-	var ok := mosse_viste > 300 and sovrapposti == 0 and teletrasporti == 0 and fuori_posto == 0 and pari < n * 0.1 and float(scambi) / n > 3.0 and float(scambi) / n < 12.0
+	var ok := mosse_viste > 300 and sovrapposti == 0 and teletrasporti == 0 and fuori_posto == 0 and pari < n * 0.1 and float(scambi) / n > 5.0 and float(scambi) / n < 60.0
 	# un umano che reagisce: il motore si ferma e riparte
 	var m2 := Sfera.new(dati, sf)
 	m2.nuova_sfera(sf["personaggi"][1], sf["personaggi"][0], "cortile", [false, true], 3)

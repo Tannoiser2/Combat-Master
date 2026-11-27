@@ -15,7 +15,7 @@
   "fallisce_fino": 2,
   "scarto_tolleranza": 2,
   "presa_soglia_spinta": 5,
-  "max_scambi": 40,
+  "max_scambi": 80,
   "danno_a_terra": 1,
   "budget_esterno": 16,
   "colpo_rosso": 4
@@ -91,10 +91,11 @@
       "piu": 2,
       "pot": {
        "piu": 4
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado +2.",
-     "testo_pot": "A contatto: colpo con il dado +4."
+     "testo": "A contatto: colpo con il dado +2. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +4. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Spazzata bassa",
@@ -112,15 +113,18 @@
       "togli": "basso",
       "pot": {
        "danno": 3
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo da 1; se ferisce, 2 svantaggi, perde il dado più basso.",
-     "testo_pot": "A contatto: colpo da 3; se ferisce, 2 svantaggi, perde il dado più basso."
+     "testo": "A contatto: colpo da 1; se ferisce, 2 svantaggi, perde il dado più basso. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo da 3; se ferisce, 2 svantaggi, perde il dado più basso. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "raffica",
@@ -141,18 +145,20 @@
       "n": 2,
       "danno": "somma",
       "piu": 1,
-      "iniziativa": true,
       "pot": {
        "piu": 3
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo con la somma +1, mantieni l'iniziativa.",
-     "testo_pot": "A contatto: colpo con la somma +3, mantieni l'iniziativa."
+     "testo": "A contatto: colpo con la somma +1. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con la somma +3. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "gomitata",
@@ -177,10 +183,11 @@
       "freccia": 2,
       "pot": {
        "piu": 3
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo con il dado +1; se ferisce, 2 svantaggi, perde il dado più alto.",
-     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, 2 svantaggi, perde il dado più alto."
+     "testo": "A contatto: colpo con il dado +1; se ferisce, 2 svantaggi, perde il dado più alto. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, 2 svantaggi, perde il dado più alto. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     },
     {
      "nome": "Ginocchiata",
@@ -196,15 +203,18 @@
       "piu": 1,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado +1.",
-     "testo_pot": "A contatto: colpo con il dado +3."
+     "testo": "A contatto: colpo con il dado +1. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +3. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 7
+   "costo": 7,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "spallata_s",
@@ -228,15 +238,18 @@
       "svant": 1,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado; se ferisce, spinta di 2 esagoni, 1 svantaggio.",
-     "testo_pot": "A contatto: colpo con il dado +2; se ferisce, spinta di 2 esagoni, 1 svantaggio."
+     "testo": "A contatto: colpo con il dado; se ferisce, spinta di 2 esagoni, 1 svantaggio. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +2; se ferisce, spinta di 2 esagoni, 1 svantaggio. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 2
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "carica_toro",
@@ -260,10 +273,11 @@
       "entra": 4,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Da 4 esagoni: entri e colpisci con la somma.",
-     "testo_pot": "Da 4 esagoni: entri e colpisci con la somma +2."
+     "testo": "Da 4 esagoni: entri e colpisci con la somma. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 4 esagoni: entri e colpisci con la somma +2. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Spinta del toro",
@@ -282,15 +296,18 @@
       "svant": 1,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "A contatto: colpo con la somma; se ferisce, spinta di 2 esagoni, 1 svantaggio.",
-     "testo_pot": "A contatto: colpo con la somma +2; se ferisce, spinta di 2 esagoni, 1 svantaggio."
+     "testo": "A contatto: colpo con la somma; se ferisce, spinta di 2 esagoni, 1 svantaggio. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con la somma +2; se ferisce, spinta di 2 esagoni, 1 svantaggio. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 5,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "calcio_volante",
@@ -314,15 +331,18 @@
       "entra": 4,
       "pot": {
        "piu": 4
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Da 4 esagoni: entri e colpisci con la somma +2.",
-     "testo_pot": "Da 4 esagoni: entri e colpisci con la somma +4."
+     "testo": "Da 4 esagoni: entri e colpisci con la somma +2. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 4 esagoni: entri e colpisci con la somma +4. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "affondo",
@@ -347,15 +367,18 @@
       "arretra": 1,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Da 2 esagoni: entri e colpisci con la somma +1, arretri di 1 esagono.",
-     "testo_pot": "Da 2 esagoni: entri e colpisci con la somma +3, arretri di 1 esagono."
+     "testo": "Da 2 esagoni: entri e colpisci con la somma +1, arretri di 1 esagono. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 2 esagoni: entri e colpisci con la somma +3, arretri di 1 esagono. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "sgambetto",
@@ -381,15 +404,18 @@
       "a_terra": true,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con un quarto della somma +1; se ferisce, 2 svantaggi, perde il dado più basso, resta a terra.",
-     "testo_pot": "A contatto: colpo con un quarto della somma +3; se ferisce, 2 svantaggi, perde il dado più basso, resta a terra."
+     "testo": "A contatto: colpo con un quarto della somma +1; se ferisce, 2 svantaggi, perde il dado più basso, resta a terra. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con un quarto della somma +3; se ferisce, 2 svantaggi, perde il dado più basso, resta a terra. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 3,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "balzo",
@@ -414,10 +440,11 @@
       "freccia": 2,
       "pot": {
        "piu": -1
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Da 3 esagoni: entri e colpisci con il dado -3, +1 vantaggio.",
-     "testo_pot": "Da 3 esagoni: entri e colpisci con il dado -1, +1 vantaggio."
+     "testo": "Da 3 esagoni: entri e colpisci con il dado -3, +1 vantaggio. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 3 esagoni: entri e colpisci con il dado -1, +1 vantaggio. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Passo indietro",
@@ -444,7 +471,9 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 1,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "passi_danza",
@@ -477,7 +506,9 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "salto_mortale",
@@ -501,15 +532,18 @@
       "freccia": 2,
       "pot": {
        "piu": -2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado -4.",
-     "testo_pot": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado -2."
+     "testo": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado -4. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado -2. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "irimi",
@@ -538,8 +572,8 @@
        "svant": 2
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 1 svantaggio; +3 vantaggi, gli giri attorno di 2 esagoni, mantieni l'iniziativa.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi; +3 vantaggi, gli giri attorno di 2 esagoni, mantieni l'iniziativa."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 1 svantaggio; +3 vantaggi, gli giri attorno di 2 esagoni, prendi l'iniziativa.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi; +3 vantaggi, gli giri attorno di 2 esagoni, prendi l'iniziativa."
     },
     {
      "nome": "Irimi nage",
@@ -568,7 +602,9 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "tenkan",
@@ -624,7 +660,9 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "uscire_linea",
@@ -657,7 +695,9 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "ukemi",
@@ -690,7 +730,9 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "guardia_ferrea",
@@ -719,7 +761,9 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 3
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "respiro",
@@ -741,10 +785,11 @@
       "pulisci": true,
       "pot": {
        "cura": 3
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Recuperi 2 ferite, togli i tuoi svantaggi.",
-     "testo_pot": "Recuperi 3 ferite, togli i tuoi svantaggi."
+     "testo": "Recuperi 2 ferite, togli i tuoi svantaggi. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Recuperi 3 ferite, togli i tuoi svantaggi. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Sguardo fermo",
@@ -769,7 +814,9 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 6,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "provocazione",
@@ -800,7 +847,9 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 3
+   "costo": 8,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "calma",
@@ -821,15 +870,18 @@
       "pesca": 2,
       "pot": {
        "pesca": 3
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Peschi 2 dadi.",
-     "testo_pot": "Peschi 3 dadi."
+     "testo": "Riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Riprendi 3 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 8
+   "costo": 6,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "kote_gaeshi",
@@ -884,7 +936,9 @@
    ],
    "entrambi": true,
    "origine": "",
-   "costo": 1
+   "costo": 3,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "ikkyo",
@@ -918,7 +972,9 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "kaiten_nage",
@@ -952,7 +1008,9 @@
    ],
    "entrambi": true,
    "origine": "",
-   "costo": 1
+   "costo": 3,
+   "gira": 2,
+   "sblocca": 1
   },
   {
    "id": "contrattacco",
@@ -984,7 +1042,9 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "forza",
@@ -1006,10 +1066,11 @@
       "piu": 0,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado.",
-     "testo_pot": "A contatto: colpo con il dado +2."
+     "testo": "A contatto: colpo con il dado. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +2. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Spintone",
@@ -1026,15 +1087,18 @@
       "spinta": 1,
       "pot": {
        "danno": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo da 1; se ferisce, spinta di 1 esagono.",
-     "testo_pot": "A contatto: colpo da 3; se ferisce, spinta di 1 esagono."
+     "testo": "A contatto: colpo da 1; se ferisce, spinta di 1 esagono. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo da 3; se ferisce, spinta di 1 esagono. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "forza",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "furia",
@@ -1056,10 +1120,11 @@
       "piu": 0,
       "pot": {
        "danno": 5
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo da 3.",
-     "testo_pot": "A contatto: colpo da 5."
+     "testo": "A contatto: colpo da 3. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo da 5. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Urlo di guerra",
@@ -1075,15 +1140,18 @@
       "vant": 1,
       "pot": {
        "pesca": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "+1 vantaggio, peschi 1 dado.",
-     "testo_pot": "+1 vantaggio, peschi 2 dadi."
+     "testo": "+1 vantaggio, riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "+1 vantaggio, riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "furia",
-   "costo": 4
+   "costo": 6,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "potenza",
@@ -1107,10 +1175,11 @@
       "freccia": 2,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado +1; se ferisce, spinta di 1 esagono.",
-     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, spinta di 1 esagono."
+     "testo": "A contatto: colpo con il dado +1; se ferisce, spinta di 1 esagono. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, spinta di 1 esagono. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Sfondare la guardia",
@@ -1127,15 +1196,18 @@
       "svant": 1,
       "pot": {
        "piu": 3
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo con il dado +1; se ferisce, 1 svantaggio.",
-     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, 1 svantaggio."
+     "testo": "A contatto: colpo con il dado +1; se ferisce, 1 svantaggio. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, 1 svantaggio. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "potenza",
-   "costo": 3
+   "costo": 3,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "lottatore",
@@ -1158,10 +1230,11 @@
       "tieni": true,
       "pot": {
        "danno": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: afferri (1 di danno), perde il dado più alto, lo tieni (non può muoversi).",
-     "testo_pot": "A contatto: afferri (3 di danno), perde il dado più alto, lo tieni (non può muoversi)."
+     "testo": "A contatto: afferri (1 di danno), perde il dado più alto, lo tieni (non può muoversi). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (3 di danno), perde il dado più alto, lo tieni (non può muoversi). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Rovesciare",
@@ -1177,15 +1250,18 @@
       "esposto": true,
       "pot": {
        "danno": 4
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: afferri (2 di danno), si gira e ti offre il fianco (+1 al tuo prossimo colpo).",
-     "testo_pot": "A contatto: afferri (4 di danno), si gira e ti offre il fianco (+1 al tuo prossimo colpo)."
+     "testo": "A contatto: afferri (2 di danno), si gira e ti offre il fianco (+1 al tuo prossimo colpo). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (4 di danno), si gira e ti offre il fianco (+1 al tuo prossimo colpo). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "presa",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "boscaiolo",
@@ -1208,10 +1284,11 @@
       "freccia": 2,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado +1.",
-     "testo_pot": "A contatto: colpo con il dado +3."
+     "testo": "A contatto: colpo con il dado +1. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +3. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Spaccare la guardia",
@@ -1228,15 +1305,18 @@
       "svant": 2,
       "pot": {
        "danno": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo da 1; se ferisce, 2 svantaggi.",
-     "testo_pot": "A contatto: colpo da 3; se ferisce, 2 svantaggi."
+     "testo": "A contatto: colpo da 1; se ferisce, 2 svantaggi. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo da 3; se ferisce, 2 svantaggi. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "boscaiolo",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "portatore",
@@ -1259,10 +1339,11 @@
       "spinta": 2,
       "pot": {
        "danno": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo da 1; se ferisce, spinta di 2 esagoni.",
-     "testo_pot": "A contatto: colpo da 3; se ferisce, spinta di 2 esagoni."
+     "testo": "A contatto: colpo da 1; se ferisce, spinta di 2 esagoni. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo da 3; se ferisce, spinta di 2 esagoni. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Riprendere il carico",
@@ -1277,15 +1358,18 @@
       "pesca": 1,
       "pot": {
        "pesca": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Peschi 1 dado.",
-     "testo_pot": "Peschi 2 dadi."
+     "testo": "Riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "portatore",
-   "costo": 2
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "pugile",
@@ -1305,13 +1389,13 @@
       "n": 1,
       "danno": "dado",
       "piu": 1,
-      "iniziativa": true,
       "pot": {
        "piu": 3
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo con il dado +1, mantieni l'iniziativa.",
-     "testo_pot": "A contatto: colpo con il dado +3, mantieni l'iniziativa."
+     "testo": "A contatto: colpo con il dado +1. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +3. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     },
     {
      "nome": "Montante",
@@ -1329,15 +1413,18 @@
       "freccia": 2,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado; se ferisce, perde il dado più alto.",
-     "testo_pot": "A contatto: colpo con il dado +2; se ferisce, perde il dado più alto."
+     "testo": "A contatto: colpo con il dado; se ferisce, perde il dado più alto. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +2; se ferisce, perde il dado più alto. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "pugile",
-   "costo": 3
+   "costo": 4,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "gladiatore",
@@ -1360,10 +1447,11 @@
       "aggira": 1,
       "pot": {
        "piu": 2
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo con il dado, gli giri attorno di 1 esagono.",
-     "testo_pot": "A contatto: colpo con il dado +2, gli giri attorno di 1 esagono."
+     "testo": "A contatto: colpo con il dado, gli giri attorno di 1 esagono. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +2, gli giri attorno di 1 esagono. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     },
     {
      "nome": "Ruggito della folla",
@@ -1387,7 +1475,9 @@
    ],
    "entrambi": false,
    "origine": "gladiatore",
-   "costo": 1
+   "costo": 6,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "fabbro",
@@ -1410,10 +1500,11 @@
       "freccia": 2,
       "pot": {
        "piu": 4
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado +2.",
-     "testo_pot": "A contatto: colpo con il dado +4."
+     "testo": "A contatto: colpo con il dado +2. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +4. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Temprare",
@@ -1436,7 +1527,9 @@
    ],
    "entrambi": false,
    "origine": "fabbro",
-   "costo": 2
+   "costo": 2,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "toro",
@@ -1460,10 +1553,11 @@
       "entra": 3,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Da 3 esagoni: entri e colpisci con la somma.",
-     "testo_pot": "Da 3 esagoni: entri e colpisci con la somma +2."
+     "testo": "Da 3 esagoni: entri e colpisci con la somma. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 3 esagoni: entri e colpisci con la somma +2. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Incornata",
@@ -1481,15 +1575,18 @@
       "svant": 1,
       "pot": {
        "danno": 4
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo da 2; se ferisce, spinta di 2 esagoni, 1 svantaggio.",
-     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 2 esagoni, 1 svantaggio."
+     "testo": "A contatto: colpo da 2; se ferisce, spinta di 2 esagoni, 1 svantaggio. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 2 esagoni, 1 svantaggio. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "toro",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "furia_cieca",
@@ -1513,15 +1610,18 @@
       "freccia": 2,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "A contatto: colpo con la somma +1.",
-     "testo_pot": "A contatto: colpo con la somma +3."
+     "testo": "A contatto: colpo con la somma +1. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con la somma +3. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "furia_cieca",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "ferocia",
@@ -1544,15 +1644,18 @@
       "spinta": 1,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado +1; se ferisce, spinta di 1 esagono.",
-     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, spinta di 1 esagono."
+     "testo": "A contatto: colpo con il dado +1; se ferisce, spinta di 1 esagono. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, spinta di 1 esagono. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "ferocia",
-   "costo": 3
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "ira_ferita",
@@ -1575,15 +1678,18 @@
       "svant": 1,
       "pot": {
        "piu": 3
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo con il dado +1; se ferisce, 1 svantaggio.",
-     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, 1 svantaggio."
+     "testo": "A contatto: colpo con il dado +1; se ferisce, 1 svantaggio. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, 1 svantaggio. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "ira_ferita",
-   "costo": 4
+   "costo": 5,
+   "gira": 3,
+   "sblocca": 1
   },
   {
    "id": "colpo_dispari",
@@ -1605,15 +1711,18 @@
       "piu": 1,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado +1.",
-     "testo_pot": "A contatto: colpo con il dado +3."
+     "testo": "A contatto: colpo con il dado +1. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +3. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "colpo_dispari",
-   "costo": 2
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "rompiguardia",
@@ -1636,15 +1745,18 @@
       "svant": 2,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con metà della somma; se ferisce, 2 svantaggi.",
-     "testo_pot": "A contatto: colpo con metà della somma +2; se ferisce, 2 svantaggi."
+     "testo": "A contatto: colpo con metà della somma; se ferisce, 2 svantaggi. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con metà della somma +2; se ferisce, 2 svantaggi. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "rompiguardia",
-   "costo": 2
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "rabbia",
@@ -1673,7 +1785,9 @@
    ],
    "entrambi": false,
    "origine": "rabbia",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "berserker",
@@ -1696,15 +1810,18 @@
       "freccia": 2,
       "pot": {
        "piu": 4
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado +2.",
-     "testo_pot": "A contatto: colpo con il dado +4."
+     "testo": "A contatto: colpo con il dado +2. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +4. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "berserker",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "temerario",
@@ -1735,7 +1852,9 @@
    ],
    "entrambi": false,
    "origine": "temerario",
-   "costo": 8
+   "costo": 8,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "att13",
@@ -1758,15 +1877,18 @@
       "svant": 1,
       "pot": {
        "piu": 2
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo con il dado; se ferisce, 1 svantaggio.",
-     "testo_pot": "A contatto: colpo con il dado +2; se ferisce, 1 svantaggio."
+     "testo": "A contatto: colpo con il dado; se ferisce, 1 svantaggio. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +2; se ferisce, 1 svantaggio. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "att13",
-   "costo": 2
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 1
   },
   {
    "id": "att15",
@@ -1789,15 +1911,18 @@
       "togli": "alto",
       "pot": {
        "piu": 1
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado -1; se ferisce, perde il dado più alto.",
-     "testo_pot": "A contatto: colpo con il dado +1; se ferisce, perde il dado più alto."
+     "testo": "A contatto: colpo con il dado -1; se ferisce, perde il dado più alto. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +1; se ferisce, perde il dado più alto. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "att15",
-   "costo": 6
+   "costo": 5,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "att18",
@@ -1821,15 +1946,18 @@
       "non_scarta": true,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "A contatto: colpo con la somma (non si scarta).",
-     "testo_pot": "A contatto: colpo con la somma +2 (non si scarta)."
+     "testo": "A contatto: colpo con la somma (non si scarta). Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con la somma +2 (non si scarta). Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "att18",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "schermidore",
@@ -1879,7 +2007,9 @@
    ],
    "entrambi": false,
    "origine": "agilita",
-   "costo": 1
+   "costo": 1,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "ladro",
@@ -1899,13 +2029,13 @@
       "n": 1,
       "danno": "dado",
       "piu": 0,
-      "iniziativa": true,
       "pot": {
        "piu": 2
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo con il dado, mantieni l'iniziativa.",
-     "testo_pot": "A contatto: colpo con il dado +2, mantieni l'iniziativa."
+     "testo": "A contatto: colpo con il dado. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +2. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     },
     {
      "nome": "Balzo indietro",
@@ -1930,7 +2060,9 @@
    ],
    "entrambi": false,
    "origine": "velocita",
-   "costo": 2
+   "costo": 2,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "danzatore",
@@ -1953,10 +2085,11 @@
       "aggira": 2,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con metà della somma, gli giri attorno di 2 esagoni.",
-     "testo_pot": "A contatto: colpo con metà della somma +2, gli giri attorno di 2 esagoni."
+     "testo": "A contatto: colpo con metà della somma, gli giri attorno di 2 esagoni. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con metà della somma +2, gli giri attorno di 2 esagoni. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Passo di danza",
@@ -1974,13 +2107,15 @@
        "vant": 1
       }
      },
-     "testo": "Avanzi fino a 2 esagoni, mantieni l'iniziativa.",
-     "testo_pot": "+1 vantaggio, avanzi fino a 2 esagoni, mantieni l'iniziativa."
+     "testo": "Avanzi fino a 2 esagoni.",
+     "testo_pot": "+1 vantaggio, avanzi fino a 2 esagoni."
     }
    ],
    "entrambi": false,
    "origine": "equilibrio",
-   "costo": 1
+   "costo": 2,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "gatto",
@@ -2024,13 +2159,15 @@
        "vant": 1
       }
      },
-     "testo": "Avanzi fino a 1 esagono, mantieni l'iniziativa.",
-     "testo_pot": "+1 vantaggio, avanzi fino a 1 esagono, mantieni l'iniziativa."
+     "testo": "Avanzi fino a 1 esagono.",
+     "testo_pot": "+1 vantaggio, avanzi fino a 1 esagono."
     }
    ],
    "entrambi": false,
    "origine": "riflessi",
-   "costo": 1
+   "costo": 2,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "cecchino",
@@ -2053,10 +2190,11 @@
       "non_scarta": true,
       "pot": {
        "danno": 4
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo da 2 (non si scarta).",
-     "testo_pot": "A contatto: colpo da 4 (non si scarta)."
+     "testo": "A contatto: colpo da 2 (non si scarta). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo da 4 (non si scarta). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Prendere le distanze",
@@ -2075,13 +2213,15 @@
        "vant": 1
       }
      },
-     "testo": "Ti allontani di 2 esagoni, mantieni l'iniziativa.",
-     "testo_pot": "+1 vantaggio, ti allontani di 2 esagoni, mantieni l'iniziativa."
+     "testo": "Ti allontani di 2 esagoni.",
+     "testo_pot": "+1 vantaggio, ti allontani di 2 esagoni."
     }
    ],
    "entrambi": false,
    "origine": "precisione",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "cacciatore",
@@ -2124,15 +2264,18 @@
       "non_scarta": true,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado +1 (non si scarta).",
-     "testo_pot": "A contatto: colpo con il dado +3 (non si scarta)."
+     "testo": "A contatto: colpo con il dado +1 (non si scarta). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +3 (non si scarta). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "istinto",
-   "costo": 6
+   "costo": 6,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "giocoliere",
@@ -2181,7 +2324,9 @@
    ],
    "entrambi": false,
    "origine": "destrezza",
-   "costo": 1
+   "costo": 4,
+   "gira": 3,
+   "sblocca": 2
   },
   {
    "id": "acrobata",
@@ -2206,8 +2351,8 @@
        "vant": 2
       }
      },
-     "testo": "+1 vantaggio, avanzi fino a 3 esagoni, mantieni l'iniziativa.",
-     "testo_pot": "+2 vantaggi, avanzi fino a 3 esagoni, mantieni l'iniziativa."
+     "testo": "+1 vantaggio, avanzi fino a 3 esagoni.",
+     "testo_pot": "+2 vantaggi, avanzi fino a 3 esagoni."
     },
     {
      "nome": "Calcio rotante",
@@ -2224,15 +2369,18 @@
       "esposto": true,
       "pot": {
        "danno": 4
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo da 2; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo).",
-     "testo_pot": "A contatto: colpo da 4; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo)."
+     "testo": "A contatto: colpo da 2; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo da 4; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "acrobata",
-   "costo": 1
+   "costo": 3,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "borseggiatore",
@@ -2272,15 +2420,18 @@
       "pesca": 1,
       "pot": {
        "pesca": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Peschi 1 dado.",
-     "testo_pot": "Peschi 2 dadi."
+     "testo": "Riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "borseggiatore",
-   "costo": 6
+   "costo": 8,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "passo_rapido",
@@ -2304,13 +2455,15 @@
        "vant": 1
       }
      },
-     "testo": "Avanzi fino a 2 esagoni, mantieni l'iniziativa.",
-     "testo_pot": "+1 vantaggio, avanzi fino a 2 esagoni, mantieni l'iniziativa."
+     "testo": "Avanzi fino a 2 esagoni.",
+     "testo_pot": "+1 vantaggio, avanzi fino a 2 esagoni."
     }
    ],
    "entrambi": false,
    "origine": "passo_rapido",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "riflesso",
@@ -2341,7 +2494,9 @@
    ],
    "entrambi": false,
    "origine": "riflesso",
-   "costo": 4
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "rapido",
@@ -2361,18 +2516,20 @@
       "n": 1,
       "danno": 2,
       "piu": 0,
-      "iniziativa": true,
       "pot": {
        "danno": 4
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo da 2, mantieni l'iniziativa.",
-     "testo_pot": "A contatto: colpo da 4, mantieni l'iniziativa."
+     "testo": "A contatto: colpo da 2. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo da 4. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "rapido",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "colpo_volo",
@@ -2393,18 +2550,20 @@
       "danno": "dado",
       "piu": 1,
       "entra": 2,
-      "iniziativa": true,
       "pot": {
        "piu": 3
-      }
+      },
+      "sicuro": true
      },
-     "testo": "Da 2 esagoni: entri e colpisci con il dado +1, mantieni l'iniziativa.",
-     "testo_pot": "Da 2 esagoni: entri e colpisci con il dado +3, mantieni l'iniziativa."
+     "testo": "Da 2 esagoni: entri e colpisci con il dado +1. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "Da 2 esagoni: entri e colpisci con il dado +3. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "colpo_volo",
-   "costo": 2
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "piccoli_passi",
@@ -2429,13 +2588,15 @@
        "vant": 1
       }
      },
-     "testo": "Avanzi fino a 4 esagoni, mantieni l'iniziativa.",
-     "testo_pot": "+1 vantaggio, avanzi fino a 4 esagoni, mantieni l'iniziativa."
+     "testo": "Avanzi fino a 4 esagoni.",
+     "testo_pot": "+1 vantaggio, avanzi fino a 4 esagoni."
     }
    ],
    "entrambi": false,
    "origine": "piccoli_passi",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "passo_laterale",
@@ -2467,7 +2628,9 @@
    ],
    "entrambi": false,
    "origine": "passo_laterale",
-   "costo": 2
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "colpo_mirato",
@@ -2490,15 +2653,18 @@
       "aggira": 2,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado, gli giri attorno di 2 esagoni.",
-     "testo_pot": "A contatto: colpo con il dado +2, gli giri attorno di 2 esagoni."
+     "testo": "A contatto: colpo con il dado, gli giri attorno di 2 esagoni. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +2, gli giri attorno di 2 esagoni. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "colpo_mirato",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "sgambetto_v",
@@ -2522,15 +2688,18 @@
       "aggira": 1,
       "pot": {
        "danno": 3
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo da 1; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo); gli giri attorno di 1 esagono.",
-     "testo_pot": "A contatto: colpo da 3; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo); gli giri attorno di 1 esagono."
+     "testo": "A contatto: colpo da 1; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo); gli giri attorno di 1 esagono. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo da 3; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo); gli giri attorno di 1 esagono. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "sgambetto",
-   "costo": 2
+   "costo": 2,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "sesto_senso",
@@ -2551,15 +2720,18 @@
       "pesca": 1,
       "pot": {
        "pesca": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Peschi 1 dado.",
-     "testo_pot": "Peschi 2 dadi."
+     "testo": "Riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "sesto_senso",
-   "costo": 6
+   "costo": 4,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "veterano",
@@ -2600,15 +2772,18 @@
       "cura": 3,
       "pot": {
        "cura": 4
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Recuperi 3 ferite.",
-     "testo_pot": "Recuperi 4 ferite."
+     "testo": "Recuperi 3 ferite. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Recuperi 4 ferite. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "tempra",
-   "costo": 1
+   "costo": 2,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "legionario",
@@ -2630,10 +2805,11 @@
       "pulisci": true,
       "pot": {
        "pesca": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Togli i tuoi svantaggi, peschi 1 dado.",
-     "testo_pot": "Togli i tuoi svantaggi, peschi 2 dadi."
+     "testo": "Togli i tuoi svantaggi, riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Togli i tuoi svantaggi, riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Respinta",
@@ -2658,7 +2834,9 @@
    ],
    "entrambi": false,
    "origine": "resistenza",
-   "costo": 8
+   "costo": 6,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "monaco",
@@ -2707,7 +2885,9 @@
    ],
    "entrambi": false,
    "origine": "volonta",
-   "costo": 1
+   "costo": 3,
+   "gira": 1,
+   "sblocca": 3
   },
   {
    "id": "gigante",
@@ -2749,15 +2929,18 @@
       "freccia": 2,
       "pot": {
        "danno": 4
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo da 2; se ferisce, spinta di 2 esagoni.",
-     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 2 esagoni."
+     "testo": "A contatto: colpo da 2; se ferisce, spinta di 2 esagoni. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 2 esagoni. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "costituzione",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "montanaro",
@@ -2778,10 +2961,11 @@
       "pesca": 1,
       "pot": {
        "pesca": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Peschi 1 dado.",
-     "testo_pot": "Peschi 2 dadi."
+     "testo": "Riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Roccia",
@@ -2804,7 +2988,9 @@
    ],
    "entrambi": false,
    "origine": "montanaro",
-   "costo": 8
+   "costo": 7,
+   "gira": 3,
+   "sblocca": 2
   },
   {
    "id": "marinaio",
@@ -2852,7 +3038,9 @@
    ],
    "entrambi": false,
    "origine": "marinaio",
-   "costo": 1
+   "costo": 3,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "orso",
@@ -2876,10 +3064,11 @@
       "tieni": true,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "A contatto: afferri (la somma di danno), perde il dado più alto, lo tieni (non può muoversi).",
-     "testo_pot": "A contatto: afferri (la somma +2 di danno), perde il dado più alto, lo tieni (non può muoversi)."
+     "testo": "A contatto: afferri (la somma di danno), perde il dado più alto, lo tieni (non può muoversi). Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (la somma +2 di danno), perde il dado più alto, lo tieni (non può muoversi). Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Pelliccia",
@@ -2902,7 +3091,9 @@
    ],
    "entrambi": false,
    "origine": "orso",
-   "costo": 1
+   "costo": 1,
+   "gira": 3,
+   "sblocca": 2
   },
   {
    "id": "penitente",
@@ -2923,10 +3114,11 @@
       "cura": 2,
       "pot": {
        "cura": 3
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Recuperi 2 ferite.",
-     "testo_pot": "Recuperi 3 ferite."
+     "testo": "Recuperi 2 ferite. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Recuperi 3 ferite. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Carne dura",
@@ -2950,7 +3142,9 @@
    ],
    "entrambi": false,
    "origine": "penitente",
-   "costo": 1
+   "costo": 3,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "guardiano",
@@ -2999,7 +3193,9 @@
    ],
    "entrambi": false,
    "origine": "guardiano",
-   "costo": 3
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "corridore",
@@ -3047,7 +3243,9 @@
    ],
    "entrambi": false,
    "origine": "corridore",
-   "costo": 1
+   "costo": 3,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "cambio_guardia",
@@ -3078,7 +3276,9 @@
    ],
    "entrambi": false,
    "origine": "cambio_guardia",
-   "costo": 1
+   "costo": 3,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "guardia_alta",
@@ -3108,7 +3308,9 @@
    ],
    "entrambi": false,
    "origine": "guardia_alta",
-   "costo": 3
+   "costo": 4,
+   "gira": 3,
+   "sblocca": 2
   },
   {
    "id": "ferro",
@@ -3139,7 +3341,9 @@
    ],
    "entrambi": false,
    "origine": "ferro",
-   "costo": 2
+   "costo": 3,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "riscossa",
@@ -3161,15 +3365,18 @@
       "pulisci": true,
       "pot": {
        "pesca": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Togli i tuoi svantaggi, peschi 1 dado.",
-     "testo_pot": "Togli i tuoi svantaggi, peschi 2 dadi."
+     "testo": "Togli i tuoi svantaggi, riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Togli i tuoi svantaggi, riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "riscossa",
-   "costo": 6
+   "costo": 5,
+   "gira": 3,
+   "sblocca": 2
   },
   {
    "id": "tenacia",
@@ -3200,7 +3407,9 @@
    ],
    "entrambi": false,
    "origine": "tenacia",
-   "costo": 2
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "fiato_lungo",
@@ -3222,15 +3431,18 @@
       "pesca": 1,
       "pot": {
        "cura": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Recuperi 1 ferita, peschi 1 dado.",
-     "testo_pot": "Recuperi 2 ferite, peschi 1 dado."
+     "testo": "Recuperi 1 ferita, riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Recuperi 2 ferite, riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "fiato_lungo",
-   "costo": 8
+   "costo": 7,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "seconda_aria",
@@ -3253,15 +3465,18 @@
       "pesca": 1,
       "pot": {
        "cura": 3
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Recuperi 2 ferite, peschi 1 dado.",
-     "testo_pot": "Recuperi 3 ferite, peschi 1 dado."
+     "testo": "Recuperi 2 ferite, riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Recuperi 3 ferite, riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "seconda_aria",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "cuore_leone",
@@ -3292,7 +3507,9 @@
    ],
    "entrambi": false,
    "origine": "cuore_leone",
-   "costo": 2
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tenere",
@@ -3322,7 +3539,9 @@
    ],
    "entrambi": false,
    "origine": "tenere",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "respingere",
@@ -3353,7 +3572,9 @@
    ],
    "entrambi": false,
    "origine": "respingere",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "respiro_profondo_v",
@@ -3374,15 +3595,18 @@
       "cura": 2,
       "pot": {
        "cura": 3
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Recuperi 2 ferite.",
-     "testo_pot": "Recuperi 3 ferite."
+     "testo": "Recuperi 2 ferite. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Recuperi 3 ferite. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "respiro_profondo",
-   "costo": 3
+   "costo": 4,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "gestione_fiato",
@@ -3403,15 +3627,18 @@
       "pesca": 1,
       "pot": {
        "pesca": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Peschi 1 dado.",
-     "testo_pot": "Peschi 2 dadi."
+     "testo": "Riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "gestione_del_fiato",
-   "costo": 7
+   "costo": 5,
+   "gira": 3,
+   "sblocca": 2
   },
   {
    "id": "raccogliere",
@@ -3432,15 +3659,18 @@
       "pesca": 2,
       "pot": {
        "pesca": 3
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Peschi 2 dadi.",
-     "testo_pot": "Peschi 3 dadi."
+     "testo": "Riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Riprendi 3 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "raccogliere_le_forze",
-   "costo": 8
+   "costo": 5,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "sopravvivenza",
@@ -3462,15 +3692,18 @@
       "pesca": 1,
       "pot": {
        "cura": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Recuperi 1 ferita, peschi 1 dado.",
-     "testo_pot": "Recuperi 2 ferite, peschi 1 dado."
+     "testo": "Recuperi 1 ferita, riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Recuperi 2 ferite, riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "istinto_di_sopravvivenza",
-   "costo": 6
+   "costo": 7,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "assalto",
@@ -3494,15 +3727,18 @@
       "entra": 4,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Da 4 esagoni: entri e colpisci con la somma +1.",
-     "testo_pot": "Da 4 esagoni: entri e colpisci con la somma +3."
+     "testo": "Da 4 esagoni: entri e colpisci con la somma +1. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 4 esagoni: entri e colpisci con la somma +3. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "assalto",
-   "costo": 1
+   "costo": 3,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "spallata",
@@ -3524,18 +3760,20 @@
       "danno": 2,
       "piu": 0,
       "spinta": 2,
-      "iniziativa": true,
       "pot": {
        "danno": 4
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo da 2; se ferisce, spinta di 2 esagoni; mantieni l'iniziativa.",
-     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 2 esagoni; mantieni l'iniziativa."
+     "testo": "A contatto: colpo da 2; se ferisce, spinta di 2 esagoni. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 2 esagoni. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "spallata",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "tempesta",
@@ -3555,18 +3793,20 @@
       "n": 1,
       "danno": 2,
       "piu": 0,
-      "iniziativa": true,
       "pot": {
        "danno": 4
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo da 2, mantieni l'iniziativa.",
-     "testo_pot": "A contatto: colpo da 4, mantieni l'iniziativa."
+     "testo": "A contatto: colpo da 2. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo da 4. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "tempesta_colpi",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 1
   },
   {
    "id": "doppio_pari",
@@ -3587,18 +3827,20 @@
       "n": 2,
       "danno": "meta",
       "piu": 1,
-      "iniziativa": true,
       "pot": {
        "piu": 3
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: colpo con metà della somma +1, mantieni l'iniziativa.",
-     "testo_pot": "A contatto: colpo con metà della somma +3, mantieni l'iniziativa."
+     "testo": "A contatto: colpo con metà della somma +1. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con metà della somma +3. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "doppio_pari",
-   "costo": 1
+   "costo": 2,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "calibrato",
@@ -3621,15 +3863,18 @@
       "non_scarta": true,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado +1 (non si scarta).",
-     "testo_pot": "A contatto: colpo con il dado +3 (non si scarta)."
+     "testo": "A contatto: colpo con il dado +1 (non si scarta). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +3 (non si scarta). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "calibrato",
-   "costo": 3
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "affondo_v",
@@ -3653,15 +3898,18 @@
       "arretra": 2,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Da 2 esagoni: entri e colpisci con il dado, arretri di 2 esagoni.",
-     "testo_pot": "Da 2 esagoni: entri e colpisci con il dado +2, arretri di 2 esagoni."
+     "testo": "Da 2 esagoni: entri e colpisci con il dado, arretri di 2 esagoni. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 2 esagoni: entri e colpisci con il dado +2, arretri di 2 esagoni. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "affondo_rientro",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "traverso",
@@ -3685,15 +3933,18 @@
       "esposto": true,
       "pot": {
        "danno": 4
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo da 2; se ferisce, spinta di 2 esagoni, si gira e ti offre il fianco (+1 al tuo prossimo colpo).",
-     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 2 esagoni, si gira e ti offre il fianco (+1 al tuo prossimo colpo)."
+     "testo": "A contatto: colpo da 2; se ferisce, spinta di 2 esagoni, si gira e ti offre il fianco (+1 al tuo prossimo colpo). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 2 esagoni, si gira e ti offre il fianco (+1 al tuo prossimo colpo). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "traverso",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "danza_guerra",
@@ -3716,15 +3967,18 @@
       "aggira": 2,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado +1, gli giri attorno di 2 esagoni.",
-     "testo_pot": "A contatto: colpo con il dado +3, gli giri attorno di 2 esagoni."
+     "testo": "A contatto: colpo con il dado +1, gli giri attorno di 2 esagoni. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +3, gli giri attorno di 2 esagoni. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "danza_guerra",
-   "costo": 7
+   "costo": 3,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "logoramento",
@@ -3754,7 +4008,9 @@
    ],
    "entrambi": false,
    "origine": "tecnica_del_logoramento",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "att14",
@@ -3777,15 +4033,18 @@
       "esposto": true,
       "pot": {
        "piu": 1
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado -1; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo).",
-     "testo_pot": "A contatto: colpo con il dado +1; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo)."
+     "testo": "A contatto: colpo con il dado -1; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +1; se ferisce, si gira e ti offre il fianco (+1 al tuo prossimo colpo). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "att14",
-   "costo": 3
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "att17",
@@ -3809,15 +4068,18 @@
       "tieni": true,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: afferri (il dado di danno), perde il dado più alto, lo tieni (non può muoversi).",
-     "testo_pot": "A contatto: afferri (il dado +2 di danno), perde il dado più alto, lo tieni (non può muoversi)."
+     "testo": "A contatto: afferri (il dado di danno), perde il dado più alto, lo tieni (non può muoversi). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (il dado +2 di danno), perde il dado più alto, lo tieni (non può muoversi). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "att17",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "riposo_tattico",
@@ -3839,15 +4101,18 @@
       "cura": 1,
       "pot": {
        "cura": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Recuperi 1 ferita, peschi 1 dado.",
-     "testo_pot": "Recuperi 2 ferite, peschi 1 dado."
+     "testo": "Recuperi 1 ferita, riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Recuperi 2 ferite, riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "riposo_tattico",
-   "costo": 8
+   "costo": 7,
+   "gira": 2,
+   "sblocca": 1
   },
   {
    "id": "disciplina",
@@ -3869,15 +4134,18 @@
       "vant": 1,
       "pot": {
        "pesca": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "+1 vantaggio, peschi 1 dado.",
-     "testo_pot": "+1 vantaggio, peschi 2 dadi."
+     "testo": "+1 vantaggio, riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "+1 vantaggio, riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "disciplina_del_duellante",
-   "costo": 8
+   "costo": 7,
+   "gira": 2,
+   "sblocca": 1
   },
   {
    "id": "preparazione",
@@ -3907,7 +4175,9 @@
    ],
    "entrambi": false,
    "origine": "preparazione_del_ritorno",
-   "costo": 1
+   "costo": 4,
+   "gira": 2,
+   "sblocca": 1
   },
   {
    "id": "torsione",
@@ -3938,7 +4208,9 @@
    ],
    "entrambi": false,
    "origine": "torsione",
-   "costo": 2
+   "costo": 4,
+   "gira": 3,
+   "sblocca": 2
   },
   {
    "id": "pazienza",
@@ -3967,7 +4239,9 @@
    ],
    "entrambi": false,
    "origine": "pazienza",
-   "costo": 1
+   "costo": 6,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "cammino",
@@ -4000,7 +4274,9 @@
    ],
    "entrambi": false,
    "origine": "",
-   "costo": 1
+   "costo": 3,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "tattico",
@@ -4050,7 +4326,9 @@
    ],
    "entrambi": false,
    "origine": "mente",
-   "costo": 7
+   "costo": 8,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "imbroglione",
@@ -4075,8 +4353,8 @@
        "vant": 1
       }
      },
-     "testo": "Entro 3 esagoni: perde il dado più alto; mantieni l'iniziativa.",
-     "testo_pot": "Entro 3 esagoni: perde il dado più alto; +1 vantaggio, mantieni l'iniziativa."
+     "testo": "Entro 3 esagoni: perde il dado più alto.",
+     "testo_pot": "Entro 3 esagoni: perde il dado più alto; +1 vantaggio."
     },
     {
      "nome": "Rovescio",
@@ -4099,7 +4377,9 @@
    ],
    "entrambi": false,
    "origine": "astuzia",
-   "costo": 5
+   "costo": 7,
+   "gira": 3,
+   "sblocca": 2
   },
   {
    "id": "stratega",
@@ -4147,7 +4427,9 @@
    ],
    "entrambi": false,
    "origine": "intelletto",
-   "costo": 2
+   "costo": 5,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "veggente",
@@ -4188,15 +4470,18 @@
       "pesca": 1,
       "pot": {
        "pesca": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Peschi 1 dado.",
-     "testo_pot": "Peschi 2 dadi."
+     "testo": "Riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "veggente",
-   "costo": 5
+   "costo": 6,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "azzardo",
@@ -4244,7 +4529,9 @@
    ],
    "entrambi": false,
    "origine": "azzardo",
-   "costo": 2
+   "costo": 5,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "maestro_armi",
@@ -4267,10 +4554,11 @@
       "vant": 1,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo con il dado +1, +1 vantaggio.",
-     "testo_pot": "A contatto: colpo con il dado +3, +1 vantaggio."
+     "testo": "A contatto: colpo con il dado +1, +1 vantaggio. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +3, +1 vantaggio. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Studio",
@@ -4293,7 +4581,9 @@
    ],
    "entrambi": false,
    "origine": "maestro",
-   "costo": 7
+   "costo": 8,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "ipnotista",
@@ -4343,7 +4633,9 @@
    ],
    "entrambi": false,
    "origine": "ipnotista",
-   "costo": 3
+   "costo": 6,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "cacciatore_taglie",
@@ -4392,7 +4684,9 @@
    ],
    "entrambi": false,
    "origine": "cacciatore_taglie",
-   "costo": 4
+   "costo": 3,
+   "gira": 2,
+   "sblocca": 3
   },
   {
    "id": "monaco_guerriero",
@@ -4414,10 +4708,11 @@
       "pulisci": true,
       "pot": {
        "pesca": 2
-      }
+      },
+      "cede_svant": 2
      },
-     "testo": "Togli i tuoi svantaggi, peschi 1 dado.",
-     "testo_pot": "Togli i tuoi svantaggi, peschi 2 dadi."
+     "testo": "Togli i tuoi svantaggi, riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Togli i tuoi svantaggi, riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Palmo",
@@ -4434,15 +4729,18 @@
       "spinta": 1,
       "pot": {
        "danno": 4
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: colpo da 2; se ferisce, spinta di 1 esagono.",
-     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 1 esagono."
+     "testo": "A contatto: colpo da 2; se ferisce, spinta di 1 esagono. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo da 4; se ferisce, spinta di 1 esagono. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "monaco_guerriero",
-   "costo": 8
+   "costo": 8,
+   "gira": 3,
+   "sblocca": 3
   },
   {
    "id": "proiezione_v",
@@ -4467,15 +4765,18 @@
       "freccia": 2,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: afferri (metà della somma di danno), lo proietti attorno a te di 3 esagoni, resta a terra.",
-     "testo_pot": "A contatto: afferri (metà della somma +2 di danno), lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "A contatto: afferri (metà della somma di danno), lo proietti attorno a te di 3 esagoni, resta a terra. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (metà della somma +2 di danno), lo proietti attorno a te di 3 esagoni, resta a terra. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": true,
    "origine": "proiezione",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "specchio",
@@ -4504,7 +4805,9 @@
    ],
    "entrambi": false,
    "origine": "specchio",
-   "costo": 2
+   "costo": 5,
+   "gira": 2,
+   "sblocca": 1
   },
   {
    "id": "att01",
@@ -4526,15 +4829,18 @@
       "togli": "caso",
       "pot": {
        "danno": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: afferri (1 di danno), perde il dado a caso.",
-     "testo_pot": "A contatto: afferri (3 di danno), perde il dado a caso."
+     "testo": "A contatto: afferri (1 di danno), perde il dado a caso. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (3 di danno), perde il dado a caso. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "att01",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "att02",
@@ -4557,15 +4863,18 @@
       "esposto": true,
       "pot": {
        "danno": 3
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: afferri (1 di danno), perde il dado a caso, si gira e ti offre il fianco (+1 al tuo prossimo colpo).",
-     "testo_pot": "A contatto: afferri (3 di danno), perde il dado a caso, si gira e ti offre il fianco (+1 al tuo prossimo colpo)."
+     "testo": "A contatto: afferri (1 di danno), perde il dado a caso, si gira e ti offre il fianco (+1 al tuo prossimo colpo). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: afferri (3 di danno), perde il dado a caso, si gira e ti offre il fianco (+1 al tuo prossimo colpo). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "att02",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "att03",
@@ -4589,15 +4898,18 @@
       "ntogli": 2,
       "pot": {
        "danno": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: afferri (1 di danno), perde 2 dadi (a caso).",
-     "testo_pot": "A contatto: afferri (3 di danno), perde 2 dadi (a caso)."
+     "testo": "A contatto: afferri (1 di danno), perde 2 dadi (a caso). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (3 di danno), perde 2 dadi (a caso). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "att03",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "att04",
@@ -4622,15 +4934,18 @@
       "svant": 1,
       "pot": {
        "danno": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: afferri (1 di danno), 1 svantaggio, perde 2 dadi (a caso).",
-     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio, perde 2 dadi (a caso)."
+     "testo": "A contatto: afferri (1 di danno), 1 svantaggio, perde 2 dadi (a caso). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio, perde 2 dadi (a caso). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": true,
    "origine": "att04",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "att05",
@@ -4652,15 +4967,18 @@
       "svant": 1,
       "pot": {
        "danno": 3
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: afferri (1 di danno), 1 svantaggio.",
-     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio."
+     "testo": "A contatto: afferri (1 di danno), 1 svantaggio. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "att05",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "att06",
@@ -4683,15 +5001,18 @@
       "svant": 2,
       "pot": {
        "danno": 4
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: afferri (2 di danno), 2 svantaggi.",
-     "testo_pot": "A contatto: afferri (4 di danno), 2 svantaggi."
+     "testo": "A contatto: afferri (2 di danno), 2 svantaggi. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (4 di danno), 2 svantaggi. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "att06",
-   "costo": 2
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "att07",
@@ -4716,15 +5037,18 @@
       "tieni": true,
       "pot": {
        "danno": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: afferri (1 di danno), perde 2 dadi (a caso), lo tieni (non può muoversi).",
-     "testo_pot": "A contatto: afferri (3 di danno), perde 2 dadi (a caso), lo tieni (non può muoversi)."
+     "testo": "A contatto: afferri (1 di danno), perde 2 dadi (a caso), lo tieni (non può muoversi). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (3 di danno), perde 2 dadi (a caso), lo tieni (non può muoversi). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "att07",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "att08",
@@ -4749,15 +5073,18 @@
       "svant": 1,
       "pot": {
        "danno": 3
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: afferri (1 di danno), 1 svantaggio, perde 2 dadi (a caso).",
-     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio, perde 2 dadi (a caso)."
+     "testo": "A contatto: afferri (1 di danno), 1 svantaggio, perde 2 dadi (a caso). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio, perde 2 dadi (a caso). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "att08",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "att09",
@@ -4779,15 +5106,18 @@
       "svant": 2,
       "pot": {
        "danno": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: afferri (1 di danno), 2 svantaggi.",
-     "testo_pot": "A contatto: afferri (3 di danno), 2 svantaggi."
+     "testo": "A contatto: afferri (1 di danno), 2 svantaggi. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (3 di danno), 2 svantaggi. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "att09",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "att10",
@@ -4811,15 +5141,18 @@
       "tieni": true,
       "pot": {
        "piu": 2
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: afferri (il dado di danno), 1 svantaggio, lo tieni (non può muoversi).",
-     "testo_pot": "A contatto: afferri (il dado +2 di danno), 1 svantaggio, lo tieni (non può muoversi)."
+     "testo": "A contatto: afferri (il dado di danno), 1 svantaggio, lo tieni (non può muoversi). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: afferri (il dado +2 di danno), 1 svantaggio, lo tieni (non può muoversi). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": true,
    "origine": "att10",
-   "costo": 2
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "att11",
@@ -4843,15 +5176,18 @@
       "ntogli": 3,
       "pot": {
        "danno": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: afferri (1 di danno), perde 3 dadi (a caso).",
-     "testo_pot": "A contatto: afferri (3 di danno), perde 3 dadi (a caso)."
+     "testo": "A contatto: afferri (1 di danno), perde 3 dadi (a caso). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (3 di danno), perde 3 dadi (a caso). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "att11",
-   "costo": 2
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "att12",
@@ -4876,15 +5212,18 @@
       "svant": 1,
       "pot": {
        "danno": 3
-      }
+      },
+      "cede_svant": 3
      },
-     "testo": "A contatto: afferri (1 di danno), 1 svantaggio, perde 2 dadi (a caso).",
-     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio, perde 2 dadi (a caso)."
+     "testo": "A contatto: afferri (1 di danno), 1 svantaggio, perde 2 dadi (a caso). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio, perde 2 dadi (a caso). Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "entrambi": false,
    "origine": "att12",
-   "costo": 2
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "att16",
@@ -4909,15 +5248,18 @@
       "svant": 1,
       "pot": {
        "danno": 3
-      }
+      },
+      "sicuro": true
      },
-     "testo": "A contatto: afferri (1 di danno), 1 svantaggio, perde 2 dadi (a caso).",
-     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio, perde 2 dadi (a caso)."
+     "testo": "A contatto: afferri (1 di danno), 1 svantaggio, perde 2 dadi (a caso). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: afferri (3 di danno), 1 svantaggio, perde 2 dadi (a caso). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "entrambi": false,
    "origine": "att16",
-   "costo": 3
+   "costo": 3,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "tec_i1",
@@ -4942,17 +5284,20 @@
       "togli": "caso",
       "ntogli": 2,
       "tieni": true,
+      "a_terra": true,
       "pot": {
        "svant": 3
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi).",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi)."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra."
     }
    ],
    "entrambi": false,
    "origine": "tec_i1",
-   "costo": 1
+   "costo": 3,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_i2",
@@ -4971,22 +5316,26 @@
       "nome": "Leva del polso piegato",
       "tipo": "trappola",
       "n": 2,
-      "contro": "presa",
+      "contro": "tutto",
       "danno": 1,
       "svant": 2,
       "togli": "caso",
       "ntogli": 2,
+      "tieni": true,
+      "a_terra": true,
       "pot": {
        "svant": 3
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso).",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso)."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra."
     }
    ],
    "entrambi": false,
    "origine": "tec_i2",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "tec_i3",
@@ -5005,21 +5354,25 @@
       "nome": "Torsione del polso in alto",
       "tipo": "trappola",
       "n": 2,
-      "contro": "presa",
+      "contro": "tutto",
       "danno": 2,
       "svant": 1,
       "togli": "caso",
+      "tieni": true,
+      "a_terra": true,
       "pot": {
        "svant": 2
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende 2, 1 svantaggio, perde il dado a caso.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende 2, 2 svantaggi, perde il dado a caso."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 2, 1 svantaggio, perde il dado a caso, lo tieni (non può muoversi), resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 2, 2 svantaggi, perde il dado a caso, lo tieni (non può muoversi), resta a terra."
     }
    ],
    "entrambi": false,
    "origine": "tec_i3",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_i4",
@@ -5042,17 +5395,21 @@
       "danno": 1,
       "svant": 2,
       "togli": "alto",
+      "tieni": true,
+      "a_terra": true,
       "pot": {
        "svant": 3
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde il dado più alto.",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde il dado più alto."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde il dado più alto, lo tieni (non può muoversi), resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde il dado più alto, lo tieni (non può muoversi), resta a terra."
     }
    ],
    "entrambi": false,
    "origine": "tec_i4",
-   "costo": 2
+   "costo": 3,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "tec_i5",
@@ -5073,17 +5430,21 @@
       "contro": "colpo",
       "danno": 1,
       "svant": 2,
+      "tieni": true,
+      "a_terra": true,
       "pot": {
        "svant": 3
       }
      },
-     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende 1, 2 svantaggi.",
-     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende 1, 3 svantaggi."
+     "testo": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, lo tieni (non può muoversi), resta a terra.",
+     "testo_pot": "Trappola contro i colpi: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, lo tieni (non può muoversi), resta a terra."
     }
    ],
    "entrambi": false,
    "origine": "tec_i5",
-   "costo": 3
+   "costo": 4,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "tec_i6",
@@ -5107,17 +5468,20 @@
       "svant": 1,
       "togli": "caso",
       "tieni": true,
+      "a_terra": true,
       "pot": {
        "svant": 2
       }
      },
-     "testo": "Trappola: annulli l'attacco, l'attaccante prende 2, 1 svantaggio, perde il dado a caso, lo tieni (non può muoversi).",
-     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 2, 2 svantaggi, perde il dado a caso, lo tieni (non può muoversi)."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 2, 1 svantaggio, perde il dado a caso, lo tieni (non può muoversi), resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 2, 2 svantaggi, perde il dado a caso, lo tieni (non può muoversi), resta a terra."
     }
    ],
    "entrambi": false,
    "origine": "tec_i6",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "tec_i7",
@@ -5136,22 +5500,26 @@
       "nome": "Leva alta ai quattro lati",
       "tipo": "trappola",
       "n": 2,
-      "contro": "presa",
+      "contro": "tutto",
       "danno": 1,
       "svant": 2,
       "togli": "caso",
       "ntogli": 2,
+      "tieni": true,
+      "a_terra": true,
       "pot": {
        "svant": 3
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso).",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso)."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende 1, 2 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende 1, 3 svantaggi, perde 2 dadi (a caso), lo tieni (non può muoversi), resta a terra."
     }
    ],
    "entrambi": false,
    "origine": "tec_i7",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p1",
@@ -5186,7 +5554,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p1",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p2",
@@ -5221,7 +5591,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p2",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p3",
@@ -5255,7 +5627,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p3",
-   "costo": 8
+   "costo": 8,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "tec_p4",
@@ -5274,7 +5648,7 @@
       "nome": "Proiezione d'anca",
       "tipo": "trappola",
       "n": 2,
-      "contro": "presa",
+      "contro": "tutto",
       "danno": "meta",
       "piu": 2,
       "proietta": 1,
@@ -5284,13 +5658,15 @@
        "proietta": 2
       }
      },
-     "testo": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +2, lo proietti attorno a te di 1 esagono, resta a terra.",
-     "testo_pot": "Trappola contro le prese: annulli l'attacco, l'attaccante prende metà della somma +2, lo proietti attorno a te di 2 esagoni, resta a terra."
+     "testo": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +2, lo proietti attorno a te di 1 esagono, resta a terra.",
+     "testo_pot": "Trappola: annulli l'attacco, l'attaccante prende metà della somma +2, lo proietti attorno a te di 2 esagoni, resta a terra."
     }
    ],
    "entrambi": false,
    "origine": "tec_p4",
-   "costo": 1
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p5",
@@ -5324,7 +5700,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p5",
-   "costo": 2
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p6",
@@ -5358,7 +5736,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p6",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p7",
@@ -5392,7 +5772,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p7",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p8",
@@ -5426,7 +5808,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p8",
-   "costo": 8
+   "costo": 8,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "tec_p9",
@@ -5460,7 +5844,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p9",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p10",
@@ -5494,7 +5880,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p10",
-   "costo": 2
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p11",
@@ -5528,7 +5916,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p11",
-   "costo": 8
+   "costo": 8,
+   "gira": 2,
+   "sblocca": 1
   },
   {
    "id": "tec_p12",
@@ -5562,7 +5952,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p12",
-   "costo": 8
+   "costo": 8,
+   "gira": 3,
+   "sblocca": 2
   },
   {
    "id": "tec_p13",
@@ -5597,7 +5989,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p13",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p14",
@@ -5631,7 +6025,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p14",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p15",
@@ -5665,7 +6061,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p15",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "tec_p16",
@@ -5700,7 +6098,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p16",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p17",
@@ -5734,7 +6134,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p17",
-   "costo": 2
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p18",
@@ -5769,7 +6171,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p18",
-   "costo": 1
+   "costo": 3,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "tec_p19",
@@ -5803,7 +6207,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p19",
-   "costo": 2
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "tec_p20",
@@ -5837,7 +6243,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p20",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p21",
@@ -5871,7 +6279,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p21",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p22",
@@ -5905,7 +6315,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p22",
-   "costo": 2
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p23",
@@ -5939,7 +6351,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p23",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "tec_p24",
@@ -5973,7 +6387,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p24",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p25",
@@ -6007,7 +6423,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p25",
-   "costo": 8
+   "costo": 8,
+   "gira": 3,
+   "sblocca": 2
   },
   {
    "id": "tec_p26",
@@ -6042,7 +6460,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p26",
-   "costo": 2
+   "costo": 2,
+   "gira": 1,
+   "sblocca": 2
   },
   {
    "id": "tec_p27",
@@ -6076,7 +6496,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p27",
-   "costo": 1
+   "costo": 1,
+   "gira": 1,
+   "sblocca": 1
   },
   {
    "id": "tec_p28",
@@ -6111,7 +6533,9 @@
    ],
    "entrambi": false,
    "origine": "tec_p28",
-   "costo": 1
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 2
   },
   {
    "id": "assalto_finale",
@@ -6138,11 +6562,12 @@
       "svant": 1,
       "pot": {
        "piu": 4
-      }
+      },
+      "cede_svant": 3
      },
      "col": "rosso",
-     "testo": "A contatto: colpo con il dado +2; se ferisce, 1 svantaggio.",
-     "testo_pot": "A contatto: colpo con il dado +4; se ferisce, 1 svantaggio."
+     "testo": "A contatto: colpo con il dado +2; se ferisce, 1 svantaggio. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +4; se ferisce, 1 svantaggio. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Ultima carica",
@@ -6160,17 +6585,20 @@
       "spinta": 1,
       "pot": {
        "piu": 4
-      }
+      },
+      "cede_svant": 2
      },
      "col": "arancio",
-     "testo": "Da 4 esagoni: entri e colpisci con il dado +2; se ferisce, spinta di 1 esagono.",
-     "testo_pot": "Da 4 esagoni: entri e colpisci con il dado +4; se ferisce, spinta di 1 esagono."
+     "testo": "Da 4 esagoni: entri e colpisci con il dado +2; se ferisce, spinta di 1 esagono. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 4 esagoni: entri e colpisci con il dado +4; se ferisce, spinta di 1 esagono. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "cond": "ferito",
    "origine": "ultimo_respiro",
-   "testo_cond": "Si potenzia se hai metà delle ferite o meno.",
-   "costo": 4
+   "costo": 2,
+   "gira": 3,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se hai metà delle ferite o meno."
   },
   {
    "id": "atemi",
@@ -6198,11 +6626,12 @@
       "togli": "alto",
       "pot": {
        "piu": 4
-      }
+      },
+      "sicuro": true
      },
      "col": "rosso",
-     "testo": "A contatto: colpo con il dado +2; se ferisce, 2 svantaggi, perde il dado più alto.",
-     "testo_pot": "A contatto: colpo con il dado +4; se ferisce, 2 svantaggi, perde il dado più alto."
+     "testo": "A contatto: colpo con il dado +2; se ferisce, 2 svantaggi, perde il dado più alto. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +4; se ferisce, 2 svantaggi, perde il dado più alto. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     },
     {
      "nome": "Entrata decisa",
@@ -6220,17 +6649,20 @@
       "a_terra": true,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 2
      },
      "col": "arancio",
-     "testo": "Da 2 esagoni: entri e colpisci con il dado +1; se ferisce, resta a terra.",
-     "testo_pot": "Da 2 esagoni: entri e colpisci con il dado +3; se ferisce, resta a terra."
+     "testo": "Da 2 esagoni: entri e colpisci con il dado +1; se ferisce, resta a terra. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 2 esagoni: entri e colpisci con il dado +3; se ferisce, resta a terra. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "cond": "uguali",
    "origine": "",
-   "testo_cond": "Si potenzia se i due dadi delle sue metà sono uguali.",
-   "costo": 8
+   "costo": 8,
+   "gira": 2,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se i due dadi delle sue metà sono uguali."
   },
   {
    "id": "furia_del_toro",
@@ -6257,11 +6689,12 @@
       "spinta": 2,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 3
      },
      "col": "rosso",
-     "testo": "A contatto: colpo con il dado +1; se ferisce, spinta di 2 esagoni.",
-     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, spinta di 2 esagoni."
+     "testo": "A contatto: colpo con il dado +1; se ferisce, spinta di 2 esagoni. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +3; se ferisce, spinta di 2 esagoni. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Travolgere",
@@ -6279,17 +6712,20 @@
       "a_terra": true,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 2
      },
      "col": "arancio",
-     "testo": "Da 4 esagoni: entri e colpisci con il dado +1; se ferisce, resta a terra.",
-     "testo_pot": "Da 4 esagoni: entri e colpisci con il dado +3; se ferisce, resta a terra."
+     "testo": "Da 4 esagoni: entri e colpisci con il dado +1; se ferisce, resta a terra. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 4 esagoni: entri e colpisci con il dado +3; se ferisce, resta a terra. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "cond": "alto",
    "origine": "furia_cieca",
-   "testo_cond": "Si potenzia se sei più in alto dell'avversario.",
-   "costo": 4
+   "costo": 2,
+   "gira": 3,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se sei più in alto dell'avversario."
   },
   {
    "id": "turbine",
@@ -6316,11 +6752,12 @@
       "aggira": 2,
       "pot": {
        "piu": 4
-      }
+      },
+      "sicuro": true
      },
      "col": "arancio",
-     "testo": "A contatto: colpo con il dado +2, gli giri attorno di 2 esagoni.",
-     "testo_pot": "A contatto: colpo con il dado +4, gli giri attorno di 2 esagoni."
+     "testo": "A contatto: colpo con il dado +2, gli giri attorno di 2 esagoni. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +4, gli giri attorno di 2 esagoni. Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     },
     {
      "nome": "Danza del turbine",
@@ -6339,14 +6776,16 @@
       }
      },
      "col": "giallo",
-     "testo": "+2 vantaggi, mantieni l'iniziativa.",
-     "testo_pot": "+3 vantaggi, mantieni l'iniziativa."
+     "testo": "+2 vantaggi.",
+     "testo_pot": "+3 vantaggi."
     }
    ],
    "cond": "catena",
    "origine": "",
-   "testo_cond": "Si potenzia se le due metà si caricano nello stesso scambio.",
-   "costo": 2
+   "costo": 3,
+   "gira": 2,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se le due metà si caricano nello stesso scambio."
   },
   {
    "id": "volo_della_gru",
@@ -6373,11 +6812,12 @@
       "entra": 3,
       "pot": {
        "piu": 4
-      }
+      },
+      "cede_svant": 2
      },
      "col": "arancio",
-     "testo": "Da 3 esagoni: entri e colpisci con il dado +2.",
-     "testo_pot": "Da 3 esagoni: entri e colpisci con il dado +4."
+     "testo": "Da 3 esagoni: entri e colpisci con il dado +2. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 3 esagoni: entri e colpisci con il dado +4. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Atterraggio alle spalle",
@@ -6394,17 +6834,20 @@
       "alle_spalle": true,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 2
      },
      "col": "giallo",
-     "testo": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado.",
-     "testo_pot": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado +2."
+     "testo": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado +2. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "cond": "alto",
    "origine": "",
-   "testo_cond": "Si potenzia se sei più in alto dell'avversario.",
-   "costo": 4
+   "costo": 3,
+   "gira": 2,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se sei più in alto dell'avversario."
   },
   {
    "id": "zanshin",
@@ -6430,11 +6873,12 @@
       "cura": 1,
       "pot": {
        "cura": 2
-      }
+      },
+      "cede_svant": 2
      },
      "col": "arancio",
-     "testo": "+2 vantaggi, recuperi 1 ferita.",
-     "testo_pot": "+2 vantaggi, recuperi 2 ferite."
+     "testo": "+2 vantaggi, recuperi 1 ferita. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "+2 vantaggi, recuperi 2 ferite. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Corpo pronto",
@@ -6450,17 +6894,20 @@
       "iniziativa": true,
       "pot": {
        "pesca": 2
-      }
+      },
+      "cede_svant": 2
      },
      "col": "giallo",
-     "testo": "Peschi 1 dado, mantieni l'iniziativa.",
-     "testo_pot": "Peschi 2 dadi, mantieni l'iniziativa."
+     "testo": "Riprendi 1 dado dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "cond": "vantaggi",
    "origine": "",
-   "testo_cond": "Si potenzia se hai almeno 3 vantaggi.",
-   "costo": 6
+   "costo": 5,
+   "gira": 3,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se hai almeno 3 vantaggi."
   },
   {
    "id": "kokyu_nage",
@@ -6518,8 +6965,10 @@
    ],
    "cond": "catena",
    "origine": "",
-   "testo_cond": "Si potenzia se le due metà si caricano nello stesso scambio.",
-   "costo": 9
+   "costo": 8,
+   "gira": 2,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se le due metà si caricano nello stesso scambio."
   },
   {
    "id": "fortuna_matto",
@@ -6575,8 +7024,10 @@
    ],
    "cond": "ferito",
    "origine": "fortuna_matto",
-   "testo_cond": "Si potenzia se hai metà delle ferite o meno.",
-   "costo": 2
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se hai metà delle ferite o meno."
   },
   {
    "id": "passo_ombra",
@@ -6605,8 +7056,8 @@
       }
      },
      "col": "giallo",
-     "testo": "Avanzi fino a 3 esagoni, mantieni l'iniziativa.",
-     "testo_pot": "+1 vantaggio, avanzi fino a 3 esagoni, mantieni l'iniziativa."
+     "testo": "Avanzi fino a 3 esagoni.",
+     "testo_pot": "+1 vantaggio, avanzi fino a 3 esagoni."
     },
     {
      "nome": "Riapparire alle spalle",
@@ -6623,17 +7074,20 @@
       "alle_spalle": true,
       "pot": {
        "piu": 3
-      }
+      },
+      "cede_svant": 2
      },
      "col": "verde",
-     "testo": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado +1.",
-     "testo_pot": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado +3."
+     "testo": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado +1. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Da 3 esagoni: salti alle sue spalle e colpisci con il dado +3. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "cond": "spalle",
    "origine": "",
-   "testo_cond": "Si potenzia se sei alle spalle dell'avversario.",
-   "costo": 2
+   "costo": 3,
+   "gira": 3,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se sei alle spalle dell'avversario."
   },
   {
    "id": "shiho_nage",
@@ -6691,8 +7145,10 @@
    ],
    "cond": "presa",
    "origine": "",
-   "testo_cond": "Si potenzia se l'avversario ti tiene o lo tieni tu.",
-   "costo": 10
+   "costo": 10,
+   "gira": 3,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se l'avversario ti tiene o lo tieni tu."
   },
   {
    "id": "ritorno",
@@ -6717,11 +7173,12 @@
       "pesca": 2,
       "pot": {
        "pesca": 3
-      }
+      },
+      "cede_svant": 2
      },
      "col": "verde",
-     "testo": "Peschi 2 dadi.",
-     "testo_pot": "Peschi 3 dadi."
+     "testo": "Riprendi 2 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Riprendi 3 dadi dall'Attesa. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     },
     {
      "nome": "Centro calmo",
@@ -6737,17 +7194,20 @@
       "pulisci": true,
       "pot": {
        "cura": 3
-      }
+      },
+      "cede_svant": 2
      },
      "col": "blu",
-     "testo": "Recuperi 2 ferite, togli i tuoi svantaggi.",
-     "testo_pot": "Recuperi 3 ferite, togli i tuoi svantaggi."
+     "testo": "Recuperi 2 ferite, togli i tuoi svantaggi. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Recuperi 3 ferite, togli i tuoi svantaggi. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "cond": "ferito",
    "origine": "",
-   "testo_cond": "Si potenzia se hai metà delle ferite o meno.",
-   "costo": 9
+   "costo": 4,
+   "gira": 2,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se hai metà delle ferite o meno."
   },
   {
    "id": "ultima_risorsa",
@@ -6793,17 +7253,20 @@
       "cura": 3,
       "pot": {
        "cura": 4
-      }
+      },
+      "cede_svant": 2
      },
      "col": "blu",
-     "testo": "Recuperi 3 ferite.",
-     "testo_pot": "Recuperi 4 ferite."
+     "testo": "Recuperi 3 ferite. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "Recuperi 4 ferite. Se hai almeno 2 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "cond": "ferito",
    "origine": "ultima_risorsa",
-   "testo_cond": "Si potenzia se hai metà delle ferite o meno.",
-   "costo": 2
+   "costo": 2,
+   "gira": 3,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se hai metà delle ferite o meno."
   },
   {
    "id": "kiai",
@@ -6859,8 +7322,10 @@
    ],
    "cond": "vantaggi",
    "origine": "",
-   "testo_cond": "Si potenzia se hai almeno 3 vantaggi.",
-   "costo": 1
+   "costo": 6,
+   "gira": 3,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se hai almeno 3 vantaggi."
   },
   {
    "id": "juji_nage",
@@ -6918,8 +7383,10 @@
    ],
    "cond": "presa",
    "origine": "",
-   "testo_cond": "Si potenzia se l'avversario ti tiene o lo tieni tu.",
-   "costo": 1
+   "costo": 1,
+   "gira": 3,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se l'avversario ti tiene o lo tieni tu."
   },
   {
    "id": "ira_repressa",
@@ -6949,8 +7416,8 @@
       }
      },
      "col": "blu",
-     "testo": "Trappola: il colpo fa 3 danni in meno, peschi 1 dado.",
-     "testo_pot": "Trappola: il colpo fa 5 danni in meno, peschi 1 dado."
+     "testo": "Trappola: il colpo fa 3 danni in meno, riprendi 1 dado dall'Attesa.",
+     "testo_pot": "Trappola: il colpo fa 5 danni in meno, riprendi 1 dado dall'Attesa."
     },
     {
      "nome": "Esplodere",
@@ -6966,17 +7433,20 @@
       "piu": 3,
       "pot": {
        "piu": 5
-      }
+      },
+      "cede_svant": 3
      },
      "col": "viola",
-     "testo": "A contatto: colpo con il dado +3.",
-     "testo_pot": "A contatto: colpo con il dado +5."
+     "testo": "A contatto: colpo con il dado +3. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +5. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "cond": "ferito",
    "origine": "ira",
-   "testo_cond": "Si potenzia se hai metà delle ferite o meno.",
-   "costo": 3
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se hai metà delle ferite o meno."
   },
   {
    "id": "tenchi_nage",
@@ -7025,17 +7495,20 @@
       "a_terra": true,
       "pot": {
        "piu": 2
-      }
+      },
+      "cede_svant": 3
      },
      "col": "rosso",
-     "testo": "A contatto: colpo con il dado; se ferisce, lo proietti attorno a te di 3 esagoni, resta a terra.",
-     "testo_pot": "A contatto: colpo con il dado +2; se ferisce, lo proietti attorno a te di 3 esagoni, resta a terra."
+     "testo": "A contatto: colpo con il dado; se ferisce, lo proietti attorno a te di 3 esagoni, resta a terra. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa.",
+     "testo_pot": "A contatto: colpo con il dado +2; se ferisce, lo proietti attorno a te di 3 esagoni, resta a terra. Se hai almeno 3 svantaggi, dopo cedi l'iniziativa."
     }
    ],
    "cond": "svantaggi",
    "origine": "",
-   "testo_cond": "Si potenzia se l'avversario ha almeno 2 svantaggi.",
-   "costo": 2
+   "costo": 1,
+   "gira": 2,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se l'avversario ha almeno 2 svantaggi."
   },
   {
    "id": "agguato",
@@ -7083,17 +7556,20 @@
       "non_scarta": true,
       "pot": {
        "piu": 4
-      }
+      },
+      "sicuro": true
      },
      "col": "rosso",
-     "testo": "A contatto: colpo con il dado +2 (non si scarta).",
-     "testo_pot": "A contatto: colpo con il dado +4 (non si scarta)."
+     "testo": "A contatto: colpo con il dado +2 (non si scarta). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo con il dado +4 (non si scarta). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "cond": "spalle",
    "origine": "agguato",
-   "testo_cond": "Si potenzia se sei alle spalle dell'avversario.",
-   "costo": 1
+   "costo": 1,
+   "gira": 3,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se sei alle spalle dell'avversario."
   },
   {
    "id": "somma_perfetta",
@@ -7141,17 +7617,20 @@
       "non_para": true,
       "pot": {
        "danno": 8
-      }
+      },
+      "sicuro": true
      },
      "col": "rosso",
-     "testo": "A contatto: colpo da 6 (non si scarta, non si para).",
-     "testo_pot": "A contatto: colpo da 8 (non si scarta, non si para)."
+     "testo": "A contatto: colpo da 6 (non si scarta, non si para). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio.",
+     "testo_pot": "A contatto: colpo da 8 (non si scarta, non si para). Anche se reagisce tieni l'iniziativa, ma prendi 1 svantaggio."
     }
    ],
    "cond": "uguali",
    "origine": "somma_perfetta",
-   "testo_cond": "Si potenzia se i due dadi delle sue metà sono uguali.",
-   "costo": 2
+   "costo": 6,
+   "gira": 3,
+   "sblocca": 3,
+   "testo_cond": "Si potenzia se i due dadi delle sue metà sono uguali."
   }
  ],
  "rari": [],
@@ -7246,19 +7725,19 @@
    "C": 3,
    "R": 2,
    "coll": [
-    "raccogliere",
-    "sopravvivenza",
-    "tec_p22",
-    "att10",
-    "calcio_girato",
-    "carica_toro",
-    "cecchino",
-    "respiro",
-    "irimi",
+    "montanaro",
+    "tenkan",
+    "maestro_armi",
+    "fabbro",
+    "calcio_volante",
+    "doppio_pari",
+    "danzatore",
     "ritorno",
-    "ira_repressa",
-    "fortuna_matto",
-    "agguato"
+    "juji_nage",
+    "passo_ombra",
+    "agguato",
+    "assalto_finale",
+    "zanshin"
    ],
    "raro": "",
    "aspetto": "donna",
@@ -7272,21 +7751,18 @@
    "C": 3,
    "R": 2,
    "coll": [
-    "temerario",
-    "att15",
-    "affondo_v",
-    "affondo",
-    "tec_i4",
-    "balzo",
+    "gomitata",
+    "carica_toro",
+    "ipnotista",
+    "ladro",
     "tenkan",
     "veterano",
-    "calcio_girato",
-    "carica_toro",
     "atemi",
     "tenchi_nage",
     "turbine",
     "fortuna_matto",
-    "juji_nage"
+    "juji_nage",
+    "ultima_risorsa"
    ],
    "raro": "",
    "aspetto": "uomo2",
@@ -7300,22 +7776,16 @@
    "C": 2,
    "R": 2,
    "coll": [
-    "sesto_senso",
-    "riflesso",
-    "calibrato",
-    "att14",
-    "tec_p17",
-    "gladiatore",
+    "borseggiatore",
+    "carica_toro",
+    "irimi",
+    "fabbro",
     "veterano",
     "kote_gaeshi",
-    "balzo",
-    "carica_toro",
-    "zanshin",
+    "volo_della_gru",
     "passo_ombra",
-    "furia_del_toro",
-    "ultima_risorsa",
-    "kiai",
-    "agguato"
+    "atemi",
+    "ultima_risorsa"
    ],
    "raro": "",
    "aspetto": "snella",
@@ -7327,21 +7797,20 @@
    "A": 2,
    "P": 3,
    "C": 1,
-   "R": 3,
+   "R": 2,
    "coll": [
-    "calma",
-    "guardia_ferrea",
-    "tec_p5",
-    "tec_i4",
-    "gladiatore",
-    "carica_toro",
-    "acrobata",
-    "respiro",
+    "montanaro",
     "irimi",
-    "ultima_risorsa",
-    "ira_repressa",
-    "kokyu_nage",
-    "agguato"
+    "imbroglione",
+    "fabbro",
+    "calcio_volante",
+    "att14",
+    "cecchino",
+    "ritorno",
+    "kiai",
+    "fortuna_matto",
+    "tenchi_nage",
+    "assalto_finale"
    ],
    "raro": "",
    "aspetto": "uomo3",
@@ -7355,19 +7824,18 @@
    "C": 4,
    "R": 2,
    "coll": [
-    "fiato_lungo",
-    "sopravvivenza",
-    "tec_i4",
-    "calcio_girato",
+    "montanaro",
+    "monaco_guerriero",
+    "fabbro",
     "irimi",
-    "carica_toro",
-    "acrobata",
-    "respiro",
-    "kote_gaeshi",
-    "juji_nage",
+    "doppio_pari",
+    "affondo",
+    "danzatore",
+    "ira_repressa",
     "ritorno",
-    "tenchi_nage",
-    "furia_del_toro"
+    "somma_perfetta",
+    "assalto_finale",
+    "fortuna_matto"
    ],
    "raro": "",
    "aspetto": "formosa",
@@ -7381,22 +7849,18 @@
    "C": 2,
    "R": 2,
    "coll": [
-    "sesto_senso",
-    "riflesso",
-    "calibrato",
-    "att14",
-    "torsione",
-    "gladiatore",
-    "corridore",
-    "kote_gaeshi",
-    "balzo",
+    "borseggiatore",
     "carica_toro",
-    "turbine",
-    "fortuna_matto",
-    "atemi",
-    "ultima_risorsa",
+    "tenkan",
+    "calcio_girato",
+    "veterano",
+    "kote_gaeshi",
+    "zanshin",
+    "passo_ombra",
+    "assalto_finale",
+    "ritorno",
     "juji_nage",
-    "agguato"
+    "tenchi_nage"
    ],
    "raro": "",
    "aspetto": "bionda",
@@ -7410,19 +7874,18 @@
    "C": 2,
    "R": 2,
    "coll": [
-    "temerario",
-    "att15",
-    "ferro",
-    "specchio",
-    "tempesta",
-    "sgambetto",
-    "tec_p5",
-    "danzatore",
-    "calcio_girato",
+    "gomitata",
+    "montanaro",
+    "kote_gaeshi",
+    "danza_guerra",
+    "att14",
+    "irimi",
+    "gatto",
     "juji_nage",
-    "agguato",
+    "somma_perfetta",
     "assalto_finale",
-    "ritorno"
+    "ritorno",
+    "volo_della_gru"
    ],
    "raro": "",
    "aspetto": "mora",
@@ -7436,20 +7899,17 @@
    "C": 3,
    "R": 2,
    "coll": [
-    "fiato_lungo",
-    "sopravvivenza",
-    "torsione",
-    "specchio",
-    "cecchino",
-    "carica_toro",
-    "calcio_girato",
-    "respiro",
-    "irimi",
+    "montanaro",
+    "tenkan",
+    "monaco_guerriero",
+    "danzatore",
+    "doppio_pari",
+    "calcio_volante",
+    "fabbro",
     "ultima_risorsa",
-    "ira_repressa",
+    "kiai",
     "passo_ombra",
-    "zanshin",
-    "agguato"
+    "zanshin"
    ],
    "raro": "",
    "aspetto": "barbuto",
@@ -7463,19 +7923,18 @@
    "C": 2,
    "R": 2,
    "coll": [
-    "raccogliere",
-    "riscossa",
-    "tec_p26",
-    "att10",
-    "gladiatore",
-    "carica_toro",
-    "schermidore",
-    "respiro",
+    "montanaro",
     "irimi",
+    "maestro_armi",
+    "fabbro",
+    "doppio_pari",
+    "affondo_v",
+    "danzatore",
     "ritorno",
     "ira_repressa",
-    "passo_ombra",
-    "somma_perfetta"
+    "fortuna_matto",
+    "tenchi_nage",
+    "atemi"
    ],
    "raro": "",
    "aspetto": "uomo",

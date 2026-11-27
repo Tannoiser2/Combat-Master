@@ -83,7 +83,7 @@ func conto(pg: Dictionary) -> Dictionary:
 	return {"punti": punti, "max_punti": maxp, "budget": spesi, "max_budget": maxb, "budget3": spesi3, "max_budget3": maxb3, "problemi": prob}
 
 func casuale(gen: RandomNumberGenerator, nome := "Avventuriero") -> Dictionary:
-	var R := 3 if gen.randi() % 3 == 0 else 2
+	var R := 2
 	var punti := int(reg["punti"]) - (int(reg["ritmo3_punti"]) if R == 3 else 0)
 	var v := [1, 1, 1, 1]
 	while true:
@@ -119,21 +119,26 @@ func casuale(gen: RandomNumberGenerator, nome := "Avventuriero") -> Dictionary:
 			lista[i] = lista[j]
 			lista[j] = x
 		var pz := 0
+		var dopo: int = posti.size() - posti.find(c) - 1
 		for id in lista:
 			var n: int = tokp[id]["azioni"].size()
-			if pz + n <= 2 and int(tokp[id]["costo"]) <= budget:
+			if pz + n <= 2 and int(tokp[id]["costo"]) <= budget - dopo * 2:
 				coll.append(id)
 				budget -= int(tokp[id]["costo"])
 				pz += n
 			if pz >= 2:
 				break
-	# un paio di token in più da cambiare alle pause
-	for c in posti.slice(0, 2):
-		for id in per_col.get(c, []):
-			if not coll.has(id) and int(tokp[id]["costo"]) <= budget:
-				coll.append(id)
-				budget -= int(tokp[id]["costo"])
-				break
+		if pz < 2:
+			# il posto va riempito: i più economici
+			lista.sort_custom(func(a, b): return int(tokp[a]["costo"]) < int(tokp[b]["costo"]))
+			for id in lista:
+				var n: int = tokp[id]["azioni"].size()
+				if not coll.has(id) and pz + n <= 2:
+					coll.append(id)
+					budget -= int(tokp[id]["costo"])
+					pz += n
+				if pz >= 2:
+					break
 	for i in range(esterni.size() - 1, 0, -1):
 		var j := gen.randi() % (i + 1)
 		var x = esterni[i]
@@ -215,7 +220,19 @@ func nuova_sfera(pg0: Dictionary, pg1: Dictionary, arena_id: String, umani: Arra
 			"girate": {}, "flussi": 0, "tenuto": false, "occhio": false, "zanshin": 0, "slot": 2,
 			"a_terra": false, "attesa": _attesa_vuota(), "esposto": false, "cambi": 0, "mezze": {}})
 	_scrivi("Inizia il duello: %s contro %s." % [s["g"][0]["nome"], s["g"][1]["nome"]])
-	_pausa()
+	s["scambio"] = 1
+	s["cede"] = -1
+	for p in 2:
+		var g: Dictionary = s["g"][p]
+		_assetto_iniziale(p)
+		_metti_in_campo(p)
+		for c in g["mucchio"]:
+			g["mano"].append(_nuovo_dado(c))
+	s["attivo"] = int(s["primo"])
+	s["fase"] = "azione"
+	gira_verso(0)
+	gira_verso(1)
+	_avanza()
 
 func valore_guardia(_p: int, _key: String) -> int:
 	return 0
@@ -246,16 +263,29 @@ func _vant(p: int, n: int) -> void:
 	if g["vantaggi"] != prima:
 		_evento({"t": "vantaggi", "p": p})
 
+## Gli svantaggi li spende l'avversario: +1 al danno che subisci; a 3 perdi l'iniziativa.
 func _svant(p: int, n: int) -> void:
-	s["g"][p]["svantaggi"] = maxi(0, int(s["g"][p]["svantaggi"]) + n)
+	var g: Dictionary = s["g"][p]
+	g["svantaggi"] = clampi(int(g["svantaggi"]) + n, 0, int(reg["max_vant"]))
 	_evento({"t": "svantaggi", "p": p})
 
-## Valore effettivo di un dado: ogni svantaggio toglie 1 al prossimo dado usato.
-func _valore(p: int, v: int) -> int:
+## Regole d'iniziativa scritte sull'azione: "sicuro" la tiene anche se l'avversario reagisce
+## (a prezzo di 1 svantaggio), "cede_svant" la fa perdere se hai già tanti svantaggi.
+func _iniziativa_azione(p: int, a: Dictionary) -> void:
 	var g: Dictionary = s["g"][p]
-	if int(g["svantaggi"]) > 0:
-		g["svantaggi"] -= 1
-		return maxi(1, v - 1)
+	if int(s["attivo"]) != p:
+		return
+	if a.get("sicuro", false) and int(s.get("cede", -1)) == p:
+		s["cede"] = -1
+		_svant(p, 1)
+		_scrivi("%s non molla: tiene l'iniziativa e prende 1 svantaggio." % g["nome"])
+	var n := int(a.get("cede_svant", 0))
+	if n > 0 and int(g["svantaggi"]) >= n:
+		g["svantaggi"] = 0
+		s["cede"] = p
+		_scrivi("%s è sbilanciato: perde l'iniziativa." % g["nome"])
+
+func _valore(_p: int, v: int) -> int:
 	return v
 
 func _nuovo_dado(c: String) -> Dictionary:
@@ -1133,12 +1163,14 @@ func _sali(p: int, colore: String, settore: String, mia: bool, valore: int, scel
 		if v <= fallo:
 			_scrivi("%s ritira per salire su %s: esce %d, il dado va in Attesa." % [g["nome"], nome_t, v])
 			_evento({"t": "fallito", "p": p})
+			if int(s["attivo"]) == p and s["fase"] != "reazione":
+				s["cede"] = p
 			_reaz_att = -1
 			if settore in ["F", "A", "P"]:
 				_in_attesa(p, settore, colore)
 			poi.call(false)
 			return
-		continua = mia
+		continua = true
 		_vant(p, 1)
 		_scrivi("%s ritira e sale su %s con un %d%s." % [g["nome"], nome_t, v, ", e continua" if continua else ""])
 	else:
@@ -1497,6 +1529,10 @@ func _attacco(p: int, danno: int, dado_max: int, nome: String, genere: String, p
 	if n.get("esposto", false):
 		danno += 1
 		n["esposto"] = false
+	if int(n["svantaggi"]) > 0 and danno > 0:
+		_scrivi("%s sfrutta %s di %s." % [s["g"][p]["nome"], plurale(int(n["svantaggi"]), "svantaggio", "svantaggi"), n["nome"]])
+		danno += int(n["svantaggi"])
+		n["svantaggi"] = 0
 	if flag.get("non_scarta", false):
 		mp[1] = false
 	if mp[0] > 0:
@@ -1614,6 +1650,8 @@ func _risolvi_reazione(pend: Dictionary, scelta: Dictionary) -> void:
 			rid += k
 		var resto := maxi(0, danno - rid)
 		_scrivi("%s para con un %d: %s." % [n["nome"], v, "nessun danno" if resto == 0 else "passa %d" % resto])
+		if resto == 0:
+			s["cede"] = p
 		_ferisci(d, resto)
 		if s["vinc"] >= 0:
 			poi.call(resto)
@@ -1628,6 +1666,7 @@ func _risolvi_reazione(pend: Dictionary, scelta: Dictionary) -> void:
 	else:
 		_evento({"t": "schiva", "p": d})
 		_scrivi("%s scarta il colpo con un %d." % [n["nome"], v])
+		s["cede"] = p
 		allontana(d, 1)
 		_vant(d, 1)
 		if scelta.get("gira", false) and int(n["vantaggi"]) >= 1 and not n["girate"].has("scarto"):
@@ -1637,6 +1676,9 @@ func _risolvi_reazione(pend: Dictionary, scelta: Dictionary) -> void:
 		_sali(d, c, "A", false, v, salita, func(_c): poi.call(0))
 
 func _trappola(d: int, e: Dictionary, danno: int, att: int, poi: Callable) -> void:
+	# chi finisce in una trappola perde l'iniziativa
+	if int(s["attivo"]) == att:
+		s["cede"] = att
 	if te(e)["eff"] == "comp":
 		_trappola_comp(d, e, danno, att, poi)
 		return
@@ -1819,7 +1861,11 @@ func _effetti_miei(p: int, a: Dictionary) -> void:
 	if a.get("pulisci", false):
 		g["svantaggi"] = 0
 	for i in int(a.get("pesca", 0)):
-		g["mano"].append(_nuovo_dado(g["mucchio"][rng.randi() % g["mucchio"].size()]))
+		# riprende un dado dall'Attesa, ritirato
+		for k in g["attesa"]:
+			if not g["attesa"][k].is_empty():
+				g["mano"].append(_nuovo_dado(String(g["attesa"][k].pop_back())))
+				break
 	if a.get("ritocca", false):
 		for x in g["mano"]:
 			x["v"] = mini(6, int(x["v"]) + 1)
@@ -1891,6 +1937,7 @@ func _scatta_comp(p: int, e: Dictionary, poi: Callable) -> void:
 	g["esterni"].erase(e)
 	_scrivi("%s: %s%s!" % [g["nome"], t["nome"], " potenziato" if e["pot"] else ""])
 	var fine := func():
+		_iniziativa_azione(p, a)
 		_sali_esterno(p, e, poi)
 	match String(a["tipo"]):
 		"colpo":
@@ -1951,6 +1998,8 @@ func _trappola_comp(d: int, e: Dictionary, danno: int, att: int, poi: Callable) 
 		_evento({"t": "azione", "p": d, "effetto": "ruota", "nome": t["nome"]})
 	if inflitto < 0:
 		n["tenuto"] = false
+	if a.get("iniziativa", false):
+		s["iniziativa_a"] = d
 	if s["vinc"] < 0:
 		if a.get("danno") != null:
 			_ferisci(att, D(_valore_comp(a, e)))
@@ -1982,7 +2031,7 @@ func guardia_di(d: int) -> int:
 # ================================================================ azioni
 
 func puo_agire(p: int) -> bool:
-	if s["vinc"] >= 0 or s["finito"][p]:
+	if s["vinc"] >= 0:
 		return false
 	var g: Dictionary = s["g"][p]
 	if not g["mano"].is_empty() or not g["fermi"].is_empty():
@@ -2040,9 +2089,60 @@ func esegui(p: int, op: Dictionary) -> String:
 				_in_attesa(p, {"r": "F", "b": "P"}.get(String(dd["c"]), "A"), String(dd["c"]))
 				_fine_azione(p, false)
 		"passa":
-			s["finito"][p] = true
-			_scrivi("%s si ferma fino alla pausa." % g["nome"])
+			s["cede"] = p
+			_scrivi("%s cede l'iniziativa." % g["nome"])
 			_fine_azione(p, false)
+		"aumenta":
+			# 1 vantaggio: +1 a un dado in mano
+			var i := dado_in_mano(p, int(op.get("dado", -1)))
+			if i < 0 or int(g["vantaggi"]) < 1 or int(g["mano"][i]["v"]) >= 6:
+				return "serve 1 vantaggio e un dado sotto il 6"
+			_vant(p, -1)
+			g["mano"][i]["v"] = int(g["mano"][i]["v"]) + 1
+			_evento({"t": "dado_su", "p": p})
+			_scrivi("%s spende un vantaggio: il dado sale a %d." % [g["nome"], int(g["mano"][i]["v"])])
+			_fine_azione(p, true)
+		"potenzia":
+			# 2 vantaggi: giri un token sulla faccia potenziata
+			var j := int(op.get("tok", -1))
+			if j < 0 or j >= g["esterni"].size() or g["esterni"][j].get("pot", false):
+				return "token già potenziato"
+			var costo_g := costo_gira(g["esterni"][j])
+			if costo_g < 0 or int(g["vantaggi"]) < costo_g:
+				return "servono %d vantaggi" % costo_g
+			_vant(p, -costo_g)
+			g["esterni"][j]["pot"] = true
+			var nome_p: String = te(g["esterni"][j])["nome"]
+			_scrivi("%s spende %s: %s si gira sulla faccia potenziata." % [g["nome"], plurale(costo_g, "vantaggio", "vantaggi"), nome_p])
+			_evento({"t": "segreto", "p": p, "nome": nome_p})
+			_fine_azione(p, true)
+		"sblocca":
+			# 3 vantaggi: un dado in mano salta le azioni base e va dritto su un token del suo colore
+			var i := dado_in_mano(p, int(op.get("dado", -1)))
+			var j := int(op.get("tok", -1))
+			if i < 0 or j < 0 or j >= g["esterni"].size():
+				return "servono un dado e un token"
+			var dd: Dictionary = g["mano"][i]
+			var e: Dictionary = g["esterni"][j]
+			var costo_s := costo_sblocca(e)
+			if not puo_sbloccare(e, String(dd["c"])) or costo_s < 0 or int(g["vantaggi"]) < costo_s:
+				return "quel dado non entra in quel token"
+			_vant(p, -costo_s)
+			g["mano"].remove_at(i)
+			_scrivi("%s spende %s: il dado va dritto su %s." % [g["nome"], plurale(costo_s, "vantaggio", "vantaggi"), te(e)["nome"]])
+			_metti_su(p, e, String(dd["c"]), int(dd["v"]), func(): _fine_azione(p, true))
+		"sacrifica":
+			# un dado in mano va in Attesa: +1 vantaggio
+			var i := dado_in_mano(p, int(op.get("dado", -1)))
+			if i < 0:
+				return "nessun dado da sacrificare"
+			var dd: Dictionary = g["mano"][i]
+			g["mano"].remove_at(i)
+			_in_attesa(p, {"r": "rosso", "g": "giallo", "b": "blu"}.get(String(dd["c"]), "verde"), String(dd["c"]))
+			_vant(p, 1)
+			_scrivi("%s sacrifica un dado: +1 vantaggio." % g["nome"])
+			_evento({"t": "sacrificio", "p": p})
+			_fine_azione(p, true)
 		"colpo":
 			var i := dado_in_mano(p, int(op.get("dado", -1)))
 			if i < 0 or not contatto() or not g["mano"][i]["c"] in ["r", "n"]:
@@ -2061,6 +2161,7 @@ func esegui(p: int, op: Dictionary) -> String:
 				if s["vinc"] >= 0:
 					s["fase"] = "fine"
 					return
+				_iniziativa_azione(p, {"cede_svant": 3})
 				_sali(p, dd["c"], "F", true, v, salita, func(cont): _fine_azione(p, cont))
 			_attacco(p, dmg, v, "Colpo", "colpo", dopo)
 		"presa":
@@ -2084,6 +2185,8 @@ func esegui(p: int, op: Dictionary) -> String:
 			if v >= int(reg["presa_soglia_spinta"]):
 				spingi(p, o, 1)
 			g["fermi"].append({"c": dd["c"], "az": "presa", "v": v})
+			# la presa tiene l'iniziativa, ma sbilancia anche te
+			_svant(p, 1)
 			_fine_azione(p, false)
 		"passo":
 			var i := dado_in_mano(p, int(op.get("dado", -1)))
@@ -2180,7 +2283,9 @@ func esegui(p: int, op: Dictionary) -> String:
 			return "azione sconosciuta"
 	return ""
 
-func _fine_azione(p: int, flusso: bool, aggirato := false) -> void:
+## Dopo ogni azione l'iniziativa resta a chi agisce, finché non la cede: reazione riuscita
+## dell'avversario, ritiro fallito, 3 svantaggi, o passa.
+func _fine_azione(p: int, _flusso: bool, aggirato := false) -> void:
 	if s["vinc"] >= 0:
 		s["fase"] = "fine"
 		return
@@ -2188,14 +2293,117 @@ func _fine_azione(p: int, flusso: bool, aggirato := false) -> void:
 		return
 	if not aggirato:
 		gira_verso(p)
-	if flusso:
-		s["g"][p]["flussi"] += 1
+	_rimetti_in_campo(0)
+	_rimetti_in_campo(1)
 	if int(s["iniziativa_a"]) >= 0:
-		s["attivo"] = s["iniziativa_a"]
+		if int(s["iniziativa_a"]) != p:
+			_cedi(p)
 		s["iniziativa_a"] = -1
-	elif not flusso:
-		s["attivo"] = 1 - p
+		s["cede"] = -1
+	elif int(s.get("cede", -1)) == p:
+		s["cede"] = -1
+		_cedi(p)
 	_avanza()
+
+## Chi cede l'iniziativa riprende i dadi in Attesa e quelli fermi sulle azioni base, ritirati.
+func _cedi(p: int) -> void:
+	var g: Dictionary = s["g"][p]
+	s["attivo"] = 1 - p
+	s["scambio"] += 1
+	var torna := []
+	for k in g["attesa"]:
+		torna.append_array(g["attesa"][k])
+	g["attesa"] = _attesa_vuota()
+	for f in g["fermi"]:
+		torna.append(f["c"])
+	g["fermi"] = []
+	if torna.is_empty() and g["mano"].is_empty():
+		# niente da riprendere: tornano anche i dadi dei token del mediano non ancora pieni
+		for e in g["esterni"]:
+			if anello(e) == 2 and not e["pronto"]:
+				for dd in e["dadi"]:
+					torna.append(dd["c"])
+				e["dadi"] = []
+	for c in torna:
+		g["mano"].append(_nuovo_dado(c))
+	g["girate"] = {}
+	g["flussi"] = 0
+	g["occhio"] = false
+	# il token di scena dell'oggetto vicino, se non c'è già
+	var ogg := oggetto_vicino(g["pos"])
+	var ha_scena := false
+	for e in g["esterni"]:
+		if String(e["id"]).begins_with("scena_"):
+			ha_scena = true
+	if ogg != "" and not ha_scena:
+		for k in COPPIE.size():
+			if not g["assetto3"].has(k):
+				var es := _nuovo_token("scena_" + ogg)
+				es["ogg_h"] = _casella_oggetto(g["pos"], ogg)
+				es["posto3"] = k
+				g["esterni"].append(es)
+				break
+	g["zanshin"] = maxi(0, int(g["zanshin"]) - 1)
+	# chi prende l'iniziativa si libera dalla presa; chi la cede, se è tenuto, resta tenuto
+	# (un'immobilizzazione dura finché l'avversario non riprende l'iniziativa)
+	s["g"][1 - p]["tenuto"] = false
+	_evento({"t": "iniziativa", "p": 1 - p, "tornano": torna.size()})
+	_scrivi("— L'iniziativa passa a %s (%d)." % [s["g"][1 - p]["nome"], int(s["scambio"])])
+	gira_verso(0)
+	gira_verso(1)
+
+## I token scattati tornano vuoti al loro posto, subito.
+func _rimetti_in_campo(p: int) -> void:
+	var g: Dictionary = s["g"][p]
+	var ci := {}
+	for e in g["esterni"]:
+		ci["%s:%d" % [e["id"], int(e.get("parte", 0))]] = true
+	for k in POSTI:
+		for id in g["assetto"].get(k, []):
+			for e in _nuove_parti(id):
+				if not ci.has("%s:%d" % [id, int(e["parte"])]):
+					e["posto"] = k
+					g["esterni"].append(e)
+	for k in g["assetto3"]:
+		for e in _nuove_parti(g["assetto3"][k]):
+			if not ci.has("%s:%d" % [g["assetto3"][k], int(e["parte"])]):
+				e["posto3"] = int(k)
+				g["esterni"].append(e)
+
+func costo_gira(e: Dictionary) -> int:
+	return int(tok(e["id"]).get("gira", -1)) if not String(e["id"]).begins_with("scena_") else -1
+
+func costo_sblocca(e: Dictionary) -> int:
+	return int(tok(e["id"]).get("sblocca", -1)) if not String(e["id"]).begins_with("scena_") else -1
+
+## Un token in cui un dado di quel colore può entrare direttamente (sblocco).
+func puo_sbloccare(e: Dictionary, colore: String) -> bool:
+	if e["pronto"] or e["bloccato"] or String(e["id"]).begins_with("scena_"):
+		return false
+	var t := te(e)
+	if not SETTORI_COL.has(String(t["col"])):
+		return false
+	var sett: String = SETTORI_COL[t["col"]]
+	if anello(e) == 3:
+		return (colore == "n" or SETTORE_DADO.get(colore, "") in sett) and not posti_liberi(e).is_empty()
+	if colore != "n" and not SETTORE_DADO.get(colore, "") in sett:
+		return false
+	return not posti_liberi(e).is_empty()
+
+## Mette un dado su un token e lo fa scattare se è pieno.
+func _metti_su(p: int, e: Dictionary, colore: String, v: int, poi: Callable) -> void:
+	e["dadi"].append({"c": colore, "v": v})
+	if not posti_liberi(e).is_empty():
+		poi.call()
+		return
+	e["pronto"] = true
+	if te(e)["modo"] == "subito" and in_portata(e):
+		_scatta(p, e, poi)
+		return
+	if te(e)["modo"] == "armato":
+		_scrivi("%s arma %s." % [s["g"][p]["nome"], te(e)["nome"]])
+		_evento({"t": "guardia", "p": p})
+	poi.call()
 
 func _avanza() -> void:
 	if s["vinc"] >= 0:
@@ -2203,18 +2411,18 @@ func _avanza() -> void:
 		return
 	if s["fase"] != "azione":
 		return
-	if not puo_agire(0) and not puo_agire(1):
-		if int(s["scambio"]) >= int(reg["max_scambi"]):
-			s["fase"] = "fine"
-			var a: int = s["g"][0]["vita"]
-			var b: int = s["g"][1]["vita"]
-			s["vinc"] = 0 if a > b else (1 if b > a else 2)
-			_scrivi("Il duello finisce ai punti.")
-			return
-		_pausa()
+	if int(s["scambio"]) >= int(reg["max_scambi"]):
+		s["fase"] = "fine"
+		var a: int = s["g"][0]["vita"]
+		var b: int = s["g"][1]["vita"]
+		s["vinc"] = 0 if a > b else (1 if b > a else 2)
+		_scrivi("Il duello finisce ai punti.")
 		return
-	if not puo_agire(int(s["attivo"])):
-		s["attivo"] = 1 - int(s["attivo"])
+	# chi non può fare più nulla cede l'iniziativa (al massimo due volte di fila)
+	for i in 2:
+		if puo_agire(int(s["attivo"])):
+			return
+		_cedi(int(s["attivo"]))
 
 # ================================================================ intelligenza artificiale
 
@@ -2300,6 +2508,27 @@ func ia_scegli(p: int) -> Dictionary:
 				op.append([4.5, {"t": "gira", "fermo": j}])
 			elif f["az"] == "leggi":
 				op.append([2.5, {"t": "gira", "fermo": j}])
+	# vantaggi: girare un token, sbloccare un dado, alzarne uno; dadi inutili si sacrificano
+	var va := int(g["vantaggi"])
+	for j in g["esterni"].size():
+		var e: Dictionary = g["esterni"][j]
+		var cg := costo_gira(e)
+		if cg > 0 and cg <= va and not e.get("pot", false) and not e["bloccato"]:
+			if e["pronto"]:
+				op.append([4.6 + cg * 0.2, {"t": "potenzia", "tok": j}])
+			elif posti_liberi(e).size() == 1 and va - cg >= 1:
+				op.append([2.6, {"t": "potenzia", "tok": j}])
+	for dd in g["mano"]:
+		var id: int = dd["id"]
+		var usabile := not azioni_dado(p, dd).is_empty()
+		for j in g["esterni"].size():
+			var e: Dictionary = g["esterni"][j]
+			var cs := costo_sblocca(e)
+			if cs > 0 and cs <= va and puo_sbloccare(e, String(dd["c"])):
+				var vicino := posti_liberi(e).size() == 1
+				op.append([(4.2 if vicino else 2.4) + (1.5 if not usabile else 0.0) + (0.8 if anello(e) == 3 else 0.0), {"t": "sblocca", "dado": id, "tok": j}])
+		if not usabile and int(dd["v"]) <= 2 and va < int(reg["max_vant"]):
+			op.append([1.2, {"t": "sacrifica", "dado": id}])
 	op = op.filter(func(x): return x[0] > 0)
 	if op.is_empty():
 		return {"t": "passa"}

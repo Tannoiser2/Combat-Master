@@ -35,42 +35,41 @@ func _giro() -> void:
 		if main.arena.occupato() or main._sf_umano() != 0:
 			continue
 		var fase := String(ms.s["fase"])
-		var bs := _bottoni()
-		if fase == "azione" and main._sf_sel.is_empty():
-			var g: Dictionary = ms.s["g"][0]
-			if not g["mano"].is_empty() and gen.randf() < 0.8:
-				main._sf_premuto({"tipo": "dado", "id": g["mano"][gen.randi() % g["mano"].size()]["id"]})
-			elif not g["fermi"].is_empty():
-				main._sf_premuto({"tipo": "fermo", "j": 0})
-			elif not bs.is_empty():
-				bs[0].pressed.emit()
-			else:
-				main._sf_esegui({"t": "passa"})
-			mosse += 1
-			continue
+		if fase == "reazione":
+			reazioni += 1
 		if not main._sf_esagoni.is_empty() and gen.randf() < 0.5:
 			main._sf_esagono(main._sf_esagoni["hex"][0])
 			esagoni += 1
 			continue
-		if fase == "reazione":
-			reazioni += 1
-		bs = _bottoni()
-		if bs.is_empty():
+		var bs := _bottoni()
+		var v = main._sf_vista
+		# i posti illuminati sulla sfera, come li toccherebbe il giocatore
+		var tocchi := []
+		for id in v.evid_dadi:
+			tocchi.append({"tipo": "dado", "id": id})
+		for az in v.evid_azioni:
+			tocchi.append({"tipo": "azione", "az": az})
+		for ti in v.evid_token:
+			tocchi.append({"tipo": "token", "i": ti})
+		for j2 in v.evid_fermi:
+			tocchi.append({"tipo": "fermo", "j": j2})
+		if v.evid_attesa and gen.randf() < 0.1:
+			tocchi.append({"tipo": "attesa", "posto": "rosso"})
+		if not bs.is_empty() and (tocchi.is_empty() or gen.randf() < 0.6):
+			var scelta: Button = bs[gen.randi() % bs.size()]
+			if scelta.text == "Nessuna reazione" and bs.size() > 1 and gen.randf() < 0.7:
+				scelta = bs[0]
+			scelta.pressed.emit()
+			mosse += 1
+			continue
+		if not tocchi.is_empty():
+			main._sf_premuto(tocchi[gen.randi() % tocchi.size()])
+			continue
+		if fase == "azione":
+			main._sf_esegui({"t": "passa"})
+		else:
 			main._sf_azzera()
 			main._sf_aggiorna()
-			# un dado fermo che non può salire da nessuna parte: si passa, come col bottone in basso
-			if fase == "azione" and ms.s["g"][0]["mano"].is_empty():
-				main._sf_esegui({"t": "passa"})
-			continue
-		# evita "Annulla" se c'è altro
-		var scelta: Button = bs[gen.randi() % bs.size()]
-		if scelta.text == "Annulla" and bs.size() > 1:
-			scelta = bs[0]
-		if scelta.text == "Annulla" and fase == "azione" and ms.s["g"][0]["mano"].is_empty():
-			# il dado fermo non ha dove salire: si passa
-			main._sf_esegui({"t": "passa"})
-			continue
-		scelta.pressed.emit()
 	Engine.time_scale = 1.0
 	var ms2: Sfera = main.ms
 	print("mosse %d  esagoni %d  reazioni %d  scambio %d  vincitore %d" % [mosse, esagoni, reazioni, ms2.s["scambio"], ms2.s["vinc"]])
